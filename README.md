@@ -38,7 +38,7 @@ The major epics for EventSphere are:
 ### Context Diagram
 The high-level context diagram highlights the interactions between **Event Organizers**, **Event Seekers**, and the **EventSphere Platform**. This diagram helps understand the key components and actors involved in the system.
 
-![Context Diagram](./system_diagrams/"SE Context diagram.png")
+![Context Diagram](./system_diagrams/SE_Context_diagram.png)
 
 ---
 
