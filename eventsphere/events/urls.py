@@ -1,6 +1,9 @@
 from django.urls import path
-from . import views
+from .views import create_event
+from .views import event_success
+
 
 urlpatterns = [
-    path('<str:username>/', views.user_profile_view, name='user_profile'),  # Add this line for profile
+    path('create/', create_event, name='create_event'),
+    path('success/', event_success, name='event_success'),  # Define the success URL
 ]
