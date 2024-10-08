@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
 from events.views import CustomLoginView
 from events import views as event_views
@@ -27,3 +28,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('signup/', event_views.signup_view, name='signup'),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
