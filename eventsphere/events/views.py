@@ -27,7 +27,7 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)  # Log the user in after signup
-            return redirect('create_event')  # Redirect to create_event or any page you prefer
+            return redirect('event_list')  # Redirect to create_event or any page you prefer
     else:
         form = UserCreationForm()
     return render(request, 'events/signup.html', {'form': form})
@@ -38,7 +38,7 @@ def create_event(request):
         form = EventForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('event_success')  # Redirect to the success page after form submission
+            return redirect('event_list')  # Redirect to the success page after form submission
     else:
         form = EventForm()
     return render(request, 'events/create_event.html', {'form': form})
