@@ -3,5 +3,6 @@
 db.sqlite3
 .env
 .venv
-eventsphere/*/__pycache__
 
+__pycache__/
+*.pyc
