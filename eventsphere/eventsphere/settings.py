@@ -123,6 +123,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+# settings.py
+
+LOGIN_URL = 'login'  # Named URL pattern for login
+LOGIN_REDIRECT_URL = 'create_event'  # Redirect to create_event after login
+LOGOUT_REDIRECT_URL = 'login'  # Redirect to login page after logout
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
