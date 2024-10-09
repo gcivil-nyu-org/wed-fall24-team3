@@ -7,6 +7,16 @@ from django.shortcuts import render, redirect
 
 from django.contrib.auth.decorators import login_required
 from .forms import EventForm
+# events/views.py
+from .models import Event
+
+
+def home(request):
+    return render(request, 'events/home.html')
+
+def event_list(request):
+    events = Event.objects.all()
+    return render(request, 'events/event_list.html', {'events': events})
 
 def signup(request):
     if request.method == 'POST':

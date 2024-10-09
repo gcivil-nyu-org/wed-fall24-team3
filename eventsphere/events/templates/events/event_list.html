@@ -1,0 +1,157 @@
+<!-- events/templates/events/event_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event List</title>
+    <style>
+        /* Inline CSS styles */
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation styles */
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            float: left;
+        }
+
+        nav ul li a, nav ul li {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            background-color: #111;
+        }
+
+        /* Clear floats */
+        nav::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Container styles */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        /* Footer styles */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 600px) {
+            nav ul li {
+                float: none;
+            }
+
+            .container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'event_list' %}">View All Events</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                <li style="float:right;">Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>All Events</h1>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Date and Time</th>
+                <th>Location</th>
+                <th>Speakers</th>
+                <th>Schedule</th>
+            </tr>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.name }}</td>
+                <td>{{ event.date_time }}</td>
+                <td>{{ event.location }}</td>
+                <td>{{ event.speakers }}</td>
+                <td>{{ event.schedule }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No events found.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2024 EventSphere. All rights reserved.
+    </footer>
+
+</body>
+</html>
