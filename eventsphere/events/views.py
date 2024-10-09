@@ -51,9 +51,9 @@ def update_event_view(request, event_id):
         form = EventForm(request.POST, instance=event)  # Pass the event instance to the form
         if form.is_valid():
             form.save()
-            return JsonResponse({'message': 'Event updated successfully'}, status=200)
+            return redirect('event_list')  # Redirect to the event list page after successful update
         else:
-            return JsonResponse({'error': form.errors}, status=400)  # Return form validation errors
+            return render(request, 'events/update_event.html', {'form': form, 'errors': form.errors}, status=400)
     else:
         form = EventForm(instance=event)  # Pre-fill the form with the event data
     
