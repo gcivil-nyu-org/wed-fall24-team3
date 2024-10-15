@@ -1,0 +1,106 @@
+[33mcommit af1ca358881ebecae7c04d91c4a6acdd6e4ea5c3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32msimar[m[33m, [m[1;31morigin/simar[m[33m)[m
+Author: simar <mehtasimar2015@gmail.com>
+Date:   Tue Oct 8 21:55:22 2024 -0400
+
+    UI/Structure Change
+
+[33mcommit 0dec5898508709d57a725f026dc67dbd2d4dfae1[m[33m ([m[1;32mstaging[m[33m)[m
+Author: simar <mehtasimar2015@gmail.com>
+Date:   Tue Oct 8 21:29:50 2024 -0400
+
+    Backend Changes
+
+[33mcommit ee6a03a47daffb968634da5773acfaae29f99ade[m
+Author: Suprateek Chatterjee <44548664+suprateek-sc19@users.noreply.github.com>
+Date:   Tue Oct 8 19:43:50 2024 -0400
+
+    Update README.md
+
+[33mcommit 460a1ee9b32ed9bb74207379e42cf07e990f990e[m
+Merge: 9994c61 c03c07e
+Author: Suprateek Chatterjee <44548664+suprateek-sc19@users.noreply.github.com>
+Date:   Tue Oct 8 19:10:04 2024 -0400
+
+    Merge pull request #16 from gcivil-nyu-org/suprateek
+    
+    Create event feature
+
+[33mcommit c03c07e58de0b7c091242def95da485c22ec7fcc[m[33m ([m[1;31morigin/suprateek[m[33m)[m
+Merge: 80bc578 9994c61
+Author: Suprateek Chatterjee <44548664+suprateek-sc19@users.noreply.github.com>
+Date:   Tue Oct 8 19:09:55 2024 -0400
+
+    Merge branch 'staging' into suprateek
+
+[33mcommit 80bc578552c78ab73ce76aef1dd40e63cc02e04c[m
+Author: Suprateek Chatterjee <suprateek1912@gmail.com>
+Date:   Tue Oct 8 19:03:12 2024 -0400
+
+    added create event pages
+
+[33mcommit 9994c61d4028298061c69220e8f1101f292b602f[m
+Author: Allen <allenabraham505@gmail.com>
+Date:   Tue Oct 8 17:15:39 2024 -0400
+
+    Added sytles.css file
+
+[33mcommit 5638ca247c4c8e5754ae6d24e106ef1b571da077[m
+Author: Allen <allenabraham505@gmail.com>
+Date:   Tue Oct 8 17:13:46 2024 -0400
+
+    Added CSS to static files
+
+[33mcommit be9cdc61b6319b60fd0efcec2dca9f57dd69fe9e[m[33m ([m[1;31morigin/rushi[m[33m)[m
+Author: Allen <allenabraham505@gmail.com>
+Date:   Tue Oct 8 16:28:45 2024 -0400
+
+    Removing Password Validations
+    Adding requirements.txt
+
+[33mcommit e2b315bab5f5be846b692cb5ef73253a0f9219b9[m
+Author: RushiPardeshi <rushipardeshi317@gmail.com>
+Date:   Tue Oct 8 04:35:15 2024 -0400
+
+    Created login and signup pages with a dummy profile page
+
+[33mcommit eebbe2a46fd43ee60c5d2873de5d577b789f8514[m
+Author: RushiPardeshi <rushipardeshi317@gmail.com>
+Date:   Wed Oct 2 17:05:50 2024 -0400
+
+    "Uml diagram added"
+
+[33mcommit ca5a9de00179234c047648ace5e179b601a3ba0c[m
+Author: RushiPardeshi <90044303+RushiPardeshi@users.noreply.github.com>
+Date:   Wed Oct 2 16:55:07 2024 -0400
+
+    Create uml_diagram
+
+[33mcommit 58d838e257c8874e638ba926c7069d38f10ec004[m
+Author: Suprateek Chatterjee <44548664+suprateek-sc19@users.noreply.github.com>
+Date:   Wed Sep 25 17:53:00 2024 -0400
+
+    Update README.md
+
+[33mcommit 25f2a1d1883b9b8657ffaea388e657ba311b89b8[m
+Author: Suprateek Chatterjee <suprateek1912@gmail.com>
+Date:   Wed Sep 25 17:52:35 2024 -0400
+
+    added context diagram
+
+[33mcommit 9f660a5869701f95dbbf373dcfbd119286efc5f2[m
+Author: Suprateek Chatterjee <44548664+suprateek-sc19@users.noreply.github.com>
+Date:   Wed Sep 25 17:49:22 2024 -0400
+
+    Update README.md
+
+[33mcommit a28da5cb35f249a931ab9617c51aaf5b4baf2898[m
+Author: Suprateek Chatterjee <suprateek1912@gmail.com>
+Date:   Wed Sep 25 17:40:00 2024 -0400
+
+    added context diagram
+
+[33mcommit 13342dd44f73fc7719e580412d337883a91c1ef9[m[33m ([m[1;31morigin/develop[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mdevelop[m[33m)[m
+Author: Anthony Nikhil Reddy <anthonynikhilreddy@gmail.com>
+Date:   Wed Sep 4 12:40:57 2024 -0400
+
+    Initial commit
