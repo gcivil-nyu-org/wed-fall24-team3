@@ -1,6 +1,4 @@
 from django.urls import path
-from .views import create_event
-from .views import event_success
 from django.contrib.auth import views as auth_views
 from . import views 
 
