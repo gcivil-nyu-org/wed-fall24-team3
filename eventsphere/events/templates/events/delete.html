@@ -1,10 +1,11 @@
-<!-- events/templates/events/event_list.html -->
+<!-- events/templates/events/delete.html -->
 
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Event List</title>
+    <title>Delete Event - EventSphere</title>
     <style>
         /* Inline CSS styles */
 
@@ -53,33 +54,55 @@
         /* Container styles */
         .container {
             width: 90%;
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 600px;
+            margin: 100px auto;
             background-color: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
-        }
-
-        h1 {
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
             margin-bottom: 30px;
         }
 
-        /* Table styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
+        /* Button styles */
+        .btn-confirm {
+            background-color: #f44336; /* Red */
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
         }
 
-        table th, table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
+        .btn-confirm:hover {
+            background-color: #da190b;
         }
 
-        table th {
-            background-color: #f2f2f2;
+        .btn-cancel {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-cancel:hover {
+            background-color: #45a049;
         }
 
         /* Footer styles */
@@ -91,20 +114,6 @@
             position: fixed;
             width: 100%;
             bottom: 0;
-        }
-
-        .btn-edit {
-            background-color: #4CAF50; /* Green */
-            color: white;
-            padding: 5px 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            border-radius: 4px;
-        }
-
-        .btn-edit:hover {
-            background-color: #45a049;
         }
 
         /* Responsive styles */
@@ -137,34 +146,13 @@
 
     <!-- Main Content -->
     <div class="container">
-        <h1>All Events</h1>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Date and Time</th>
-                <th>Location</th>
-                <th>Speakers</th>
-                <th>Description</th>
-                <th>Actions</th> <!-- New Actions Column -->
-            </tr>
-            {% for event in events %}
-            <tr>
-                <td>{{ event.name }}</td>
-                <td>{{ event.date_time }}</td>
-                <td>{{ event.location }}</td>
-                <td>{{ event.speakers }}</td>
-                <td>{{ event.schedule }}</td>
-                <td>
-                    <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
-                    <a href="{% url 'delete_event' event.id %}" class="btn-delete">Delete</a> <!-- New Delete Button -->
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">No events found.</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete the event "<strong>{{ event.name }}</strong>"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-confirm">Yes, Delete</button>
+            <a href="{% url 'event_list' %}" class="btn-cancel">Cancel</a>
+        </form>
     </div>
 
     <!-- Footer -->

@@ -1,6 +1,7 @@
 .idea/
 .DS_Store
 db.sqlite3
+proj
 .env
 .venv
 
