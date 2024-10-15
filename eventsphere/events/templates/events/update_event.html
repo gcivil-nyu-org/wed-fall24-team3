@@ -1,0 +1,172 @@
+<!-- events/templates/events/update_event.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Event - EventSphere</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px 30px; /* Increased padding for a larger feel */
+            border-radius: 10px; /* Slightly more rounded corners */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Enhanced shadow for depth */
+            width: 100%; /* Increased width from 50% to 80% */
+            max-width: 800px; /* Set a maximum width for larger screens */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333333;
+            font-size: 28px; /* Larger font size */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555555;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            padding: 15px 20px;
+            margin-bottom: 25px; /* Increased margin for better spacing */
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+
+        input[type="text"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); /* Subtle glow on focus */
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px; /* Increased height for better input area */
+        }
+
+        button {
+            padding: 15px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 30px;
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            input[type="text"],
+            input[type="datetime-local"],
+            textarea {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            input[type="text"],
+            input[type="datetime-local"],
+            textarea {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 10px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Update Event</h1>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Event Name -->
+            <label for="id_name">Event Name</label>
+            <input type="text" id="id_name" name="name" placeholder="Enter event name" value="{{ form.name.value|default_if_none:'' }}" required>
+            
+            <!-- Date and Time -->
+            <label for="id_date_time">Date and Time</label>
+            <input type="datetime-local" id="id_date_time" name="date_time" value="{{ form.date_time.value|default_if_none:'' }}" required>
+            
+            <!-- Location -->
+            <label for="id_location">Location</label>
+            <input type="text" id="id_location" name="location" placeholder="Enter location" value="{{ form.location.value|default_if_none:'' }}" required>
+            
+            <!-- Speakers -->
+            <label for="id_speakers">Speakers</label>
+            <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" value="{{ form.speakers.value|default_if_none:'' }}" required>
+            
+            <!-- Description/Schedule -->
+            <label for="id_schedule">Description/Schedule</label>
+            <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required>{{ form.schedule.value|default_if_none:'' }}</textarea>
+            
+            <button type="submit">Update Event</button>
+        </form>
+    </div>
+</body>
+</html>
