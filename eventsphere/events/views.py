@@ -39,7 +39,7 @@ def user_event_list(request):
         )
     return render(request, 'events/user_event_list.html', {'events': events, 'query': query})
 
-
+@login_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, 'events/event_list.html', {'events': events})
@@ -61,11 +61,12 @@ def user_signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'events/user_signup.html', {'form': form})
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
+            user = form.save()
             user.is_staff = True
             user.is_superuser = True
             user.save()

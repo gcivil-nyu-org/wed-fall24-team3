@@ -242,25 +242,24 @@
     <!-- Navigation Bar -->
     <nav>
         <ul>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="{% url 'event_list' %}">View All Events</a></li>
-    
+            
             {% if user.is_authenticated %}
                 {% if user.is_staff or user.is_superuser %}
                     <!-- Admin Links -->
+                    <li><a href="{% url 'event_list' %}">View All Events</a></li>
                     <li><a href="{% url 'create_event' %}">Create Event</a></li>
     
                     <!-- Admin Logout Form -->
                     <li style="float:right;">
                         Welcome, Admin {{ user.username }}
-                        <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+                        <form action="{% url 'user_logout' %}" method="POST" style="display:inline;">
                             {% csrf_token %}
                             <button type="submit">Logout</button>
                         </form>
                     </li>
                 {% else %}
                     <!-- User Links -->
-                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                    <!-- <li><a href="{% url 'create_event' %}">Create Event</a></li> -->
     
                     <!-- User Logout Form -->
                     <li style="float:right;">
