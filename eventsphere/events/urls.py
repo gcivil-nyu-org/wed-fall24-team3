@@ -19,6 +19,6 @@ urlpatterns = [
 
     # Authentication URLs
     path('userlogin/', auth_views.LoginView.as_view(template_name='events/user_login.html'), name='user_login'),
-    path('userlogout/', auth_views.LogoutView.as_view(next_page='user_home'), name='user_logout'),
+    path('userlogout/', auth_views.LogoutView.as_view(next_page='user_login'), name='user_logout'),
     path('usersignup/', views.user_signup, name='user_signup')  # Define the success URL
 ]

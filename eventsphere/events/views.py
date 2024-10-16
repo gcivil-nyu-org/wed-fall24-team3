@@ -52,7 +52,10 @@ def user_signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
             login(request, user)
             return redirect('user_home')
     else:
@@ -62,8 +65,11 @@ def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # Log the user in after signup
+            user = form.save(commit=False)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            login(request, user)
             return redirect('event_list')  # Redirect to create_event or any page you prefer
     else:
         form = UserCreationForm()

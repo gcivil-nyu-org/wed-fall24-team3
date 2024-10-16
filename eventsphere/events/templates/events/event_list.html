@@ -39,7 +39,16 @@
             text-decoration: none;
         }
 
-        nav ul li a:hover {
+        nav ul li form button {
+            display: block;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            background-color: #333;
+            color: white;
+        }
+
+        nav ul li a:hover, nav ul li form button:hover {
             background-color: #111;
         }
 
@@ -107,6 +116,20 @@
             background-color: #45a049;
         }
 
+        .btn-delete {
+            background-color: rgb(186, 46, 46);
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 4px;
+        }
+
+        .btn-delete:hover {
+            background-color: rgb(244, 7, 7);
+        }
+
         /* Responsive styles */
         @media (max-width: 600px) {
             nav ul li {
@@ -126,14 +149,39 @@
         <ul>
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="{% url 'event_list' %}">View All Events</a></li>
+    
             {% if user.is_authenticated %}
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
-                <li style="float:right;">Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></li>
+                {% if user.is_staff or user.is_superuser %}
+                    <!-- Admin Links -->
+                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    
+                    <!-- Admin Logout Form -->
+                    <li style="float:right;">
+                        Welcome, Admin {{ user.username }}
+                        <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <!-- User Links -->
+                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    
+                    <!-- User Logout Form -->
+                    <li style="float:right;">
+                        Welcome, {{ user.username }}
+                        <form action="{% url 'user_logout' %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% endif %}
             {% else %}
+                <!-- Links for unauthenticated users -->
                 <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
             {% endif %}
         </ul>
-    </nav>
+    </nav>    
 
     <!-- Main Content -->
     <div class="container">
