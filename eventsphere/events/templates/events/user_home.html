@@ -37,6 +37,7 @@
 
         nav ul li {
             margin: 5px 10px;
+            color: white
         }
 
         nav ul li a {
@@ -47,7 +48,16 @@
             transition: background-color 0.3s;
         }
 
-        nav ul li a:hover {
+        nav ul li form button {
+            display: block;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            background-color: #333;
+            color: white;
+        }
+
+        nav ul li a:hover, nav ul li form button:hover {
             background-color: #575757;
         }
 
@@ -232,14 +242,38 @@
     <!-- Navigation Bar -->
     <nav>
         <ul>
-            <li><a href="{% url 'user_home' %}">Home</a></li>
-            <li><a href="{% url 'user_event_list' %}">Events</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'event_list' %}">View All Events</a></li>
+    
             {% if user.is_authenticated %}
-                <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
-                <li class="right welcome">Welcome, {{ user.username }}</li>
+                {% if user.is_staff or user.is_superuser %}
+                    <!-- Admin Links -->
+                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    
+                    <!-- Admin Logout Form -->
+                    <li style="float:right;">
+                        Welcome, Admin {{ user.username }}
+                        <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <!-- User Links -->
+                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    
+                    <!-- User Logout Form -->
+                    <li style="float:right;">
+                        Welcome, {{ user.username }}
+                        <form action="{% url 'user_logout' %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% endif %}
             {% else %}
-                <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
-                <li class="right"><a href="{% url 'user_signup' %}">Sign Up</a></li>
+                <!-- Links for unauthenticated users -->
+                <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
             {% endif %}
         </ul>
     </nav>
