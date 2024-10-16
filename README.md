@@ -1,4 +1,5 @@
 # EventSphere Project Wiki
+[![Build Status](https://app.travis-ci.com/gcivil-nyu-org/wed-fall24-team3.svg?token=Bpfsg5vzPK3o9MWo5yLU&branch=staging)](https://app.travis-ci.com/gcivil-nyu-org/wed-fall24-team3)  
 
 ## Overview
 **EventSphere** is an interactive platform designed for event organizers and attendees. It simplifies event management for companies while providing event seekers a dynamic map-based interface to explore and register for events. 
