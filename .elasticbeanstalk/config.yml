@@ -1,0 +1,27 @@
+branch-defaults:
+  allen:
+    environment: null
+    group_suffix: null
+  staging:
+    environment: eventsphere-env2
+environment-defaults:
+  eventsphere-env2:
+    branch: null
+    repository: null
+global:
+  application_name: eventsphere
+  branch: null
+  default_ec2_keyname: aws-eb
+  default_platform: Python 3.11 running on 64bit Amazon Linux 2023
+  default_region: us-west-2
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: git
+  workspace_type: Application
+option_settings:
+  aws:elasticbeanstalk:environment:proxy:staticfiles:
+    /static: static

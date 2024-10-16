@@ -79,7 +79,7 @@
             background-color: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -239,73 +239,77 @@
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav>
-        <ul>
-            
-            {% if user.is_authenticated %}
-                {% if user.is_staff or user.is_superuser %}
-                    <!-- Admin Links -->
-                    <li><a href="{% url 'event_list' %}">View All Events</a></li>
-                    <li><a href="{% url 'create_event' %}">Create Event</a></li>
-    
-                    <!-- Admin Logout Form -->
-                    <li style="float:right;">
-                        Welcome, Admin {{ user.username }}
-                        <form action="{% url 'user_logout' %}" method="POST" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
-                {% else %}
-                    <!-- User Links -->
-                    <!-- <li><a href="{% url 'create_event' %}">Create Event</a></li> -->
-    
-                    <!-- User Logout Form -->
-                    <li style="float:right;">
-                        Welcome, {{ user.username }}
-                        <form action="{% url 'user_logout' %}" method="POST" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
-                {% endif %}
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+
+        {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+                <!-- Admin Links -->
+                <li><a href="{% url 'event_list' %}">View All Events</a></li>
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+
+                <!-- Admin Logout Form -->
+                <li style="float:right;">
+                    Welcome, Admin {{ user.username }}
+                    <form action="{% url 'user_logout' %}" method="POST"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
             {% else %}
-                <!-- Links for unauthenticated users -->
-                <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
+                <!-- User Links -->
+                <!-- <li><a href="{% url 'create_event' %}">Create Event</a></li> -->
+
+                <!-- User Logout Form -->
+                <li style="float:right;">
+                    Welcome, {{ user.username }}
+                    <form action="{% url 'user_logout' %}" method="POST"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
             {% endif %}
-        </ul>
-    </nav>
-
-    <!-- Display Messages -->
-    <div class="messages">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        {% else %}
+            <!-- Links for unauthenticated users -->
+            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a
+                    href="{% url 'signup' %}">Sign Up</a></li>
         {% endif %}
-    </div>
+    </ul>
+</nav>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Hero Section -->
-        <div class="hero">
-            <!-- Place your stock image in static/images/hero.jpg -->
-            <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="EventSphere Hero Image">
-            <div class="hero-text">
-                <h1>Welcome to EventSphere</h1>
-                <p>Discover and explore events happening around you.</p>
-            </div>
+<!-- Display Messages -->
+<div class="messages">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero">
+        <!-- Place your stock image in static/images/hero.jpg -->
+        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
+             alt="EventSphere Hero Image">
+        <div class="hero-text">
+            <h1>Welcome to EventSphere</h1>
+            <p>Discover and explore events happening around you.</p>
         </div>
-
-        <!-- Call-to-Action Button -->
-        <a href="{% url 'user_event_list' %}" class="cta-button">Browse Events</a>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 EventSphere. All rights reserved.</p>
-    </footer>
+    <!-- Call-to-Action Button -->
+    <a href="{% url 'user_event_list' %}" class="cta-button">Browse Events</a>
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
 
 </body>
 </html>
