@@ -2,7 +2,6 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
-
 # events/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -32,6 +31,7 @@ def user_event_list(request):
     )
 
 
+@login_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -61,7 +61,7 @@ def signup(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
+            user = form.save()
             user.is_staff = True
             user.is_superuser = True
             user.save()
@@ -91,7 +91,7 @@ def create_event(request):
 def update_event_view(request, event_id):
     # Fetch the event by its ID
     event = get_object_or_404(Event, id=event_id)
-
+    
     if request.method == "POST":
         form = EventForm(
             request.POST, instance=event
@@ -110,7 +110,7 @@ def update_event_view(request, event_id):
             )
     else:
         form = EventForm(instance=event)  # Pre-fill the form with the event data
-
+    
     return render(request, "events/update_event.html", {"form": form})
 
 
@@ -121,9 +121,9 @@ def event_success(request):
 @login_required  # Ensure only logged-in users can delete events
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-
+    
     if request.method == "POST":
         event.delete()
         return redirect("event_list")  # Redirect to a success page after deletion
-
+    
     return render(request, "events/delete.html", {"event": event})

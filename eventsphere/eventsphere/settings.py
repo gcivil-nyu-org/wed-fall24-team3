@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_DIR = Path(__file__).resolve().parent.parent.parent
-
+print(ENV_DIR)
 # Load the .env file
 load_dotenv(os.path.join(ENV_DIR, ".env"))
 
@@ -32,7 +32,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "eventsphere-env2.eba-garccznv.us-west-2.elasticbeanstalk.com",
+    "127.0.0.1",
+]
 
 # Application definition
 
@@ -130,7 +133,7 @@ USE_TZ = True
 # settings.py
 
 LOGIN_URL = "login"  # Named URL pattern for login
-LOGIN_REDIRECT_URL = "create_event"  # Redirect to create_event after login
+LOGIN_REDIRECT_URL = "user_home"  # Redirect to create_event after login
 LOGOUT_REDIRECT_URL = "login"  # Redirect to login page after logout
 
 # Static files (CSS, JavaScript, Images)
