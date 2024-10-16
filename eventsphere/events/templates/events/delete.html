@@ -1,0 +1,202 @@
+<!-- events/templates/events/delete.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Event - EventSphere</title>
+    <style>
+        /* Inline CSS styles */
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation styles */
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            float: left;
+        }
+
+        nav ul li a, nav ul li {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        nav ul li form button {
+            display: block;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            background-color: #333;
+            color: white;
+        }
+
+        nav ul li a:hover, nav ul li form button:hover {
+            background-color: #111;
+        }
+
+        /* Clear floats */
+        nav::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Container styles */
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 100px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        /* Button styles */
+        .btn-confirm {
+            background-color: #f44336; /* Red */
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .btn-confirm:hover {
+            background-color: #da190b;
+        }
+
+        .btn-cancel {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-cancel:hover {
+            background-color: #45a049;
+        }
+
+        /* Footer styles */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 600px) {
+            nav ul li {
+                float: none;
+            }
+
+            .container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'event_list' %}">View All Events</a></li>
+
+        {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+                <!-- Admin Links -->
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+
+                <!-- Admin Logout Form -->
+                <li style="float:right;">
+                    Welcome, Admin {{ user.username }}
+                    <form action="{% url 'logout' %}" method="POST"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <!-- User Links -->
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+
+                <!-- User Logout Form -->
+                <li style="float:right;">
+                    Welcome, {{ user.username }}
+                    <form action="{% url 'user_logout' %}" method="POST"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            {% endif %}
+        {% else %}
+            <!-- Links for unauthenticated users -->
+            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a
+                    href="{% url 'signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    <h2>Confirm Deletion</h2>
+    <p>Are you sure you want to delete the event "<strong>{{ event.name }}</strong>"?
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-confirm">Yes, Delete</button>
+        <a href="{% url 'event_list' %}" class="btn-cancel">Cancel</a>
+    </form>
+</div>
+
+<!-- Footer -->
+<footer>
+    &copy; 2024 EventSphere. All rights reserved.
+</footer>
+
+</body>
+</html>

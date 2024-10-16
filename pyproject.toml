@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+target-version = ['py39']
+exclude = 'migration*'
+
+[tool.coverage.report]
+omit = [
+    "*/tests.py",
+    ]
