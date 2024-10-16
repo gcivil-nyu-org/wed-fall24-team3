@@ -69,7 +69,7 @@
             background-color: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         /* Event Image */
@@ -228,58 +228,59 @@
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav>
-        <ul>
-            <li><a href="{% url 'user_home' %}">Home</a></li>
-            <li><a href="{% url 'user_event_list' %}">Events</a></li>
-            {% if user.is_authenticated %}
-                <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
-                <li class="right welcome">Welcome, {{ user.username }}</li>
-            {% else %}
-                <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
-                <li class="right"><a href="{% url 'user_signup' %}">Sign Up</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-
-    <!-- Display Messages -->
-    <div class="messages">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'user_home' %}">Home</a></li>
+        <li><a href="{% url 'user_event_list' %}">Events</a></li>
+        {% if user.is_authenticated %}
+            <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
+            <li class="right welcome">Welcome, {{ user.username }}</li>
+        {% else %}
+            <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
+            <li class="right"><a href="{% url 'user_signup' %}">Sign Up</a></li>
         {% endif %}
+    </ul>
+</nav>
+
+<!-- Display Messages -->
+<div class="messages">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Event Image -->
+    <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
+         alt="{{ event.name }}" class="event-image">
+
+    <!-- Event Name -->
+    <h1>{{ event.name }}</h1>
+
+    <!-- Event Information -->
+    <div class="event-info">
+        <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        <p><strong>Speakers:</strong> {{ event.speakers }}</p>
     </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Event Image -->
-        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="{{ event.name }}" class="event-image">
-
-        <!-- Event Name -->
-        <h1>{{ event.name }}</h1>
-
-        <!-- Event Information -->
-        <div class="event-info">
-            <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
-            <p><strong>Location:</strong> {{ event.location }}</p>
-            <p><strong>Speakers:</strong> {{ event.speakers }}</p>
-        </div>
-
-        <!-- Event Description -->
-        <div class="event-description">
-            {{ event.schedule|linebreaks }}
-        </div>
-
-        <!-- Back Button -->
-        <a href="{% url 'user_event_list' %}" class="back-button">← Back to Events</a>
+    <!-- Event Description -->
+    <div class="event-description">
+        {{ event.schedule|linebreaks }}
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 EventSphere. All rights reserved.</p>
-    </footer>
+    <!-- Back Button -->
+    <a href="{% url 'user_event_list' %}" class="back-button">← Back to Events</a>
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
 
 </body>
 </html>

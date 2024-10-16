@@ -69,7 +69,7 @@
             background-color: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         /* Search Bar */
@@ -123,7 +123,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
@@ -132,7 +132,7 @@
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .card a {
@@ -260,52 +260,56 @@
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav>
-        <ul>
-            <li><a href="{% url 'user_home' %}">Home</a></li>
-            <li><a href="{% url 'user_event_list' %}">Events</a></li>
-            {% if user.is_authenticated %}
-                <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
-                <li class="right welcome">Welcome, {{ user.username }}</li>
-            {% else %}
-                <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
-                <li class="right"><a href="{% url 'user_signup' %}">Sign Up</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'user_home' %}">Home</a></li>
+        <li><a href="{% url 'user_event_list' %}">Events</a></li>
+        {% if user.is_authenticated %}
+            <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
+            <li class="right welcome">Welcome, {{ user.username }}</li>
+        {% else %}
+            <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
+            <li class="right"><a href="{% url 'user_signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <form method="get">
-                <input type="text" name="q" placeholder="Search events..." value="{{ query|default:'' }}">
-                <button type="submit">Search</button>
-            </form>
-        </div>
+<!-- Main Content -->
+<div class="container">
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <form method="get">
+            <input type="text" name="q" placeholder="Search events..."
+                   value="{{ query|default:'' }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
 
-        <!-- Event Cards -->
-        <div class="card-grid">
-            {% for event in events %}
+    <!-- Event Cards -->
+    <div class="card-grid">
+        {% for event in events %}
             <div class="card">
                 <a href="{% url 'event_detail' event.pk %}">
                     <!-- Stock Image -->
-                    <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="{{ event.name }}" class="card-image">
+                    <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
+                         alt="{{ event.name }}" class="card-image">
                     <div class="card-content">
                         <h2 class="card-title">{{ event.name }}</h2>
-                        <p class="card-date"><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
-                        <p class="card-location"><strong>Location:</strong> {{ event.location }}</p>
+                        <p class="card-date"><strong>Date & Time:</strong>
+                            {{ event.date_time|date:"F d, Y H:i" }}</p>
+                        <p class="card-location">
+                            <strong>Location:</strong> {{ event.location }}</p>
                     </div>
                 </a>
             </div>
             {% empty %}
             <p class="no-events">No events found.</p>
-            {% endfor %}
-        </div>
+        {% endfor %}
+    </div>
 
-        <!-- Pagination Controls -->
-        {% if page_obj %}
+    <!-- Pagination Controls -->
+    {% if page_obj %}
         <div class="pagination">
             <span class="page-links">
                 {% if page_obj.has_previous %}
@@ -323,13 +327,13 @@
                 {% endif %}
             </span>
         </div>
-        {% endif %}
-    </div>
+    {% endif %}
+</div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 EventSphere. All rights reserved.</p>
-    </footer>
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
 
 </body>
 </html>
