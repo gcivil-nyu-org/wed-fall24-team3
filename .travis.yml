@@ -1,0 +1,32 @@
+dist: focal
+language: python
+python:
+  - "3.10"
+# Install dependencies
+before_install:
+  - cd eventsphere
+install:
+  - pip install -r requirements.txt
+# Run format and lint checks
+script:
+  - black --check .
+  - flake8 .
+  - coverage run manage.py test
+  - coverage report
+after_success:
+  - coveralls --verbose
+deploy:
+  provider: elasticbeanstalk
+  access_key_id: $AWS_ACS_KEY
+  secret_access_key: $AWS_SCRT_KEY
+  region: us-east-1
+  app: mysite
+  env: def-env
+  bucket_name: 'elasticbeanstalk-us-east-1-897722690729'
+  on:
+#    all_branches: true
+    repo: gcivil-nyu-org/wed-fall24-team3
+    branches:
+      only:
+        - staging
+        - allen
