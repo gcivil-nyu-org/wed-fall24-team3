@@ -266,7 +266,12 @@
             <li><a href="{% url 'user_home' %}">Home</a></li>
             <li><a href="{% url 'user_event_list' %}">Events</a></li>
             {% if user.is_authenticated %}
-                <li class="right"><a href="{% url 'user_logout' %}">Logout</a></li>
+                <li class="right">
+                    <form method="POST" action="{% url 'user_logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </li>
                 <li class="right welcome">Welcome, {{ user.username }}</li>
             {% else %}
                 <li class="right"><a href="{% url 'user_login' %}">Login</a></li>
@@ -274,6 +279,7 @@
             {% endif %}
         </ul>
     </nav>
+    
 
     <!-- Main Content -->
     <div class="container">
