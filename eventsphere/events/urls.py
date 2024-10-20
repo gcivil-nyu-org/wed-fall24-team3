@@ -1,6 +1,6 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
-
+from .views import user_profile, my_tickets
 from . import views
 
 urlpatterns = [
@@ -20,6 +20,9 @@ urlpatterns = [
     path("userhome/", views.user_home, name="user_home"),
     path("userevents/", views.user_event_list, name="user_event_list"),
     path("userevents/<int:pk>/", views.event_detail, name="event_detail"),
+    path('profile/', user_profile, name='user_profile'),
+    path('my_tickets/', my_tickets, name='my_tickets'),
+    path('events/<int:event_id>/buy-tickets/', views.buy_tickets, name='buy_tickets'),
     # Authentication URLs
     path(
         "userlogin/",

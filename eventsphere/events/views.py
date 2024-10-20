@@ -2,13 +2,13 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
-
-# events/views.py
+from .models import UserProfile, Ticket, Event
+from .forms import UserProfileForm
 from django.shortcuts import render, get_object_or_404, redirect
-
 from .forms import EventForm
-from .models import Event
-
+from .models import Event, Ticket
+from .forms import TicketPurchaseForm
+from django.contrib import messages
 
 def user_home(request):
     return render(request, "events/user_home.html")
@@ -128,3 +128,45 @@ def delete_event_view(request, event_id):
         return redirect("event_list")  # Redirect to a success page after deletion
 
     return render(request, "events/delete.html", {"event": event})
+
+
+@login_required
+def user_profile(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('user_profile')
+    else:
+        form = UserProfileForm(instance=profile)
+
+    # Fetch the tickets for the current user
+    tickets = Ticket.objects.filter(user=request.user)
+
+    return render(request, 'events/user_profile.html', {'form': form, 'tickets': tickets})
+
+@login_required
+def my_tickets(request):
+    tickets = Ticket.objects.filter(user=request.user)
+    return render(request, 'events/my_tickets.html', {'tickets': tickets})
+
+
+@login_required
+def buy_tickets(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if request.method == 'POST':
+        form = TicketPurchaseForm(request.POST)
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            ticket.user = request.user
+            ticket.event = event
+            ticket.save()
+            messages.success(request, 'Ticket purchased successfully!')
+            return redirect('user_profile')
+    else:
+        form = TicketPurchaseForm()
+
+    return render(request, 'events/buy_tickets.html', {'event': event, 'form': form})
