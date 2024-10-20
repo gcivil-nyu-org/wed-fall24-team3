@@ -1,4 +1,4 @@
 [flake8]
 ignore =  W293, W503, W504
 max-line-length = 88
-exclude = settings.py, migrations
+exclude = settings.py, migrations, newenv, .env
