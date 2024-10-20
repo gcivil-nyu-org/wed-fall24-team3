@@ -21,23 +21,23 @@ class SignupForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['name', 'age', 'bio', 'location', 'interests']
+        fields = ["name", "age", "bio", "location", "interests"]
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 3}),
-            'interests': forms.Textarea(attrs={'rows': 3}),
+            "bio": forms.Textarea(attrs={"rows": 3}),
+            "interests": forms.Textarea(attrs={"rows": 3}),
         }
+
 
 class TicketPurchaseForm(forms.ModelForm):
     class Meta:
         model = Ticket
-        fields = ['email', 'phone_number', 'quantity']
+        fields = ["email", "phone_number", "quantity"]
         widgets = {
-            'quantity': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
         }
 
     def clean_quantity(self):
-        quantity = self.cleaned_data.get('quantity')
+        quantity = self.cleaned_data.get("quantity")
         if quantity > 5:
             raise forms.ValidationError("You cannot purchase more than 5 tickets.")
         return quantity
-

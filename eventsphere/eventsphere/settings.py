@@ -11,9 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
-import sys
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,7 +25,8 @@ load_dotenv(os.path.join(ENV_DIR, ".env"))
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+# SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = "django-insecure-tchc0rh*i4e3k%22dy@ub(9(n3&^0-9+)8qf-8t5c6%j6^8xf5"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -36,6 +35,7 @@ ALLOWED_HOSTS = [
     "eventsphere-env2.eba-garccznv.us-west-2.elasticbeanstalk.com",
     "127.0.0.1",
 ]
+
 
 # Application definition
 
@@ -79,17 +79,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "eventsphere.wsgi.application"
 
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": "postgres",
+        "USER": "postgres_swe",
+        "PASSWORD": "civil2078",
+        "HOST": "database-1.cv4ayyoqw4w3.us-west-2.rds.amazonaws.com",
+        "PORT": "5432",
     }
 }
 # DATABASES = {
@@ -119,6 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -142,10 +144,8 @@ LOGOUT_REDIRECT_URL = "login"  # Redirect to login page after logout
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-if "test" in sys.argv:
-    DATABASES["default"] = {"ENGINE": "django.db.backends.sqlite3"}

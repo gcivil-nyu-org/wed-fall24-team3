@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # Create your models here.
 class Event(models.Model):
     name = models.CharField(max_length=200)
@@ -14,7 +15,9 @@ class Event(models.Model):
     def __str__(self):
         return self.name
 
+
 # models.py
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -31,10 +34,9 @@ class UserProfile(models.Model):
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    email = models.EmailField(default='dummy@example.com')
-    phone_number = models.CharField(default='999999999', max_length=12)
+    email = models.EmailField(default="dummy@example.com")
+    phone_number = models.CharField(default="999999999", max_length=12)
     quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f'{self.event.name} - {self.user.username}'
-    
+        return f"{self.event.name} - {self.user.username}"
