@@ -1,0 +1,9 @@
+<!-- accounts/templates/accounts/profile.html -->
+<h2>{{ profile_user.username }}'s Profile</h2>
+<p>Email: {{ profile_user.email }}</p>
+
+<!-- Logout Link -->
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+</form>

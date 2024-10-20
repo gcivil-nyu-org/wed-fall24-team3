@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ event.name }} - EventSphere
+{% endblock %}
+
+{% block content %}
+    <style>
+        /* Event Detail Specific Styles */
+        .container {
+            flex: 1;
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #333333;
+            text-align: center;
+        }
+
+        .event-info {
+            margin-bottom: 20px;
+        }
+
+        .event-info p {
+            font-size: 16px;
+            color: #555555;
+            margin-bottom: 8px;
+        }
+
+        .event-info p strong {
+            color: #333333;
+        }
+
+        .event-description {
+            font-size: 16px;
+            color: #555555;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .back-button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .event-image {
+                height: 300px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .event-info p {
+                font-size: 15px;
+            }
+
+            .back-button {
+                font-size: 16px;
+                padding: 8px 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .event-image {
+                height: 200px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .event-info p {
+                font-size: 14px;
+            }
+
+            .back-button {
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <!-- Event Image -->
+        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
+             alt="{{ event.name }}" class="event-image">
+
+        <!-- Event Name -->
+        <h1>{{ event.name }}</h1>
+
+        <!-- Event Information -->
+        <div class="event-info">
+            <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
+            <p><strong>Location:</strong> {{ event.location }}</p>
+            <p><strong>Speakers:</strong> {{ event.speakers }}</p>
+        </div>
+
+        <!-- Event Description -->
+        <div class="event-description">
+            {{ event.schedule|linebreaks }}
+        </div>
+
+        <!-- Buy Tickets Button -->
+        <a href="{% url 'buy_tickets' event.id %}" class="back-button">Buy Tickets</a>
+
+        <!-- Back Button -->
+        <a href="{% url 'user_event_list' %}" class="back-button">← Back to Events</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}EventSphere Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero">
+        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="EventSphere Hero Image">
+        <div class="hero-text">
+            <h1>Welcome to EventSphere</h1>
+            <p>Discover and explore events happening around you.</p>
+        </div>
+    </div>
+
+    <!-- Call-to-Action Button -->
+    <a href="{% url 'user_event_list' %}" class="cta-button">Browse Events</a>
+</div>
+{% endblock %}

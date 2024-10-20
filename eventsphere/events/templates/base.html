@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventSphere{% endblock %}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 60px; /* Add some padding for the fixed navbar */
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 14px 20px;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        nav ul li {
+            margin: 5px 10px;
+            color: white;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li form button {
+            display: block;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            background-color: #333;
+            color: white;
+        }
+
+        nav ul li a:hover, nav ul li form button:hover {
+            background-color: #575757;
+        }
+
+        nav ul li.right {
+            margin-left: auto;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero {
+            margin-top: 20px;
+            width: 88%;
+            position: relative;
+        }
+
+        .hero img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .hero-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px 40px;
+            border-radius: 5px;
+        }
+
+        .hero-text h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .cta-button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+                <li><a href="{% url 'event_list' %}">View All Events</a></li>
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+
+                <li>
+                    Welcome, Admin {{ user.username }}
+                    <form action="{% url 'user_logout' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'user_home' %}">Home</a></li>
+                <li><a href="{% url 'user_event_list' %}">Events</a></li>
+                <li><a href="{% url 'user_profile' %}">Profile</a></li>
+                <li>
+                    Welcome, {{ user.username }}
+                    <form action="{% url 'user_logout' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            {% endif %}
+        {% else %}
+            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Main content block -->
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
