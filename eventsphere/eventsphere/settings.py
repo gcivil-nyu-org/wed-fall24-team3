@@ -169,7 +169,7 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_DIR = Path(__file__).resolve().parent.parent.parent
-print(ENV_DIR)print(ENV_DIR)
+# print(ENV_DIR)print(ENV_DIR)
 # Load the .env file
 load_dotenv(os.path.join(ENV_DIR, ".env"))
 
