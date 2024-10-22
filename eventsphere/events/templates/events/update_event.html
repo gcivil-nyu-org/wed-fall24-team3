@@ -1,5 +1,3 @@
-<!-- events/templates/events/update_event.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,6 +90,16 @@
             transform: translateY(-2px); /* Slight lift on hover */
         }
 
+        /* Back button style */
+        .btn-back {
+            background-color: #2196F3; /* Blue color for the back button */
+            margin-bottom: 20px; /* Space below the back button */
+        }
+
+        .btn-back:hover {
+            background-color: #0b7dda; /* Darker blue on hover */
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
@@ -142,6 +150,19 @@
 <body>
 <div class="container">
     <h1>Update Event</h1>
+    
+    <!-- Back Button -->
+     {% if user.is_authenticated %}
+        {% if user.is_superuser %}
+        <form action="{% url 'event_list' %}" method="GET" style="margin-bottom: 20px;">
+            <button type="submit" class="btn-back">Back to All Events</button>
+        </form>
+        {% else %}
+        <form action="{% url 'creator_dashboard' %}" method="GET" style="margin-bottom: 20px;">
+            <button type="submit" class="btn-back">Back to Dashboard</button>
+        </form>
+        {% endif %}
+    {% endif %}
     <form method="POST">
         {% csrf_token %}
 
@@ -171,6 +192,9 @@
                   placeholder="Enter event description or schedule"
                   required>{{ form.schedule.value|default_if_none:'' }}</textarea>
 
+        <label for="id_numTickets">Number of Tickets</label>
+        <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="0">
+        
         <button type="submit">Update Event</button>
     </form>
 </div>

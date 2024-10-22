@@ -143,11 +143,12 @@
 <nav>
     <ul>
         <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'event_list' %}">View All Events</a></li>
+        
 
         {% if user.is_authenticated %}
-            {% if user.is_staff or user.is_superuser %}
+            {% if user.is_superuser %}
                 <!-- Admin Links -->
+                <li><a href="{% url 'event_list' %}">View All Events</a></li>
                 <li><a href="{% url 'create_event' %}">Create Event</a></li>
 
                 <!-- Admin Logout Form -->
@@ -159,14 +160,14 @@
                         <button type="submit">Logout</button>
                     </form>
                 </li>
-            {% else %}
+            {% elif user.is_staff %}
                 <!-- User Links -->
                 <li><a href="{% url 'create_event' %}">Create Event</a></li>
 
                 <!-- User Logout Form -->
                 <li style="float:right;">
                     Welcome, {{ user.username }}
-                    <form action="{% url 'user_logout' %}" method="POST"
+                    <form action="{% url 'creator_login' %}" method="POST"
                           style="display:inline;">
                         {% csrf_token %}
                         <button type="submit">Logout</button>

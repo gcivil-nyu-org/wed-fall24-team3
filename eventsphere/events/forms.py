@@ -7,7 +7,7 @@ from .models import UserProfile, CreatorProfile, Event, Ticket
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ["name", "location", "date_time", "schedule", "speakers"]
+        fields = ["name", "location", "date_time", "schedule", "speakers", "numTickets"]
 
 
 class SignupForm(UserCreationForm):

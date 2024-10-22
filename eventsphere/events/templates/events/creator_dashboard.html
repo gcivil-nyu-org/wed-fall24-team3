@@ -3,44 +3,187 @@
 {% block title %}Creator Dashboard{% endblock %}
 
 {% block content %}
+<head>
+    <style>
+        /* Inline CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation styles */
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            float: left;
+        }
+
+        nav ul li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            background-color: #111;
+        }
+
+        /* Clear floats */
+        nav::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Container styles */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #f9f9f9; /* Row hover effect */
+        }
+
+        /* Button styles */
+        .btn-edit, .btn-delete, .cta-button {
+            background-color: #4CAF50; /* Default button color */
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            margin: 5px; /* Add spacing between buttons */
+        }
+
+        .btn-edit:hover {
+            background-color: #45a049;
+        }
+
+        .btn-delete {
+            background-color: rgb(186, 46, 46);
+        }
+
+        .btn-delete:hover {
+            background-color: rgb(244, 7, 7);
+        }
+
+        .cta-button {
+            background-color: #2196F3; /* CTA button color */
+        }
+
+        .cta-button:hover {
+            background-color: #0b7dda;
+        }
+
+        /* Footer styles */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 600px) {
+            nav ul li {
+                float: none;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            .btn-edit, .btn-delete, .cta-button {
+                width: 100%; /* Full width buttons on small screens */
+                margin: 5px 0; /* Stack buttons vertically */
+            }
+        }
+    </style>
+</head>
 <div class="container">
     <h1>Welcome, {{ user.username }}!</h1>
     <p>Here are the events you have created and the number of tickets sold for each:</p>
 
     <table>
-        <thead>
-            <tr>
-                <th>Event Name</th>
-                <th>Location</th>
-                <th>Date & Time</th>
-                <th>Tickets Sold</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for event in events %}
+        <tr>
+            <th>Name</th>
+            <th>Date and Time</th>
+            <th>Location</th>
+            <th>Speakers</th>
+            <th>Description</th>
+            <th>Remaining tickets</th>
+            <th>Actions</th>
+        </tr>
+        {% for event in events %}
             <tr>
                 <td>{{ event.name }}</td>
-                <td>{{ event.location }}</td>
                 <td>{{ event.date_time }}</td>
-                <td>{{ event.ticket_set.count }}</td>  <!-- Display ticket count -->
+                <td>{{ event.location }}</td>
+                <td>{{ event.speakers }}</td>
+                <td>{{ event.schedule }}</td>
+                <td>{{ event.numTickets }}</td>
                 <td>
-                    <a href="{% url 'edit_event' event.id %}">Edit</a> | 
-                    <a href="{% url 'delete_event' event.id %}" onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
+                    <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
+                    <a href="{% url 'delete_event' event.id %}" class="btn-delete">Delete</a>
                 </td>
             </tr>
-            {% empty %}
+        {% empty %}
             <tr>
-                <td colspan="5">You have not created any events yet.</td>
+                <td colspan="6">No events found.</td>
             </tr>
-            {% endfor %}
-        </tbody>
+        {% endfor %}
     </table>
 
     <!-- Call to action buttons -->
     <div style="margin-top: 20px;">
-        <a href="{% url 'create_event' %}" class="cta-button">Create New Event</a>
-        <form action="{% url 'user_logout' %}" method="POST" style="display:inline-block;">
+        <a href="{% url 'creator_creates_event' %}" class="cta-button">Create New Event</a>
+        <form action="{% url 'creator_login' %}" method="POST" style="display:inline-block;">
             {% csrf_token %}
             <button type="submit" class="cta-button" style="background-color: #f44336;">Logout</button>
         </form>

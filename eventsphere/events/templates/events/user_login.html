@@ -16,7 +16,7 @@
         <li><a href="{% url 'user_event_list' %}">Events</a></li>
         {% if user.is_authenticated %}
             <li style="float:right;">Welcome, {{ user.username }} | <a
-                    href="{% url 'user_logout' %}">Logout</a></li>
+                    href="{% url 'user_login' %}">Logout</a></li>
         {% else %}
             <li style="float:right;"><a href="{% url 'user_login' %}">Login</a> | <a
                     href="{% url 'user_signup' %}">Sign Up</a></li>

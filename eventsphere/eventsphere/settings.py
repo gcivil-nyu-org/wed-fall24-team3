@@ -100,7 +100,6 @@ DATABASES = {
 #                  # If one doesn't exist, it will be created at migration time.
 #     }
 # }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
