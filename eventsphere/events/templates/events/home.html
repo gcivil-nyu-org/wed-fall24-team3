@@ -94,30 +94,32 @@
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav>
-        <ul>
-            <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="{% url 'event_list' %}">View All Events</a></li>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
-                <li style="float:right;">Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></li>
-            {% else %}
-                <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'event_list' %}">View All Events</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'create_event' %}">Create Event</a></li>
+            <li style="float:right;">Welcome, {{ user.username }} | <a
+                    href="{% url 'logout' %}">Logout</a></li>
+        {% else %}
+            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a
+                    href="{% url 'signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
 
-    <!-- Main Content -->
-    <div class="container">
-        <h1>Welcome to EventSphere</h1>
-        <p>Your one-stop platform for event management.</p>
-    </div>
+<!-- Main Content -->
+<div class="container">
+    <h1>Welcome to EventSphere</h1>
+    <p>Your one-stop platform for event management.</p>
+</div>
 
-    <!-- Footer -->
-    <footer>
-        &copy; 2024 EventSphere. All rights reserved.
-    </footer>
+<!-- Footer -->
+<footer>
+    &copy; 2024 EventSphere. All rights reserved.
+</footer>
 
 </body>
 </html>

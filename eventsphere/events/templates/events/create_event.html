@@ -27,7 +27,7 @@
             background-color: #ffffff;
             padding: 40px 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 1000px;
         }
@@ -104,33 +104,37 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Create a New Event</h1>
-        <form method="post">
-            {% csrf_token %}
-            
-            <!-- Event Name -->
-            <label for="id_name">Event Name</label>
-            <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
-            
-            <!-- Date and Time -->
-            <label for="id_date_time">Date and Time</label>
-            <input type="datetime-local" id="id_date_time" name="date_time" required>
-            
-            <!-- Location -->
-            <label for="id_location">Location</label>
-            <input type="text" id="id_location" name="location" placeholder="Enter location" required>
-            
-            <!-- Speakers -->
-            <label for="id_speakers">Speakers</label>
-            <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
-            
-            <!-- Description/Schedule -->
-            <label for="id_schedule">Description/Schedule</label>
-            <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
-            
-            <button type="submit">Create Event</button>
-        </form>
-    </div>
+<div class="container">
+    <h1>Create a New Event</h1>
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Event Name -->
+        <label for="id_name">Event Name</label>
+        <input type="text" id="id_name" name="name" placeholder="Enter event name"
+               required>
+
+        <!-- Date and Time -->
+        <label for="id_date_time">Date and Time</label>
+        <input type="datetime-local" id="id_date_time" name="date_time" required>
+
+        <!-- Location -->
+        <label for="id_location">Location</label>
+        <input type="text" id="id_location" name="location" placeholder="Enter location"
+               required>
+
+        <!-- Speakers -->
+        <label for="id_speakers">Speakers</label>
+        <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
+               required>
+
+        <!-- Description/Schedule -->
+        <label for="id_schedule">Description/Schedule</label>
+        <textarea id="id_schedule" name="schedule"
+                  placeholder="Enter event description or schedule" required></textarea>
+
+        <button type="submit">Create Event</button>
+    </form>
+</div>
 </body>
 </html>

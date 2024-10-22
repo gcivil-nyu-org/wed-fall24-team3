@@ -63,6 +63,20 @@
     </style>
 </head>
 <body>
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'user_home' %}">Home</a></li>
+        <li><a href="{% url 'user_event_list' %}">Events</a></li>
+        {% if user.is_authenticated %}
+            <li style="float:right;">Welcome, {{ user.username }} | <a
+                    href="{% url 'user_logout' %}">Logout</a></li>
+        {% else %}
+            <li style="float:right;"><a href="{% url 'user_login' %}">Login</a> | <a
+                    href="{% url 'user_signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
 
 <!-- Main Content -->
 <div class="container">
@@ -72,10 +86,12 @@
         {{ form.as_p }}
         <button type="submit">Sign Up</button>
     </form>
-    <div class="link-text">
-        <p>Already have an account? <a href="{% url 'login' %}">Login here</a>.</p>
-    </div>
+    <p>Already have an account? <a href="{% url 'user_login' %}">Login here</a>.</p>
 </div>
 
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
 </body>
 </html>

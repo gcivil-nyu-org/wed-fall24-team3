@@ -176,64 +176,8 @@
             <p><strong>Interests:</strong> {{ profile.interests }}</p>
         {% endif %}
     </div>
+
     <div class="tickets">
-        <br><br>
-        <h3>My Tickets</h3>
-        {% if events_with_tickets %}
-            <table class="tickets-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Total Tickets</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in events_with_tickets %}
-                        <tr>
-                            <td>{{ event.event__name }}</td>
-                            <td>{{ event.total_tickets }} tickets</td>
-                            <td>
-                                <button onclick="fetchQRCode({{ event.event__id }})">Show QR Code</button>
-                            </td>
-                        </tr>
-                        <tr id="qr-{{ event.event__id }}" style="display: none;">
-                            <td colspan="3">
-                                <img id="qr-code-img-{{ event.event__id }}" src="" alt="QR Code">
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets purchased yet.</p>
-        {% endif %}
-    </div>
-    
-    <script>
-        function fetchQRCode(eventId) {
-            // Make an AJAX request to get the QR code in base64 format
-            fetch(`/generate_event_qr/${eventId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.qr_code) {
-                        // Find the img tag and set its src to the base64 QR code
-                        const imgTag = document.getElementById(`qr-code-img-${eventId}`);
-                        imgTag.src = `data:image/png;base64,${data.qr_code}`;
-                        
-                        // Show the row with the QR code
-                        document.getElementById(`qr-${eventId}`).style.display = 'table-row';
-                    } else {
-                        alert('QR code could not be generated');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching QR code:', error);
-                });
-        }
-    </script>
-    
-    <!-- <div class="tickets">
         <br><br>
         <h3>My Tickets</h3>
         {% if tickets %}
@@ -257,5 +201,5 @@
             <p>No tickets purchased yet.</p>
         {% endif %}
     </div>
-</div> -->
+</div>
 {% endblock %}

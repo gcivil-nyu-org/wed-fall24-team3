@@ -4,6 +4,11 @@ db.sqlite3
 proj
 .env
 .venv
-
+eventsphere/eventsphere/settings.py
 __pycache__/
 *.pyc
+/admin_accessKeys.csv
+/TravisCI_accessKeys.csv
+/eventsphere/.coverage
+/suprateek_accessKeys.csv
+newenv/
