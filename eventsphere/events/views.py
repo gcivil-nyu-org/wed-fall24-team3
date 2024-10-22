@@ -16,9 +16,77 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.db.models import Q
-from django.contrib.auth.decorators import login_required
-from .models import Event
+from .models import UserProfile, Ticket, Event
+from .forms import UserProfileForm
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import EventForm
+from .forms import TicketPurchaseForm
+from django.contrib import messages
 
+import qrcode # type: ignore
+from django.http import JsonResponse
+from io import BytesIO
+import base64
+from django.db.models import Sum
+from .models import Ticket
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+from django.contrib.auth import login
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import render, redirect
+
+# Custom login view to handle both admin and user redirection
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+
+            # Check if the user is an admin or a regular user
+            if user.is_staff or user.is_superuser:
+                return redirect('event_list')  # Admin is redirected to event_list (admin dashboard)
+            else:
+                return redirect('user_home')  # Regular user is redirected to user_home
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'events/login.html', {'form': form})
+
+
+# Home page view to choose the user type
+def home_page(request):
+    return render(request, 'events/homepage.html')
+    
+
+def generate_event_qr_code(request, event_id):
+    user = request.user
+    tickets = Ticket.objects.filter(user=user, event__id=event_id)
+
+    if not tickets.exists():
+        return JsonResponse({"error": "No tickets found for this event."}, status=404)
+
+    # Prepare the QR code data
+    qr_data = f"User: {user.username}\nEvent: {tickets.first().event.name}\nTotal Tickets: {tickets.aggregate(total_quantity=Sum('quantity'))['total_quantity']}"
+
+    # Create the QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    
+    # Save the image to a BytesIO stream
+    img = qr.make_image(fill='black', back_color='white')
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    
+    # Convert the image to base64
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    # Return as JSON response
+    return JsonResponse({'qr_code': img_str})
 
 def user_home(request):
     return render(request, 'events/user_home.html')
@@ -107,4 +175,69 @@ def delete_event_view(request, event_id):
         event.delete()
         return redirect('event_list')  # Redirect to a success page after deletion
 
-    return render(request, 'events/delete.html', {'event': event})
+    return render(request, "events/delete.html", {"event": event})
+
+
+@login_required
+def user_profile(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+    else:
+        form = UserProfileForm(instance=profile)
+
+    # Group tickets by event and calculate the total tickets for each event
+    events_with_tickets = Ticket.objects.filter(user=request.user).values('event__name', 'event__id').annotate(total_tickets=Sum('quantity'))
+
+    return render(
+        request, "events/user_profile.html", {"form": form, "events_with_tickets": events_with_tickets}
+    )
+
+
+# @login_required
+# def user_profile(request):
+#     profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+#     if request.method == "POST":
+#         form = UserProfileForm(request.POST, instance=profile)
+#         if form.is_valid():
+#             form.save()
+#             return redirect("user_profile")
+#     else:
+#         form = UserProfileForm(instance=profile)
+
+#     # Fetch the tickets for the current user
+#     tickets = Ticket.objects.filter(user=request.user)
+
+#     return render(
+#         request, "events/user_profile.html", {"form": form, "tickets": tickets}
+#     )
+
+
+@login_required
+def my_tickets(request):
+    tickets = Ticket.objects.filter(user=request.user)
+    return render(request, "events/my_tickets.html", {"tickets": tickets})
+
+
+@login_required
+def buy_tickets(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if request.method == "POST":
+        form = TicketPurchaseForm(request.POST)
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            ticket.user = request.user
+            ticket.event = event
+            ticket.save()
+            messages.success(request, "Ticket purchased successfully!")
+            return redirect("user_profile")
+    else:
+        form = TicketPurchaseForm()
+
+    return render(request, "events/buy_tickets.html", {"event": event, "form": form})

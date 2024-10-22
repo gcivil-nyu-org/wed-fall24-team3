@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventSphere{% endblock %}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 60px; /* For fixed navbar */
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px 20px;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #575757;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* Add responsiveness */
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            nav ul li {
+                margin: 10px 0;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'homepage' %}">Home</a></li>
+        {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+                <li><a href="{% url 'event_list' %}">Admin Dashboard</a></li>
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+            {% else %}
+                <li><a href="{% url 'user_home' %}">User Home</a></li>
+                <li><a href="{% url 'user_event_list' %}">Events</a></li>
+                <li><a href="{% url 'user_profile' %}">Profile</a></li>
+            {% endif %}
+            <li style="margin-left: auto;">
+                Welcome, {{ user.username }}
+                <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:none; border:none; color:white; cursor:pointer;">Logout</button>
+                </form>
+            </li>
+        {% else %}
+            <li style="margin-left: auto;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Main content block -->
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
