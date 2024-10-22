@@ -33,23 +33,3 @@ The major epics for EventSphere are:
 4. **Ticket Purchasing and Payment Integration**: Secure ticket purchasing and payment gateway integration.
 5. **Group Chat**: Enables event attendees to connect with one another before, during, and after events.
 6. **Analytics and Insights for Event Organizers**: Dashboard for organizers to analyze event performance.
-
-## System Diagrams
-
-### Context Diagram
-The high-level context diagram highlights the interactions between **Event Organizers**, **Event Seekers**, and the **EventSphere Platform**. This diagram helps understand the key components and actors involved in the system.
-
-![Context Diagram](./system_diagrams/SE_Context_diagram.png)
-
----
-
-## Development Progress
-This section will provide updates on the current sprint, epics under development, and user stories implemented in ZenHub.
-
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
----
-
-For more detailed documentation, visit the additional pages in this wiki.
