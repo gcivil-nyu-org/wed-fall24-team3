@@ -1,9 +1,10 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import UserProfile, Ticket, Event
-from .forms import UserProfileForm
+from .models import UserProfile, CreatorProfile, Ticket, Event
+from .forms import UserProfileForm, CreatorProfileForm
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import EventForm
 from .forms import TicketPurchaseForm
@@ -33,6 +34,24 @@ def user_event_list(request):
 
 
 @login_required
+def creator_dashboard(request):
+    try:
+        creator_profile = CreatorProfile.objects.get(creator=request.user)
+    except CreatorProfile.DoesNotExist:
+        # Handle case where logged-in user doesn't have a CreatorProfile
+        creator_profile = None
+
+    if creator_profile:
+        # Get all events created by the logged-in user's creator profile
+        events = Event.objects.filter(created_by=creator_profile)
+    else:
+        # If no creator profile exists, return an empty queryset
+        events = Event.objects.none()
+
+    return render(request, "events/creator_dashboard.html", {"events": events})
+
+
+@login_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -43,6 +62,7 @@ def event_detail(request, pk):
     return render(request, "events/event_detail.html", {"event": event})
 
 
+# All signups
 def user_signup(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -52,10 +72,26 @@ def user_signup(request):
             user.is_superuser = False
             user.save()
             login(request, user)
-            return redirect("user_home")
+            return redirect("user_profile")
     else:
         form = UserCreationForm()
     return render(request, "events/user_signup.html", {"form": form})
+
+
+def creator_signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            creator = form.save(commit=False)
+            creator.is_staff = True
+            creator.is_superuser = False
+            creator.save()
+            login(request, creator)
+            return redirect("creator_profile")
+    else:
+        form = UserCreationForm()
+        print(User.objects.get_or_create(username="")[0])
+    return render(request, "events/creator_signup.html", {"form": form})
 
 
 def signup(request):
@@ -147,6 +183,26 @@ def user_profile(request):
 
     return render(
         request, "events/user_profile.html", {"form": form, "tickets": tickets}
+    )
+
+
+@login_required
+def creator_profile(request):
+    profile, created = CreatorProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = CreatorProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("creator_profile")
+    else:
+        form = CreatorProfileForm(instance=profile)
+
+    # Fetch the tickets for the current user
+    tickets = Ticket.objects.filter(user=request.user)
+
+    return render(
+        request, "events/creator_profile.html", {"form": form, "tickets": tickets}
     )
 
 

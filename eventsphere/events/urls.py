@@ -23,6 +23,10 @@ urlpatterns = [
     path("profile/", user_profile, name="user_profile"),
     path("my_tickets/", my_tickets, name="my_tickets"),
     path("events/<int:event_id>/buy-tickets/", views.buy_tickets, name="buy_tickets"),
+    path(
+        "creator/", views.creator_dashboard, name="creator_dashboard"
+    ),  # creator dashboard url
+    path("creatorprofile/", views.creator_dashboard, name="creator_profile"),
     # Authentication URLs
     path(
         "userlogin/",
@@ -30,11 +34,22 @@ urlpatterns = [
         name="user_login",
     ),
     path(
+        "creatorlogin/",
+        auth_views.LoginView.as_view(template_name="events/creator_login.html"),
+        name="creator_login",
+    ),
+    path(
         "userlogout/",
         auth_views.LogoutView.as_view(next_page="user_login"),
         name="user_logout",
     ),
     path(
+        "creatorlogout/",
+        auth_views.LogoutView.as_view(next_page="creator_login"),
+        name="creator_logout",
+    ),
+    path(
         "usersignup/", views.user_signup, name="user_signup"
     ),  # Define the success URL
+    path("creatorsignup/", views.creator_signup, name="creator_signup"),
 ]

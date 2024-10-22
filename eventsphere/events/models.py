@@ -11,8 +11,11 @@ class Event(models.Model):
     speakers = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey("CreatorProfile", on_delete=models.CASCADE)
+    numTickets = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
+        print(User.objects.get_or_create(username="default_creator")[0])
         return self.name
 
 
@@ -29,6 +32,20 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class CreatorProfile(models.Model):
+    # creator_id = models.CharField(primary_key=True, max_length=10)
+    creator = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
+    bio = models.TextField(blank=True, null=True)
+    organisation = models.CharField(max_length=100, null=True, blank=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    interests = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.creator.username
 
 
 class Ticket(models.Model):

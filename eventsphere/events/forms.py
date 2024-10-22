@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Event, Ticket
+from .models import UserProfile, CreatorProfile, Event, Ticket
 
 
 class EventForm(forms.ModelForm):
@@ -25,6 +25,16 @@ class UserProfileForm(forms.ModelForm):
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 3}),
             "interests": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
+class CreatorProfileForm(forms.ModelForm):
+    class Meta:
+        model = CreatorProfile
+        fields = ["name", "age", "bio", "organisation", "location", "interests"]
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 3}),
+            "interests": forms.Textarea(attrs={"rows": 2}),
         }
 
 
