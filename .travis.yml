@@ -15,6 +15,14 @@ script:
   - coverage report
 after_success:
   - coveralls --verbose
+
+
+env:
+  global:
+    - COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN
+    - COVERALLS_SERVICE_NAME=coveralls-python
+
+
 #deploy:
 #  provider: elasticbeanstalk
 #  access_key_id: $AWS_ACS_KEY
