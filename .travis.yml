@@ -24,8 +24,8 @@ deploy:
   access_key_id: $AWS_ACS_KEY
   secret_access_key: $AWS_SCRT_KEY
   region: us-east-1
-  app: mysite
-  env: def-env
+  app: swe-app
+  env: Swe-app-env
   bucket_name: 'elasticbeanstalk-us-east-1-626635433032'
   on:
     repo: gcivil-nyu-org/wed-fall24-team3
