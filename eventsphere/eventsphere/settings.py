@@ -187,6 +187,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "eventsphere-env2.eba-garccznv.us-west-2.elasticbeanstalk.com",
+    "prod-env.eba-qff7pamz.us-west-2.elasticbeanstalk.com",
     "127.0.0.1",
 ]
 
