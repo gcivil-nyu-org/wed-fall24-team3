@@ -183,10 +183,10 @@
     <!-- Call to action buttons -->
     <div style="margin-top: 20px;">
         <a href="{% url 'creator_creates_event' %}" class="cta-button">Create New Event</a>
-        <form action="{% url 'creator_login' %}" method="POST" style="display:inline-block;">
+        <!-- <form action="{% url 'creator_login' %}" method="POST" style="display:inline-block;">
             {% csrf_token %}
             <button type="submit" class="cta-button" style="background-color: #f44336;">Logout</button>
-        </form>
+        </form> -->
     </div>
 </div>
 {% endblock %}
