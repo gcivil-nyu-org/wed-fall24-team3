@@ -23,9 +23,9 @@ deploy:
   provider: elasticbeanstalk
   access_key_id: $AWS_ACS_KEY
   secret_access_key: $AWS_SCRT_KEY
-  region: us-east-1
-  app: swe-app
-  env: Swe-app-env
+  region: us-west-2
+  app: eventsphere
+  env: eventsphere-env2
   bucket_name: 'elasticbeanstalk-us-east-1-626635433032'
   on:
     repo: gcivil-nyu-org/wed-fall24-team3
