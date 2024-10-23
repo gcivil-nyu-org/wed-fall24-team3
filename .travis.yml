@@ -19,8 +19,8 @@ script:
   - coverage report
 after_success:
   - coveralls --verbose
-before_deploy:
-  - echo "Deploying to Elastic Beanstalk environment: $TRAVIS_BRANCH"
+#before_deploy:
+#  - echo "Deploying to Elastic Beanstalk environment for branch: $TRAVIS_BRANCH"
 deploy:
   - provider: elasticbeanstalk
     access_key_id: $AWS_ACS_KEY
