@@ -4,16 +4,17 @@
 
 {% block content %}
 <div class="container">
-    <!-- Hero Section -->
-    <div class="hero">
-        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="EventSphere Hero Image">
-        <div class="hero-text">
-            <h1>Welcome to EventSphere</h1>
-            <p>Discover and explore events happening around you.</p>
+    <!-- Full-screen Hero Section -->
+    <div class="hero" style="position: relative; width: 100%; height: 70vh; overflow: hidden; border-radius: 10px;">
+        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="EventSphere Hero Image" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(70%);">
+        <div class="hero-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #fff; background-color: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 8px;">
+            <h1 style="font-size: 48px; font-weight: 700; margin-bottom: 10px;">Welcome to EventSphere</h1>
+            <p style="font-size: 20px; margin-bottom: 20px;">Discover and explore events happening around you.</p>
+            <a href="{% url 'user_event_list' %}" class="cta-button" style="background-color: #4CAF50; color: white; padding: 15px 30px; font-size: 20px; border-radius: 5px; text-decoration: none; transition: background-color 0.3s, transform 0.2s;">Browse Events</a>
         </div>
     </div>
-
-    <!-- Call-to-Action Button -->
-    <a href="{% url 'user_event_list' %}" class="cta-button">Browse Events</a>
 </div>
+
+<!-- Add some spacing for the rest of the content -->
+<div style="margin-top: 40px;"></div>
 {% endblock %}

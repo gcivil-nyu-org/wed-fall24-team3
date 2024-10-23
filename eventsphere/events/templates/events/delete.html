@@ -40,16 +40,7 @@
             text-decoration: none;
         }
 
-        nav ul li form button {
-            display: block;
-            text-align: center;
-            padding: 14px 20px;
-            text-decoration: none;
-            background-color: #333;
-            color: white;
-        }
-
-        nav ul li a:hover, nav ul li form button:hover {
+        nav ul li a:hover {
             background-color: #111;
         }
 
@@ -139,64 +130,35 @@
 </head>
 <body>
 
-<!-- Navigation Bar -->
-<nav>
-    <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'event_list' %}">View All Events</a></li>
-
-        {% if user.is_authenticated %}
-            {% if user.is_staff or user.is_superuser %}
-                <!-- Admin Links -->
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'event_list' %}">View All Events</a></li>
+            {% if user.is_authenticated %}
                 <li><a href="{% url 'create_event' %}">Create Event</a></li>
-
-                <!-- Admin Logout Form -->
-                <li style="float:right;">
-                    Welcome, Admin {{ user.username }}
-                    <form action="{% url 'logout' %}" method="POST"
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Logout</button>
-                    </form>
-                </li>
+                <li style="float:right;">Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></li>
             {% else %}
-                <!-- User Links -->
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
-
-                <!-- User Logout Form -->
-                <li style="float:right;">
-                    Welcome, {{ user.username }}
-                    <form action="{% url 'user_logout' %}" method="POST"
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Logout</button>
-                    </form>
-                </li>
+                <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
             {% endif %}
-        {% else %}
-            <!-- Links for unauthenticated users -->
-            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a
-                    href="{% url 'signup' %}">Sign Up</a></li>
-        {% endif %}
-    </ul>
-</nav>
+        </ul>
+    </nav>
 
-<!-- Main Content -->
-<div class="container">
-    <h2>Confirm Deletion</h2>
-    <p>Are you sure you want to delete the event "<strong>{{ event.name }}</strong>"?
-    </p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn-confirm">Yes, Delete</button>
-        <a href="{% url 'event_list' %}" class="btn-cancel">Cancel</a>
-    </form>
-</div>
+    <!-- Main Content -->
+    <div class="container">
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete the event "<strong>{{ event.name }}</strong>"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-confirm">Yes, Delete</button>
+            <a href="{% url 'event_list' %}" class="btn-cancel">Cancel</a>
+        </form>
+    </div>
 
-<!-- Footer -->
-<footer>
-    &copy; 2024 EventSphere. All rights reserved.
-</footer>
+    <!-- Footer -->
+    <footer>
+        &copy; 2024 EventSphere. All rights reserved.
+    </footer>
 
 </body>
 </html>
