@@ -179,7 +179,7 @@ def delete_event_view(request, event_id):
 
     if request.method == "POST":
         event.delete()
-        if user.is_superuser:
+        if request.user.is_superuser:
             return redirect("event_list")  # Redirect to a success page after deletion
         else:
             return redirect("creator_dashboard")
