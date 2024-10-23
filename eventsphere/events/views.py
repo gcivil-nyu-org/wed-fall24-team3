@@ -175,45 +175,25 @@
 #     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
 
 
-from django.shortcuts import get_object_or_404, render, redirect
 from .forms import EventForm
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from .models import Event
 
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.shortcuts import render, redirect
-
+# from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .forms import EventForm
-from .models import Event
-# events/views.py
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.db.models import Q
 from .models import UserProfile, Ticket, Event
 from .forms import UserProfileForm
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import EventForm
 from .forms import TicketPurchaseForm
 from django.contrib import messages
-
-import qrcode # type: ignore
+import qrcode  # type: ignore
 from django.http import JsonResponse
 from io import BytesIO
 import base64
 from django.db.models import Sum
-from .models import Ticket
-
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
+
 
 # Custom login view to handle both admin and user redirection
 def login_view(request):
@@ -225,19 +205,21 @@ def login_view(request):
 
             # Check if the user is an admin or a regular user
             if user.is_staff or user.is_superuser:
-                return redirect('event_list')  # Admin is redirected to event_list (admin dashboard)
+                return redirect(
+                    "event_list"
+                )  # Admin is redirected to event_list (admin dashboard)
             else:
-                return redirect('user_home')  # Regular user is redirected to user_home
+                return redirect("user_home")  # Regular user is redirected to user_home
     else:
         form = AuthenticationForm()
 
-    return render(request, 'events/login.html', {'form': form})
+    return render(request, "events/login.html", {"form": form})
 
 
 # Home page view to choose the user type
 def home_page(request):
-    return render(request, 'events/homepage.html')
-    
+    return render(request, "events/homepage.html")
+
 
 def generate_event_qr_code(request, event_id):
     user = request.user
@@ -253,104 +235,128 @@ def generate_event_qr_code(request, event_id):
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(qr_data)
     qr.make(fit=True)
-    
+
     # Save the image to a BytesIO stream
-    img = qr.make_image(fill='black', back_color='white')
+    img = qr.make_image(fill="black", back_color="white")
     buffered = BytesIO()
     img.save(buffered, format="PNG")
-    
+
     # Convert the image to base64
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
     # Return as JSON response
-    return JsonResponse({'qr_code': img_str})
+    return JsonResponse({"qr_code": img_str})
+
 
 def user_home(request):
-    return render(request, 'events/user_home.html')
-
+    return render(request, "events/user_home.html")
 
 
 def home(request):
-    return render(request, 'events/home.html')
+    return render(request, "events/home.html")
+
 
 def user_event_list(request):
-    query = request.GET.get('q')
+    query = request.GET.get("q")
     events = Event.objects.all()
     if query:
         events = events.filter(
-            Q(name__icontains=query) |
-            Q(location__icontains=query) |
-            Q(speakers__icontains=query)
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
+            | Q(speakers__icontains=query)
         )
-    return render(request, 'events/user_event_list.html', {'events': events, 'query': query})
+    return render(
+        request, "events/user_event_list.html", {"events": events, "query": query}
+    )
 
 
 def event_list(request):
     events = Event.objects.all()
-    return render(request, 'events/event_list.html', {'events': events})
+    return render(request, "events/event_list.html", {"events": events})
+
 
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    return render(request, 'events/event_detail.html', {'event': event})
+    return render(request, "events/event_detail.html", {"event": event})
+
 
 def user_signup(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('user_home')
+            return redirect("user_home")
     else:
         form = UserCreationForm()
-    return render(request, 'events/user_signup.html', {'form': form})
+    return render(request, "events/user_signup.html", {"form": form})
+
+
 def signup(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)  # Log the user in after signup
-            return redirect('event_list')  # Redirect to create_event or any page you prefer
+            return redirect(
+                "event_list"
+            )  # Redirect to create_event or any page you prefer
     else:
         form = UserCreationForm()
-    return render(request, 'events/signup.html', {'form': form})
+    return render(request, "events/signup.html", {"form": form})
+
 
 @login_required
 def create_event(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EventForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('event_list')  # Redirect to the success page after form submission
+            return redirect(
+                "event_list"
+            )  # Redirect to the success page after form submission
     else:
         form = EventForm()
-    return render(request, 'events/create_event.html', {'form': form})
+    return render(request, "events/create_event.html", {"form": form})
+
 
 def update_event_view(request, event_id):
     # Fetch the event by its ID
     event = get_object_or_404(Event, id=event_id)
 
-    if request.method == 'POST':
-        form = EventForm(request.POST, instance=event)  # Pass the event instance to the form
+    if request.method == "POST":
+        form = EventForm(
+            request.POST, instance=event
+        )  # Pass the event instance to the form
         if form.is_valid():
             form.save()
-            return redirect('event_list')  # Redirect to the event list page after successful update
+            return redirect(
+                "event_list"
+            )  # Redirect to the event list page after successful update
         else:
-            return render(request, 'events/update_event.html', {'form': form, 'errors': form.errors}, status=400)
+            return render(
+                request,
+                "events/update_event.html",
+                {"form": form, "errors": form.errors},
+                status=400,
+            )
     else:
         form = EventForm(instance=event)  # Pre-fill the form with the event data
-    
-    return render(request, 'events/update_event.html', {'form': form})
-    
+
+    return render(request, "events/update_event.html", {"form": form})
+
+
 def event_success(request):
-    return render(request, 'events/event_success.html')
+    return render(request, "events/event_success.html")
+
 
 @login_required  # Ensure only logged-in users can delete events
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         event.delete()
-        return redirect('event_list')  # Redirect to a success page after deletion
+        return redirect("event_list")  # Redirect to a success page after deletion
 
     return render(request, "events/delete.html", {"event": event})
 
@@ -368,10 +374,16 @@ def user_profile(request):
         form = UserProfileForm(instance=profile)
 
     # Group tickets by event and calculate the total tickets for each event
-    events_with_tickets = Ticket.objects.filter(user=request.user).values('event__name', 'event__id').annotate(total_tickets=Sum('quantity'))
+    events_with_tickets = (
+        Ticket.objects.filter(user=request.user)
+        .values("event__name", "event__id")
+        .annotate(total_tickets=Sum("quantity"))
+    )
 
     return render(
-        request, "events/user_profile.html", {"form": form, "events_with_tickets": events_with_tickets}
+        request,
+        "events/user_profile.html",
+        {"form": form, "events_with_tickets": events_with_tickets},
     )
 
 

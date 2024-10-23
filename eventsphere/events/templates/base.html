@@ -85,13 +85,12 @@
 <!-- Navigation Bar -->
 <nav>
     <ul>
-        <li><a href="{% url 'homepage' %}">Home</a></li>
         {% if user.is_authenticated %}
             {% if user.is_staff or user.is_superuser %}
                 <li><a href="{% url 'event_list' %}">Admin Dashboard</a></li>
                 <li><a href="{% url 'create_event' %}">Create Event</a></li>
             {% else %}
-                <li><a href="{% url 'user_home' %}">User Home</a></li>
+                <li><a href="{% url 'user_home' %}">Home</a></li>
                 <li><a href="{% url 'user_event_list' %}">Events</a></li>
                 <li><a href="{% url 'user_profile' %}">Profile</a></li>
             {% endif %}
