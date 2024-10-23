@@ -28,9 +28,9 @@ deploy:
   env: def-env
   bucket_name: 'elasticbeanstalk-us-east-1-626635433032'
   on:
-#    all_branches: true
     repo: gcivil-nyu-org/wed-fall24-team3
-    branches:
-      only:
-        - staging
-        - main
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^(staging|main)$
+#    branches:
+#        - main
+#        - staging
