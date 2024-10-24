@@ -9,7 +9,7 @@ urlpatterns = [
         views.generate_event_qr_code,
         name="generate_event_qr",
     ),
-    path('profile/tickets/', views.profile_tickets, name='profile_tickets'),
+    path("profile/tickets/", views.profile_tickets, name="profile_tickets"),
     path("create/", views.create_event, name="create_event"),
     path("update/<int:event_id>/", views.update_event_view, name="update_event"),
     path("delete/<int:event_id>/", views.delete_event_view, name="delete_event"),
