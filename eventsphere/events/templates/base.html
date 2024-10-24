@@ -50,18 +50,22 @@
             background-color: #575757;
         }
 
-        .welcome-text {
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 8px 16px;
-            background-color: #444444; /* Matches the background of the navbar buttons */
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+        nav ul li form {
+            display: inline;
         }
 
-        .welcome-text:hover {
-            background-color: #575757; /* Hover effect like other navbar buttons */
+        nav ul li form a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background-color: #333;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+
+        nav ul li form a:hover {
+            background-color: #575757;
         }
 
         .container {
@@ -108,14 +112,9 @@
                 <li><a href="{% url 'user_event_list' %}">Events</a></li>
                 <li><a href="{% url 'user_profile' %}">Profile</a></li>
             {% endif %}
-            
-            <!-- Centered "Welcome, {{ user.username }}" -->
-            <li style="margin-left: auto; display: flex; align-items: center;">
-                <span class="welcome-text">Welcome, {{ user.username }}</span>
-            </li>
-            
-            <li>
-                <form action="{% url 'logout' %}" method="POST" style="display: inline;">
+            <li style="margin-left: auto;">
+                Welcome, {{ user.username }}
+                <form action="{% url 'logout' %}" method="POST">
                     {% csrf_token %}
                     <a href="#" onclick="this.closest('form').submit()">Logout</a>
                 </form>

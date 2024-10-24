@@ -26,8 +26,11 @@ from .models import UserProfile, Event, Ticket
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ["name", "location", "date_time", "schedule", "speakers"]
-
+        fields = ["name", "location", "date_time", "schedule", "speakers",'latitude', 'longitude']
+        widgets = {
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
+        }
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
