@@ -8,48 +8,78 @@
         body, html {
             height: 100%;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://source.unsplash.com/1600x900/?event,concert') center/cover no-repeat;
+            color: white;
         }
 
         .center-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
             text-align: center;
         }
 
         h1 {
-            font-size: 48px;
-            color: #333;
+            font-size: 64px;
+            font-weight: bold;
+            color: #FFC107; /* Bright golden text */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: fadeIn 1.5s ease-in-out;
         }
 
         p {
-            font-size: 18px;
-            color: #666;
+            font-size: 24px;
+            color: #f0f2f5;
+            margin-bottom: 40px;
+            animation: fadeIn 2s ease-in-out;
         }
 
         .button-container {
-            margin-top: 20px;
             display: flex;
-            gap: 20px;
+            gap: 30px;
             justify-content: center;
+            animation: fadeIn 2.5s ease-in-out;
         }
 
         button {
-            padding: 12px 24px;
-            font-size: 18px;
+            padding: 15px 35px;
+            font-size: 20px;
+            font-weight: bold;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
             background-color: #4CAF50;
             color: white;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         button:hover {
             background-color: #45a049;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 48px;
+            }
+            p {
+                font-size: 18px;
+            }
+            button {
+                padding: 12px 28px;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -58,8 +88,9 @@
         <h1>Welcome to EventSphere</h1>
         <p>Discover and manage exciting events with ease!</p>
         <div class="button-container">
-            <a href="{% url 'user_login' %}"><button>User Login</button></a>
-            <a href="{% url 'login' %}"><button>Admin Login</button></a>
+            <!-- Add more buttons as needed -->
+            <a href="{% url 'login' %}"><button> Login</button></a>
+            <a href="{% url 'signup' %}"><button>Sign Up</button></a>
         </div>
     </div>
 </body>

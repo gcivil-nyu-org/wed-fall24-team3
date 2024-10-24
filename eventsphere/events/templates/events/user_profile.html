@@ -16,71 +16,114 @@
         padding-top: 60px;
     }
 
-    .container {
-        max-width: 800px;
+    .profile-container {
+        display: flex;
+        max-width: 1200px;
         margin: 50px auto;
         padding: 30px;
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
         text-align: center;
     }
 
-    h2 {
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #f0f2f5;
+    }
+
+    .profile-content {
+        width: 75%;
+        padding: 0 30px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .profile-header h2 {
         font-size: 28px;
         color: #333;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
 
     .profile-form-wrapper {
         margin-bottom: 30px;
-        max-width: 500px;
+        max-width: 600px;
         margin: 0 auto;
-        text-align: left;
     }
 
     .form-group {
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        margin-bottom: 20px;
     }
 
     .form-group label {
         font-weight: bold;
-        margin-right: 10px;
-        flex: 1;
-        text-align: right;
+        margin-bottom: 5px;
+        display: block;
+        color: #333;
     }
 
-    .form-group input, 
-    .form-group textarea {
-        flex: 2;
-        padding: 8px;
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 12px;
         font-size: 16px;
         border: 1px solid #ccc;
         border-radius: 5px;
-        width: 100%;
+        transition: border-color 0.3s ease;
     }
 
-    .form-group textarea {
-        height: 100px;
+    .form-group input:focus, .form-group textarea:focus {
+        border-color: #4CAF50;
+        outline: none;
     }
 
     .button-container {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 30px;
     }
 
     .btn-update {
-        padding: 10px 20px;
+        padding: 12px 20px;
         background-color: #4CAF50;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        transition: background-color 0.3s, transform 0.2s;
         font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.2s;
     }
 
     .btn-update:hover {
@@ -88,174 +131,120 @@
         transform: translateY(-2px);
     }
 
-    /* Table styling */
-    .tickets-table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-        background-color: #f9f9f9;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .tickets-table th, .tickets-table td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .tickets-table th {
-        background-color: #4CAF50;
-        color: white;
-        font-weight: bold;
-    }
-
-    .tickets-table tr:hover {
-        background-color: #f1f1f1;
-    }
-
     /* Responsive Design */
     @media (max-width: 768px) {
-        .container {
-            padding: 20px;
-        }
-
-        .form-group {
+        .profile-container {
             flex-direction: column;
-            align-items: flex-start;
         }
 
-        .form-group label {
-            text-align: left;
-            margin-bottom: 5px;
+        .sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .profile-content {
+            width: 100%;
+            padding: 0;
         }
     }
 </style>
 
-<div class="container">
-    <h2>User Profile</h2>
-
-    <div class="profile-form-wrapper">
-        {% if form %}
-            <form method="post" class="profile-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="name">Name:</label>
-                    {{ form.name }}
-                </div>
-
-                <div class="form-group">
-                    <label for="age">Age:</label>
-                    {{ form.age }}
-                </div>
-
-                <div class="form-group">
-                    <label for="bio">Bio:</label>
-                    {{ form.bio }}
-                </div>
-
-                <div class="form-group">
-                    <label for="location">Location:</label>
-                    {{ form.location }}
-                </div>
-
-                <div class="form-group">
-                    <label for="interests">Interests:</label>
-                    {{ form.interests }}
-                </div>
-
-                <div class="button-container">
-                    <button type="submit" class="btn-update">Update Profile</button>
-                </div>
-            </form>
-        {% else %}
-            <p><strong>Name:</strong> {{ profile.name }}</p>
-            <p><strong>Age:</strong> {{ profile.age }}</p>
-            <p><strong>Bio:</strong> {{ profile.bio }}</p>
-            <p><strong>Location:</strong> {{ profile.location }}</p>
-            <p><strong>Interests:</strong> {{ profile.interests }}</p>
-        {% endif %}
+<div class="profile-container">
+    <!-- Sidebar for Account Settings -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'profile_tickets' %}">My Tickets</a></li>
+        </ul>
     </div>
-    <div class="tickets">
-        <br><br>
-        <h3>My Tickets</h3>
-        {% if events_with_tickets %}
-            <table class="tickets-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Total Tickets</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in events_with_tickets %}
+
+    <!-- Profile Form -->
+    <div class="profile-content">
+        <div class="profile-header">
+            <h2>Account Information</h2>
+        </div>
+
+        <div class="profile-form-wrapper">
+            {% if form %}
+                <form method="post" class="profile-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Age:</label>
+                        {{ form.age }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">Bio:</label>
+                        {{ form.bio }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location:</label>
+                        {{ form.location }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interests">Interests:</label>
+                        {{ form.interests }}
+                    </div>
+
+                    <div class="button-container">
+                        <button type="submit" class="btn-update">Update Profile</button>
+                    </div>
+                </form>
+            {% else %}
+                <p><strong>Name:</strong> {{ profile.name }}</p>
+                <p><strong>Age:</strong> {{ profile.age }}</p>
+                <p><strong>Bio:</strong> {{ profile.bio }}</p>
+                <p><strong>Location:</strong> {{ profile.location }}</p>
+                <p><strong>Interests:</strong> {{ profile.interests }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Ticket Information (COMMENTED OUT) -->
+        <!-- {# 
+        <div class="tickets">
+            <h3>My Tickets</h3>
+            {% if events_with_tickets %}
+                <table class="tickets-table">
+                    <thead>
                         <tr>
-                            <td>{{ event.event__name }}</td>
-                            <td>{{ event.total_tickets }} tickets</td>
-                            <td>
-                                <button onclick="fetchQRCode({{ event.event__id }})">Show QR Code</button>
-                            </td>
+                            <th>Event</th>
+                            <th>Total Tickets</th>
+                            <th>Actions</th>
                         </tr>
-                        <tr id="qr-{{ event.event__id }}" style="display: none;">
-                            <td colspan="3">
-                                <img id="qr-code-img-{{ event.event__id }}" src="" alt="QR Code">
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets purchased yet.</p>
-        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% for event in events_with_tickets %}
+                            <tr>
+                                <td>{{ event.event__name }}</td>
+                                <td>{{ event.total_tickets }} tickets</td>
+                                <td>
+                                    <button onclick="fetchQRCode({{ event.event__id }})">Show QR Code</button>
+                                </td>
+                            </tr>
+                            <tr id="qr-{{ event.event__id }}" style="display: none;">
+                                <td colspan="3">
+                                    <img id="qr-code-img-{{ event.event__id }}" src="" alt="QR Code">
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No tickets purchased yet.</p>
+            {% endif %}
+        </div>
+        #} -->
     </div>
-    
-    <script>
-        function fetchQRCode(eventId) {
-            // Make an AJAX request to get the QR code in base64 format
-            fetch(`/generate_event_qr/${eventId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.qr_code) {
-                        // Find the img tag and set its src to the base64 QR code
-                        const imgTag = document.getElementById(`qr-code-img-${eventId}`);
-                        imgTag.src = `data:image/png;base64,${data.qr_code}`;
-                        
-                        // Show the row with the QR code
-                        document.getElementById(`qr-${eventId}`).style.display = 'table-row';
-                    } else {
-                        alert('QR code could not be generated');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching QR code:', error);
-                });
-        }
-    </script>
-    
-    <!-- <div class="tickets">
-        <br><br>
-        <h3>My Tickets</h3>
-        {% if tickets %}
-            <table class="tickets-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                        <tr>
-                            <td>{{ ticket.event.name }}</td>
-                            <td>{{ ticket.quantity }} tickets </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets purchased yet.</p>
-        {% endif %}
-    </div>
-</div> -->
+</div>
+
 {% endblock %}

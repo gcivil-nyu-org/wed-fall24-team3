@@ -193,8 +193,34 @@ from io import BytesIO
 import base64
 from django.db.models import Sum
 from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Ticket
 
+@login_required
+# def profile_tickets(request):
+#     # Query all the events with tickets for the logged-in user
+#     events_with_tickets = Ticket.objects.filter(user=request.user)
 
+#     context = {
+#         'events_with_tickets': events_with_tickets
+#     }
+
+#     return render(request, 'events\profile_tickets.html', context)
+
+def profile_tickets(request):
+    # Group tickets by event and calculate the total tickets for each event
+    events_with_tickets = (
+        Ticket.objects.filter(user=request.user)
+        .values("event__name", "event__id", "event__date_time")
+        .annotate(total_tickets=Sum("quantity"))
+    )
+
+    return render(
+        request,
+        "events/profile_tickets.html",
+        {"events_with_tickets": events_with_tickets},
+    )
 # Custom login view to handle both admin and user redirection
 def login_view(request):
     if request.method == "POST":
