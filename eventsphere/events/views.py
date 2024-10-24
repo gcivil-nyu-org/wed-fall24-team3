@@ -206,6 +206,7 @@ from django.contrib.auth.forms import AuthenticationForm
 
 #     return render(request, 'events\profile_tickets.html', context)
 
+
 @login_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
