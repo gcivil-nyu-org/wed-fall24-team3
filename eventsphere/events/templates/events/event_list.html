@@ -1,143 +1,244 @@
-<!-- events/templates/events/event_list.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Event List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event List | Admin</title>
     <style>
-        /* Inline CSS styles */
-
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f5f1; /* Very light green background */
             margin: 0;
             padding: 0;
         }
 
         /* Navigation styles */
         nav {
-            background-color: #333;
+            background-color: #444444; /* Gray background for the nav */
+            padding: 10px 20px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .nav-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a, nav button {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px; /* Increased padding for better visibility */
+            background-color: #444444;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* Prevents text wrapping */
+        }
+
+        nav a:hover, nav button:hover {
+            background-color: #575757; /* Lighter gray on hover */
+        }
+
+        /* Create Event Button */
+        .btn-create-event {
+            background-color: #444444; /* Green for Create Event button */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-create-event:hover {
+            background-color: #575757; /* Darker green on hover */
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 4px 0;
+            transition: 0.4s;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            background-color: #444444;
+            border-radius: 5px;
             overflow: hidden;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        nav ul {
-            list-style-type: none;
+        .dropdown-menu a, .dropdown-menu button {
+            display: block;
+            padding: 10px 15px;
+            text-align: center;
+            border-bottom: 1px solid #555555;
+            color: white;
+        }
+
+        .dropdown-menu a:hover, .dropdown-menu button:hover {
+            background-color: #575757;
+        }
+
+        .dropdown-menu form {
             margin: 0;
-            padding: 0;
         }
 
-        nav ul li {
-            float: left;
-        }
-
-        nav ul li a, nav ul li {
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 20px;
-            text-decoration: none;
-        }
-
-        nav ul li form button {
-            display: block;
-            text-align: center;
-            padding: 14px 20px;
-            text-decoration: none;
-            background-color: #333;
-            color: white;
-        }
-
-        nav ul li a:hover, nav ul li form button:hover {
-            background-color: #111;
-        }
-
-        /* Clear floats */
-        nav::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-
-        /* Container styles */
+        /* Container styling */
         .container {
             width: 90%;
-            max-width: 800px;
-            margin: 30px auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
+            max-width: 1200px;
+            margin: 120px auto 50px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-bar input {
+            width: 80%;
+            max-width: 600px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .search-bar input:focus {
+            border-color: #28a745; /* Green border when focused */
         }
 
         h1 {
             text-align: center;
             margin-bottom: 30px;
+            color: #333;
         }
 
-        /* Table styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
+        /* Card Layout for Events */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        table th, table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
+        .card {
+            background-color: #ffffff; /* Pure white card background */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        table th {
-            background-color: #f2f2f2;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Footer styles */
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #333;
+        .card h3 {
+            font-size: 22px;
+            color: #333333; /* Dark gray text */
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .card p {
+            margin-bottom: 10px;
+            color: #666666; /* Medium gray for secondary text */
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .card .actions {
+            display: flex;
+            justify-content: flex-start; /* Align buttons side by side */
+            gap: 10px; /* Add space between buttons */
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 10px 20px;
+            border-radius: 5px;
             color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background-color: #28a745; /* Green for Edit button */
+            transition: background-color 0.3s;
+        }
+
+        .btn-edit:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        .btn-delete {
+            background-color: #e74c3c; /* Soft red for Delete button */
+            transition: background-color 0.3s;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b; /* Darker red on hover */
+        }
+
+        /* Footer */
+        footer {
+            background-color: #444444; /* Gray footer */
+            color: white;
+            padding: 15px;
+            text-align: center;
             position: fixed;
             width: 100%;
             bottom: 0;
         }
 
-        .btn-edit {
-            background-color: #4CAF50; /* Green */
-            color: white;
-            padding: 5px 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            border-radius: 4px;
-        }
-
-        .btn-edit:hover {
-            background-color: #45a049;
-        }
-
-        .btn-delete {
-            background-color: rgb(186, 46, 46);
-            color: white;
-            padding: 5px 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            border-radius: 4px;
-        }
-
-        .btn-delete:hover {
-            background-color: rgb(244, 7, 7);
-        }
-
-        /* Responsive styles */
-        @media (max-width: 600px) {
-            nav ul li {
-                float: none;
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            nav .nav-right {
+                display: none; /* Hide logout button on smaller screens */
             }
 
-            .container {
-                width: 95%;
+            nav .hamburger {
+                display: flex;
+            }
+
+            nav .nav-left {
+                display: none;
+            }
+
+            .dropdown-menu {
+                right: 10px;
             }
         }
     </style>
@@ -146,84 +247,100 @@
 
 <!-- Navigation Bar -->
 <nav>
-    <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'event_list' %}">View All Events</a></li>
+    <div class="nav-left">
+        <!-- <a href="{% url 'home' %}">Home</a> -->
+        <a href="{% url 'event_list' %}">View All Events</a>
+        <a href="{% url 'create_event' %}" class="btn-create-event">Create Event</a> <!-- Create Event Button -->
+    </div>
 
-        {% if user.is_authenticated %}
-            {% if user.is_staff or user.is_superuser %}
-                <!-- Admin Links -->
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    <!-- Right side of the navigation bar with logout button -->
+    <div class="nav-right">
+        <form action="{% url 'logout' %}" method="POST">
+            {% csrf_token %}
+            <button class="btn-logout" type="submit">Logout</button>
+        </form>
+    </div>
 
-                <!-- Admin Logout Form -->
-                <li style="float:right;">
-                    Welcome, Admin {{ user.username }}
-                    <form action="{% url 'logout' %}" method="POST"
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Logout</button>
-                    </form>
-                </li>
-            {% else %}
-                <!-- User Links -->
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+    <!-- Hamburger Menu -->
+    <div class="hamburger" onclick="toggleDropdown()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
 
-                <!-- User Logout Form -->
-                <li style="float:right;">
-                    Welcome, {{ user.username }}
-                    <form action="{% url 'user_logout' %}" method="POST"
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Logout</button>
-                    </form>
-                </li>
-            {% endif %}
-        {% else %}
-            <!-- Links for unauthenticated users -->
-            <li style="float:right;"><a href="{% url 'login' %}">Login</a> | <a
-                    href="{% url 'signup' %}">Sign Up</a></li>
-        {% endif %}
-    </ul>
+    <!-- Dropdown Menu -->
+    <div class="dropdown-menu" id="dropdownMenu">
+        <form action="{% url 'logout' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </div>
 </nav>
 
 <!-- Main Content -->
 <div class="container">
     <h1>All Events</h1>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Date and Time</th>
-            <th>Location</th>
-            <th>Speakers</th>
-            <th>Description</th>
-            <th>Actions</th> <!-- New Actions Column -->
-        </tr>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search for events..." onkeyup="filterEvents()">
+    </div>
+
+    <!-- Event Cards -->
+    <div class="card-grid" id="eventGrid">
         {% for event in events %}
-            <tr>
-                <td>{{ event.name }}</td>
-                <td>{{ event.date_time }}</td>
-                <td>{{ event.location }}</td>
-                <td>{{ event.speakers }}</td>
-                <td>{{ event.schedule }}</td>
-                <td>
-                    <a href="{% url 'update_event' event.id %}"
-                       class="btn-edit">Edit</a>
+            <div class="card">
+                <h3>{{ event.name }}</h3>
+                <p><strong>Date and Time:</strong> {{ event.date_time }}</p>
+                <p><strong>Location:</strong> {{ event.location }}</p>
+                <p><strong>Speakers:</strong> {{ event.speakers }}</p>
+                <p><strong>Description:</strong> {{ event.schedule }}</p>
+                <div class="actions">
+                    <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
                     <a href="{% url 'delete_event' event.id %}" class="btn-delete">Delete</a>
-                    <!-- New Delete Button -->
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">No events found.</td>
-            </tr>
+                </div>
+            </div>
+        {% empty %}
+            <p>No events found.</p>
         {% endfor %}
-    </table>
+    </div>
 </div>
 
 <!-- Footer -->
 <footer>
     &copy; 2024 EventSphere. All rights reserved.
 </footer>
+
+<!-- JavaScript -->
+<script>
+    // Toggle dropdown menu
+    function toggleDropdown() {
+        const dropdown = document.getElementById('dropdownMenu');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Search and filter events
+    function filterEvents() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            const eventName = card.querySelector('h3').innerText.toLowerCase();
+            if (eventName.includes(input)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Close dropdown when clicked outside
+    window.onclick = function(event) {
+        if (!event.target.matches('.hamburger') && !event.target.closest('.dropdown-menu')) {
+            document.getElementById('dropdownMenu').style.display = 'none';
+        }
+    }
+</script>
 
 </body>
 </html>
