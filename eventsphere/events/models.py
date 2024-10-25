@@ -32,6 +32,7 @@ from django.contrib.auth.models import User
 #         return self.name
 from django.db import models
 
+
 class Event(models.Model):
     name = models.CharField(max_length=200)
     location = models.CharField(max_length=200)  # This will be the address

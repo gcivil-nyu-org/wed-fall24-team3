@@ -342,11 +342,14 @@ def create_event(request):
         if form.is_valid():
             # Save the event with latitude and longitude included from the form
             form.save()
-            return redirect("event_list")  # Redirect to the event list page after successful submission
+            return redirect(
+                "event_list"
+            )  # Redirect to the event list page after successful submission
     else:
         form = EventForm()
 
     return render(request, "events/create_event.html", {"form": form})
+
 
 # def create_event(request):
 #     if request.method == "POST":
