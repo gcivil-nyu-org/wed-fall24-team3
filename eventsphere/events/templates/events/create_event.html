@@ -28,6 +28,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 1000px;
+            position: relative;
         }
 
         h1 {
@@ -56,6 +57,7 @@
             border-radius: 5px;
             font-size: 16px;
             transition: border-color 0.3s;
+            width: 100%;
         }
 
         input[type="text"]:focus,
@@ -85,6 +87,34 @@
             background-color: #45a049;
         }
 
+        /* Custom dropdown styling */
+        .custom-dropdown {
+            position: absolute;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .custom-dropdown div:last-child {
+            border-bottom: none;
+        }
+
+        .custom-dropdown div:hover {
+            background-color: #f0f2f5;
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
@@ -101,40 +131,82 @@
         }
     </style>
 
-    <!-- Add JavaScript for geocoding -->
+    <!-- Add JavaScript for custom dropdown -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('eventForm');
-            
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();  // Prevent the form from submitting immediately
+            const locationInput = document.getElementById('id_location');
+            const customDropdown = document.getElementById('custom-dropdown');
+            const container = document.querySelector('.container');
 
-                const location = document.getElementById('id_location').value;
+            // Function to position the dropdown
+            function positionDropdown() {
+                const rect = locationInput.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const topPosition = locationInput.offsetTop + locationInput.offsetHeight;
+                const leftPosition = locationInput.offsetLeft;
 
-                // Geocode the address using Nominatim (OpenStreetMap API)
-                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json`)
+                customDropdown.style.width = `${locationInput.offsetWidth}px`;
+                customDropdown.style.top = `${topPosition}px`;
+                customDropdown.style.left = `${leftPosition}px`;
+            }
+
+            // Fetch suggestions as the user types in the location input
+            locationInput.addEventListener('input', function() {
+                const query = locationInput.value;
+
+                if (query.length < 3) {
+                    customDropdown.style.display = 'none';  // Hide dropdown if input is too short
+                    return;
+                }
+
+                positionDropdown();
+
+                // Fetch location suggestions using Nominatim (OpenStreetMap API)
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data && data.length > 0) {
-                            const lat = data[0].lat;
-                            const lon = data[0].lon;
-                            console.log('Geocoding Result:', data[0]);
-                            console.log('Parsed Latitude:', lat);
-                            console.log('Parsed Longitude:', lon);
-                            // Set latitude and longitude in hidden fields
-                            document.getElementById('id_latitude').value = lat;
-                            document.getElementById('id_longitude').value = lon;
+                        // Clear previous suggestions
+                        customDropdown.innerHTML = '';
 
-                            // Now submit the form with latitude and longitude
-                            form.submit();
+                        // Populate the dropdown with new suggestions
+                        if (data.length > 0) {
+                            customDropdown.style.display = 'block';  // Show dropdown
+                            data.forEach(item => {
+                                const optionDiv = document.createElement('div');
+                                optionDiv.textContent = item.display_name;
+                                optionDiv.addEventListener('click', function() {
+                                    locationInput.value = item.display_name;
+                                    customDropdown.style.display = 'none';  // Hide dropdown
+                                });
+                                customDropdown.appendChild(optionDiv);
+                            });
                         } else {
-                            alert('Address not found. Please try again.');
+                            customDropdown.style.display = 'none';  // Hide dropdown if no results
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error fetching coordinates. Please try again.');
+                        console.error('Error fetching location suggestions:', error);
+                        customDropdown.style.display = 'none';  // Hide dropdown on error
                     });
+            });
+
+            // Position the dropdown on focus
+            locationInput.addEventListener('focus', function() {
+                positionDropdown();
+            });
+
+            // Reposition dropdown on window resize
+            window.addEventListener('resize', function() {
+                if (customDropdown.style.display === 'block') {
+                    positionDropdown();
+                }
+            });
+
+            // Hide dropdown if user clicks outside of it
+            document.addEventListener('click', function(e) {
+                if (!locationInput.contains(e.target) && !customDropdown.contains(e.target)) {
+                    customDropdown.style.display = 'none';
+                }
             });
         });
     </script>
@@ -153,10 +225,11 @@
             <label for="id_date_time">Date and Time</label>
             <input type="datetime-local" id="id_date_time" name="date_time" required>
             
-            <!-- Location -->
+            <!-- Location with Custom Dropdown -->
             <label for="id_location">Location</label>
-            <input type="text" id="id_location" name="location" placeholder="Enter location" required>
-            
+            <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required>
+            <div id="custom-dropdown" class="custom-dropdown"></div>
+
             <!-- Speakers -->
             <label for="id_speakers">Speakers</label>
             <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
