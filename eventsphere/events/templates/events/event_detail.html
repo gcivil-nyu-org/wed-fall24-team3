@@ -5,10 +5,12 @@
     {{ event.name }} - EventSphere
 {% endblock %}
 
-{% block content %}
+{% block extra_head %}
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         /* Event Detail Specific Styles */
-        .container {
+        .event-detail-container {
             width: 90%;
             max-width: 1000px;
             margin: 50px auto;
@@ -18,7 +20,6 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
-        /* Breadcrumb and Event Image */
         .back-to-events {
             display: inline-block;
             margin-bottom: 20px;
@@ -41,14 +42,12 @@
             margin-bottom: 30px;
         }
 
-        /* Event Header */
         h1 {
             font-size: 36px;
             margin-bottom: 20px;
             color: #333333;
         }
 
-        /* Event Info Section */
         .event-info {
             display: flex;
             justify-content: space-between;
@@ -78,7 +77,6 @@
             text-decoration: none;
         }
 
-        /* Buy Tickets */
         .buy-tickets {
             background-color: #4CAF50;
             padding: 12px 30px;
@@ -95,12 +93,26 @@
             background-color: #45a049;
         }
 
-        /* Event Description */
         .event-description {
             font-size: 16px;
             color: #555;
             line-height: 1.6;
             margin-top: 30px;
+        }
+
+        /* Leaflet Map Styling */
+        #map {
+            height: 300px;  /* Initial height */
+            width: 100%;
+            max-width: 600px;  /* Restrict width to fit design */
+            margin-bottom: 30px;
+            transition: height 0.5s ease;
+            display: block;
+            border-radius: 10px;
+        }
+
+        #map.enlarged {
+            height: 500px; /* Enlarged height on click */
         }
 
         @media (max-width: 768px) {
@@ -123,18 +135,24 @@
             .back-to-events, .buy-tickets {
                 font-size: 14px;
             }
+
+            #map {
+                max-width: 100%;
+            }
         }
     </style>
+{% endblock %}
 
-    <div class="container">
+{% block content %}
+    <div class="event-detail-container">
         <!-- Back to Events Button -->
         <a href="{% url 'user_event_list' %}" class="back-to-events">← Back to Events</a>
 
         <!-- Event Image -->
-        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
-             alt="{{ event.name }}" class="event-image">
+        <!-- <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image"> -->
+        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
 
-        <!-- Buy Tickets Button (Below the image) -->
+        <!-- Buy Tickets Button -->
         <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
 
         <!-- Event Name -->
@@ -145,9 +163,11 @@
             <div class="event-info-left">
                 <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
                 <p><strong>Location:</strong> {{ event.location }}</p>
-                <a href="#" class="add-to-calendar">+ Add to Calendar</a>
-            </div>
+                </div>
         </div>
+
+        <!-- Leaflet Map -->
+        <div id="map"></div>
 
         <!-- Event Description -->
         <div class="event-description">
@@ -155,4 +175,44 @@
             {{ event.schedule|linebreaks }}
         </div>
     </div>
+
+    <!-- Leaflet JS and OpenStreetMap Integration -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var mapElement = document.getElementById('map');
+            
+            // Retrieve latitude and longitude from the event object
+            var latitude = parseFloat('{{ event.latitude|default:"40.7128" }}');  // Default to New York if not provided
+            var longitude = parseFloat('{{ event.longitude|default:"-74.0060" }}');  // Default to New York if not provided
+
+            // Initialize the Leaflet map centered on the event location
+            var map = L.map('map').setView([latitude, longitude], 13);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add a marker at the event location with a popup
+            var marker = L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('{{ event.name|escapejs }}')
+                .openPopup();
+
+            // Click behavior for the map:
+            // 1. First click enlarges the map.
+            // 2. Subsequent clicks redirect to OpenStreetMap directions.
+            mapElement.onclick = function() {
+                if (!mapElement.classList.contains('enlarged')) {
+                    mapElement.classList.add('enlarged');  // Enlarge the map
+                    map.invalidateSize();  // Refresh the map view after resizing
+                } else {
+                    // Redirect to OpenStreetMap for directions
+                    var osmUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=Current_Location;${latitude},${longitude}`;
+                    window.open(osmUrl, '_blank');
+                }
+            };
+        });
+    </script>
 {% endblock %}
