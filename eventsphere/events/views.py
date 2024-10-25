@@ -175,8 +175,6 @@
 #     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
 
 
-from .forms import EventForm
-
 # from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -193,7 +191,6 @@ from io import BytesIO
 import base64
 from django.db.models import Sum
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
 from .forms import EventForm
 
 # @login_required
