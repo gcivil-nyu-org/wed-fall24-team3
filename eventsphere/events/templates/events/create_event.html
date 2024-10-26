@@ -1,5 +1,3 @@
-<!-- events/templates/events/create_event.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,7 +25,7 @@
             background-color: #ffffff;
             padding: 40px 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 1000px;
         }
@@ -102,49 +100,77 @@
             }
         }
     </style>
+
+    <!-- Add JavaScript for geocoding -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('eventForm');
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();  // Prevent the form from submitting immediately
+
+                const location = document.getElementById('id_location').value;
+
+                // Geocode the address using Nominatim (OpenStreetMap API)
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const lat = data[0].lat;
+                            const lon = data[0].lon;
+                            console.log('Geocoding Result:', data[0]);
+                            console.log('Parsed Latitude:', lat);
+                            console.log('Parsed Longitude:', lon);
+                            // Set latitude and longitude in hidden fields
+                            document.getElementById('id_latitude').value = lat;
+                            document.getElementById('id_longitude').value = lon;
+
+                            // Now submit the form with latitude and longitude
+                            form.submit();
+                        } else {
+                            alert('Address not found. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error fetching coordinates. Please try again.');
+                    });
+            });
+        });
+    </script>
 </head>
 <body>
-<div class="container">
-    <h1>Create a New Event</h1>
-    <form method="post">
-        {% csrf_token %}
+    <div class="container">
+        <h1>Create a New Event</h1>
+        <form id="eventForm" method="post">
+            {% csrf_token %}
+            
+            <!-- Event Name -->
+            <label for="id_name">Event Name</label>
+            <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
+            
+            <!-- Date and Time -->
+            <label for="id_date_time">Date and Time</label>
+            <input type="datetime-local" id="id_date_time" name="date_time" required>
+            
+            <!-- Location -->
+            <label for="id_location">Location</label>
+            <input type="text" id="id_location" name="location" placeholder="Enter location" required>
+            
+            <!-- Speakers -->
+            <label for="id_speakers">Speakers</label>
+            <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
+            
+            <!-- Description/Schedule -->
+            <label for="id_schedule">Description/Schedule</label>
+            <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
 
-        <a href="{% url 'event_list' %}" style="text-decoration: none;">
-            <button type="button" style="margin-bottom: 20px; background-color: #f0f0f0; color: #333; border: 1px solid #cccccc; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 18px;">
-                Back to Dashboard
-            </button>
-        </a>
-        
-        <!-- Event Name -->
-        <label for="id_name">Event Name</label>
-        <input type="text" id="id_name" name="name" placeholder="Enter event name"
-               required>
-
-        <!-- Date and Time -->
-        <label for="id_date_time">Date and Time</label>
-        <input type="datetime-local" id="id_date_time" name="date_time" required>
-
-        <!-- Location -->
-        <label for="id_location">Location</label>
-        <input type="text" id="id_location" name="location" placeholder="Enter location"
-               required>
-
-        <!-- Speakers -->
-        <label for="id_speakers">Speakers</label>
-        <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
-               required>
-
-        <!-- Description/Schedule -->
-        <label for="id_schedule">Description/Schedule</label>
-        <textarea id="id_schedule" name="schedule"
-                  placeholder="Enter event description or schedule" required></textarea>
-
-        <!-- Number of Tickets -->
-        <label for="id_numTickets">Number of Tickets</label>
-        <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="0">
-
-        <button type="submit">Create Event</button>
-    </form>
-</div>
+            <!-- Hidden latitude and longitude fields -->
+            <input type="hidden" id="id_latitude" name="latitude">
+            <input type="hidden" id="id_longitude" name="longitude">
+            
+            <button type="submit">Create Event</button>
+        </form>
+    </div>
 </body>
 </html>

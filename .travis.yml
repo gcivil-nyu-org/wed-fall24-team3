@@ -3,6 +3,10 @@ language: python
 python:
   - "3.10"
 # Install dependencies
+env:
+  global:
+    - COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN
+    - COVERALLS_SERVICE_NAME=coveralls-python
 before_install:
   - cd eventsphere
 install:
@@ -15,26 +19,26 @@ script:
   - coverage report
 after_success:
   - coveralls --verbose
-
-
-env:
-  global:
-    - COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN
-    - COVERALLS_SERVICE_NAME=coveralls-python
-
-
-#deploy:
-#  provider: elasticbeanstalk
-#  access_key_id: $AWS_ACS_KEY
-#  secret_access_key: $AWS_SCRT_KEY
-#  region: us-east-1
-#  app: mysite
-#  env: def-env
-#  bucket_name: 'elasticbeanstalk-us-east-1-897722690729'
-#  on:
-##    all_branches: true
-#    repo: gcivil-nyu-org/wed-fall24-team3
-#    branches:
-#      only:
-#        - staging
-#        - allen
+#before_deploy:
+#  - echo "Deploying to Elastic Beanstalk environment for branch: $TRAVIS_BRANCH"
+deploy:
+  - provider: elasticbeanstalk
+    access_key_id: $AWS_ACS_KEY
+    secret_access_key: $AWS_SCRT_KEY
+    region: us-west-2
+    app: eventsphere
+    env: eventsphere-env2
+    bucket_name: 'elasticbeanstalk-us-west-2-626635433032'
+    on:
+      branch: staging
+      repo: gcivil-nyu-org/wed-fall24-team3
+  - provider: elasticbeanstalk
+    access_key_id: $AWS_ACS_KEY
+    secret_access_key: $AWS_SCRT_KEY
+    region: us-west-2
+    app: production
+    env: prod-env
+    bucket_name: 'elasticbeanstalk-us-west-2-626635433032'
+    on:
+      branch: main
+      repo: gcivil-nyu-org/wed-fall24-team3

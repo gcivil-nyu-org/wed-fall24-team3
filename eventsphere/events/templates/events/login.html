@@ -7,20 +7,165 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
-    <title>Login</title>
+    <title>Login | EventSphere</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fc; /* Light background for contrast */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px; /* Wider form container */
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); /* Slightly darker shadow for better depth */
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            background-color: #212529; /* Darker background for left panel */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .left-panel h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #FFC107; /* Accent yellow color for "EventSphere" */
+        }
+
+        .left-panel p {
+            font-size: 1.3em;
+            line-height: 1.7em;
+        }
+
+        .form-container {
+            flex: 1;
+            background-color: white;
+            padding: 60px; /* More padding for form section */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 400px; /* Wider form box */
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 2em; /* Slightly larger font */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form input {
+            margin-bottom: 20px;
+            padding: 14px; /* Larger padding for input fields */
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            transition: all 0.3s ease; /* Smooth transition */
+        }
+
+        form input:focus {
+            border-color: #4CAF50; /* Highlight input field when focused */
+        }
+
+        form button {
+            padding: 14px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px); /* Subtle hover effect for the button */
+        }
+
+        .link-text {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .link-text a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .link-text a:hover {
+            color: #45a049;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-panel, .form-container {
+                flex: unset;
+                width: 100%;
+            }
+
+            .left-panel {
+                padding: 20px;
+            }
+
+            .form-container {
+                padding: 30px;
+            }
+
+            .form-box {
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <div class="link-text">
-        <h2>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.</h2>
+    <div class="left-panel">
+        <div>
+            <h1>EventSphere</h1>
+            <p>Discover tailored events. Sign in for personalized recommendations today!</p>
+        </div>
+    </div>
+    <div class="form-container">
+        <div class="form-box">
+            <h2>Login</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Login</button>
+            </form>
+            <div class="link-text">
+                <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.</p>
+            </div>
+        </div>
     </div>
 </div>
-
 </body>
 </html>
