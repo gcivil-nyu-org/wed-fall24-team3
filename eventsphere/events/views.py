@@ -193,8 +193,6 @@ from io import BytesIO
 import base64
 from django.db.models import Sum
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
-from .forms import EventForm
 
 # @login_required
 # def profile_tickets(request):
@@ -391,11 +389,14 @@ def create_event(request):
         if form.is_valid():
             # Save the event with latitude and longitude included from the form
             form.save()
-            return redirect("event_list")  # Redirect to the event list page after successful submission
+            return redirect(
+                "event_list"
+            )  # Redirect to the event list page after successful submission
     else:
         form = EventForm()
 
     return render(request, "events/create_event.html", {"form": form})
+
 
 # def create_event(request):
 #     if request.method == "POST":
@@ -544,7 +545,7 @@ def buy_tickets(request, event_id):
             ticket.save()  # Save the ticket after event has been updated
             messages.success(request, "Ticket purchased successfully!")
             return redirect("user_profile")
-            
+
     else:
         form = TicketPurchaseForm()
 
