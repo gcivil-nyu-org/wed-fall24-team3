@@ -24,7 +24,7 @@
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        position: relative; /* Ensure correct positioning for the dropdown */
+        position: relative;
     }
 
     .sidebar {
@@ -88,7 +88,6 @@
 
     .form-group {
         margin-bottom: 20px;
-        position: relative; /* Ensure correct positioning for the dropdown */
     }
 
     .form-group label {
@@ -218,6 +217,12 @@
                         {{ form.bio }}
                     </div>
 
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="id_email">Email:</label>
+                        {{ form.email }}
+                    </div>
+
                     <!-- Location Field with Custom Dropdown -->
                     <div class="form-group">
                         <label for="id_location">Location:</label>
@@ -231,8 +236,6 @@
                         {{ form.interests }}
                     </div>
 
-                    <!-- Hidden latitude and longitude fields (optional) -->
-                    <!-- Remove or adjust these if your form doesn't include them -->
                     <input type="hidden" id="id_latitude" name="latitude" value="{{ form.latitude.value|default_if_none:'' }}">
                     <input type="hidden" id="id_longitude" name="longitude" value="{{ form.longitude.value|default_if_none:'' }}">
 
@@ -244,6 +247,7 @@
                 <p><strong>Name:</strong> {{ profile.name }}</p>
                 <p><strong>Age:</strong> {{ profile.age }}</p>
                 <p><strong>Bio:</strong> {{ profile.bio }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
                 <p><strong>Location:</strong> {{ profile.location }}</p>
                 <p><strong>Interests:</strong> {{ profile.interests }}</p>
             {% endif %}
