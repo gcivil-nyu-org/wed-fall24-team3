@@ -321,26 +321,26 @@ def user_signup(request):
 
 def signup(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
 
         # Check if passwords match
         if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'events/signup.html')
+            messages.error(request, "Passwords do not match.")
+            return render(request, "events/signup.html")
 
         # Check if the username already exists
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return render(request, 'events/signup.html')
+            messages.error(request, "Username already exists.")
+            return render(request, "events/signup.html")
 
         # If validations pass, create the user
         user = User.objects.create_user(username=username, password=password)
         login(request, user)  # Log the user in after signup
-        return redirect('event_list')  # Redirect to the event list page
+        return redirect("event_list")  # Redirect to the event list page
 
-    return render(request, 'events/signup.html')
+    return render(request, "events/signup.html")
 
 
 @login_required
