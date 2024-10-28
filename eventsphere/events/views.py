@@ -16,7 +16,6 @@ from django.db.models import Sum
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import EventForm
 import boto3
-from django.conf import settings
 
 
 @login_required
@@ -158,33 +157,36 @@ def signup(request):
 
 @login_required
 def create_event(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EventForm(request.POST, request.FILES)
         if form.is_valid():
             event = form.save(commit=False)
-            image = request.FILES.get('image')
+            image = request.FILES.get("image")
 
             if image:
                 # Upload the image to S3
-                s3 = boto3.client('s3')
-                
-                bucket_name = 'eventsphere-images'
-                image_key = f'events/{image.name}'
+                s3 = boto3.client("s3")
+                bucket_name = "eventsphere-images"
+                image_key = f"events/{image.name}"
 
                 # Upload the file
-                s3.upload_fileobj(image, bucket_name, image_key,
-                                  ExtraArgs={'ContentType': image.content_type})
+                s3.upload_fileobj(
+                    image,
+                    bucket_name,
+                    image_key,
+                    ExtraArgs={"ContentType": image.content_type},
+                )
 
                 # Get the image URL
-                event.image_url = f'https://{bucket_name}.s3.amazonaws.com/{image_key}'
+                event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
 
             event.save()
-            messages.success(request, 'Event created successfully!')
-            return redirect('event_list')
+            messages.success(request, "Event created successfully!")
+            return redirect("event_list")
     else:
         form = EventForm()
-    
-    return render(request, 'events/create_event.html', {'form': form})
+
+    return render(request, "events/create_event.html", {"form": form})
 
 
 def update_event_view(request, event_id):

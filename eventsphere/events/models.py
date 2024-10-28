@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Event(models.Model):
     name = models.CharField(max_length=200)
     location = models.CharField(max_length=200)  # This will be the address
@@ -8,7 +9,9 @@ class Event(models.Model):
     schedule = models.TextField()
     speakers = models.CharField(max_length=500)
     category = models.CharField(max_length=100)  # Add this field for category
-    image_url = models.URLField(blank=True, null=True)  # Add this field for S3 image link
+    image_url = models.URLField(
+        blank=True, null=True
+    )  # Add this field for S3 image link
     latitude = models.FloatField(null=True, blank=True)  # For latitude
     longitude = models.FloatField(null=True, blank=True)  # For longitude
     created_at = models.DateTimeField(auto_now_add=True)
