@@ -136,81 +136,44 @@
         document.addEventListener('DOMContentLoaded', function() {
             const locationInput = document.getElementById('id_location');
             const customDropdown = document.getElementById('custom-dropdown');
-            const container = document.querySelector('.container');
             const latitudeField = document.getElementById('id_latitude');
             const longitudeField = document.getElementById('id_longitude');
-
-            // Function to position the dropdown
-            function positionDropdown() {
-                const rect = locationInput.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                const topPosition = locationInput.offsetTop + locationInput.offsetHeight;
-                const leftPosition = locationInput.offsetLeft;
-
-                customDropdown.style.width = `${locationInput.offsetWidth}px`;
-                customDropdown.style.top = `${topPosition}px`;
-                customDropdown.style.left = `${leftPosition}px`;
-            }
 
             // Fetch suggestions as the user types in the location input
             locationInput.addEventListener('input', function() {
                 const query = locationInput.value;
 
                 if (query.length < 3) {
-                    customDropdown.style.display = 'none';  // Hide dropdown if input is too short
+                    customDropdown.style.display = 'none';
                     return;
                 }
 
-                positionDropdown();
-
-                // Fetch location suggestions using Nominatim (OpenStreetMap API)
                 fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
                     .then(response => response.json())
                     .then(data => {
-                        // Clear previous suggestions
                         customDropdown.innerHTML = '';
 
-                        // Populate the dropdown with new suggestions
                         if (data.length > 0) {
-                            customDropdown.style.display = 'block';  // Show dropdown
+                            customDropdown.style.display = 'block';
                             data.forEach(item => {
                                 const optionDiv = document.createElement('div');
                                 optionDiv.textContent = item.display_name;
                                 optionDiv.addEventListener('click', function() {
                                     locationInput.value = item.display_name;
-                                    latitudeField.value = item.lat;  // Set latitude
-                                    longitudeField.value = item.lon;  // Set longitude
-                                    customDropdown.style.display = 'none';  // Hide dropdown
+                                    latitudeField.value = item.lat;
+                                    longitudeField.value = item.lon;
+                                    customDropdown.style.display = 'none';
                                 });
                                 customDropdown.appendChild(optionDiv);
                             });
                         } else {
-                            customDropdown.style.display = 'none';  // Hide dropdown if no results
+                            customDropdown.style.display = 'none';
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching location suggestions:', error);
-                        customDropdown.style.display = 'none';  // Hide dropdown on error
+                        customDropdown.style.display = 'none';
                     });
-            });
-
-            // Position the dropdown on focus
-            locationInput.addEventListener('focus', function() {
-                positionDropdown();
-            });
-
-            // Reposition dropdown on window resize
-            window.addEventListener('resize', function() {
-                if (customDropdown.style.display === 'block') {
-                    positionDropdown();
-                }
-            });
-
-            // Hide dropdown if user clicks outside of it
-            document.addEventListener('click', function(e) {
-                if (!locationInput.contains(e.target) && !customDropdown.contains(e.target)) {
-                    customDropdown.style.display = 'none';
-                }
             });
         });
     </script>
@@ -221,36 +184,28 @@
         <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <!-- Event Name -->
             <label for="id_name">Event Name</label>
             <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
             
-            <!-- Date and Time -->
             <label for="id_date_time">Date and Time</label>
             <input type="datetime-local" id="id_date_time" name="date_time" required>
             
-            <!-- Location with Custom Dropdown -->
             <label for="id_location">Location</label>
             <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required>
             <div id="custom-dropdown" class="custom-dropdown"></div>
 
-            <!-- Speakers -->
             <label for="id_speakers">Speakers</label>
             <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
             
-            <!-- Description/Schedule -->
             <label for="id_schedule">Description/Schedule</label>
             <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
 
-            <!-- Category Field -->
             <label for="id_category">Category</label>
             <input type="text" id="id_category" name="category" placeholder="Enter event category" required>
 
-            <!-- Image Upload Field -->
             <label for="id_image">Event Image</label>
             <input type="file" id="id_image" name="image" accept="image/*">
 
-            <!-- Hidden latitude and longitude fields -->
             <input type="hidden" id="id_latitude" name="latitude">
             <input type="hidden" id="id_longitude" name="longitude">
             
