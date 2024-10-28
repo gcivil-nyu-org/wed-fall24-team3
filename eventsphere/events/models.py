@@ -57,6 +57,7 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.user.username

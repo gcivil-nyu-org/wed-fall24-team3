@@ -52,11 +52,29 @@ class SignupForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ["name", "age", "bio", "location", "interests"]
+        fields = [
+            "name",
+            "age",
+            "bio",
+            "location",
+            "interests",
+            "email",
+        ]  # Include email field
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 3}),
             "interests": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if (
+            email
+            and UserProfile.objects.filter(email=email)
+            .exclude(pk=self.instance.pk)
+            .exists()
+        ):
+            raise forms.ValidationError("This email is already in use.")
+        return email
 
 
 class TicketPurchaseForm(forms.ModelForm):

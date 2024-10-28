@@ -179,6 +179,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.db.models import Q
 from .models import UserProfile, Ticket, Event
 from .forms import UserProfileForm
@@ -320,16 +321,26 @@ def user_signup(request):
 
 def signup(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)  # Log the user in after signup
-            return redirect(
-                "event_list"
-            )  # Redirect to create_event or any page you prefer
-    else:
-        form = UserCreationForm()
-    return render(request, "events/signup.html", {"form": form})
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+
+        # Check if passwords match
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, "events/signup.html")
+
+        # Check if the username already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return render(request, "events/signup.html")
+
+        # If validations pass, create the user
+        user = User.objects.create_user(username=username, password=password)
+        login(request, user)  # Log the user in after signup
+        return redirect("event_list")  # Redirect to the event list page
+
+    return render(request, "events/signup.html")
 
 
 @login_required

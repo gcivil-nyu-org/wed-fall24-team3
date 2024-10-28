@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,7 +60,7 @@
 
         .form-box {
             width: 100%;
-            max-width: 350px; /* Same width as login */
+            max-width: 350px;
         }
 
         h2 {
@@ -116,6 +115,12 @@
             color: #45a049;
         }
 
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
         @media screen and (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -151,18 +156,46 @@
     <div class="form-container">
         <div class="form-box">
             <h2>Create Account</h2>
-            <form method="post">
+
+            <!-- Display error messages -->
+            {% if messages %}
+                <div class="error-messages">
+                    {% for message in messages %}
+                        <div class="error-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" id="signupForm">
                 {% csrf_token %}
                 <input type="text" name="username" placeholder="Enter your username" required>
                 <input type="password" name="password" placeholder="Enter your password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm your password" required>
                 <button type="submit">Create Account</button>
             </form>
+
             <div class="link-text">
                 <p>Already have an account? <a href="{% url 'login' %}">Log in here</a>.</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- JavaScript to hide error messages on input -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('signupForm');
+        const errorMessages = document.querySelector('.error-messages');
+
+        if (errorMessages) {
+            form.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    errorMessages.style.display = 'none';
+                });
+            });
+        }
+    });
+</script>
+
 </body>
 </html>
