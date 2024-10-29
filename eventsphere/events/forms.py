@@ -19,7 +19,7 @@ class EventForm(forms.ModelForm):
             "latitude",
             "longitude",
             "image",
-            "numTickets"
+            "numTickets",
         ]
         widgets = {
             "latitude": forms.HiddenInput(),

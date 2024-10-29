@@ -2,19 +2,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Sum
 from .models import UserProfile, CreatorProfile, Ticket, Event
-from .forms import UserProfileForm, CreatorProfileForm
+from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import TicketPurchaseForm
 from django.contrib import messages
-import qrcode  # type: ignore
 from django.http import JsonResponse
+from django.contrib.auth.forms import AuthenticationForm
+import qrcode  # type: ignore
 from io import BytesIO
 import base64
-from django.db.models import Sum
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import EventForm
 import boto3
 
 
@@ -191,36 +188,6 @@ def signup(request):
     return render(request, "events/signup.html")
 
 
-# @login_required
-# def creator_creates_event(request):
-#     if request.method == "POST":
-#         form = EventForm(request.POST)
-#         if form.is_valid():
-#             event = form.save(commit=False)
-#             event.created_by = request.user.creatorprofile
-#             event.save()
-#             events = Event.objects.filter(created_by=request.user.creatorprofile)
-#             return render(request, "events/creator_dashboard.html", {"events": events})
-#     else:
-#         form = EventForm()
-#     return render(request, "events/creator_creates_event.html", {"form": form})
-
-
-# @login_required
-# def creator_creates_event(request):
-#     if request.method == "POST":
-#         form = EventForm(request.POST)
-#         if form.is_valid():
-#             event = form.save(commit=False)
-#             event.created_by = request.user.creatorprofile
-#             event.save()
-#             events = Event.objects.filter(created_by=request.user.creatorprofile)
-#             return render(request, "events/creator_dashboard.html", {"events": events})
-#     else:
-#         form = EventForm()
-#     return render(request, "events/creator_creates_event.html", {"form": form})
-
-
 @login_required
 def create_event(request):
     if request.method == "POST":
@@ -229,7 +196,7 @@ def create_event(request):
             event = form.save(commit=False)
             image = request.FILES.get("image")
             event.created_by = request.user.creatorprofile
-            
+
             if image:
                 # Upload the image to S3
                 s3 = boto3.client("s3")
@@ -251,7 +218,7 @@ def create_event(request):
             messages.success(request, "Event created successfully!")
             if request.user.is_superuser:
                 return redirect("event_list")
-            return redirect("creator_dashboard")            
+            return redirect("creator_dashboard")
     else:
         form = EventForm()
 
@@ -369,7 +336,9 @@ def buy_tickets(request, event_id):
 
             if ticket.quantity > event.tickets_left:
                 messages.error(request, "Not enough tickets available!")
-                return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+                return render(
+                    request, "events/buy_tickets.html", {"event": event, "form": form}
+                )
 
             # Save the ticket
             ticket.save()
@@ -377,7 +346,7 @@ def buy_tickets(request, event_id):
             # Update the event's ticketsSold
             event.ticketsSold += ticket.quantity
             event.save(update_fields=["ticketsSold"])
-            
+
             messages.success(request, "Ticket purchased successfully!")
             return redirect("user_profile")
 

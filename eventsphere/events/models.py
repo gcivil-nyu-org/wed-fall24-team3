@@ -52,7 +52,11 @@ class Event(models.Model):
 
     @property
     def tickets_left(self):
-        return self.numTickets - self.ticketsSold if self.numTickets >= self.ticketsSold else 0
+        return (
+            self.numTickets - self.ticketsSold
+            if self.numTickets >= self.ticketsSold
+            else 0
+        )
 
     def __str__(self):
         return self.name
