@@ -28,6 +28,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 1000px;
+            position: relative;
         }
 
         h1 {
@@ -56,6 +57,7 @@
             border-radius: 5px;
             font-size: 16px;
             transition: border-color 0.3s;
+            width: 100%;
         }
 
         input[type="text"]:focus,
@@ -85,6 +87,34 @@
             background-color: #45a049;
         }
 
+        /* Custom dropdown styling */
+        .custom-dropdown {
+            position: absolute;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .custom-dropdown div:last-child {
+            border-bottom: none;
+        }
+
+        .custom-dropdown div:hover {
+            background-color: #f0f2f5;
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
@@ -101,39 +131,48 @@
         }
     </style>
 
-    <!-- Add JavaScript for geocoding -->
+    <!-- Add JavaScript for custom dropdown -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('eventForm');
-            
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();  // Prevent the form from submitting immediately
+            const locationInput = document.getElementById('id_location');
+            const customDropdown = document.getElementById('custom-dropdown');
+            const latitudeField = document.getElementById('id_latitude');
+            const longitudeField = document.getElementById('id_longitude');
 
-                const location = document.getElementById('id_location').value;
+            // Fetch suggestions as the user types in the location input
+            locationInput.addEventListener('input', function() {
+                const query = locationInput.value;
 
-                // Geocode the address using Nominatim (OpenStreetMap API)
-                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json`)
+                if (query.length < 3) {
+                    customDropdown.style.display = 'none';
+                    return;
+                }
+
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data && data.length > 0) {
-                            const lat = data[0].lat;
-                            const lon = data[0].lon;
-                            console.log('Geocoding Result:', data[0]);
-                            console.log('Parsed Latitude:', lat);
-                            console.log('Parsed Longitude:', lon);
-                            // Set latitude and longitude in hidden fields
-                            document.getElementById('id_latitude').value = lat;
-                            document.getElementById('id_longitude').value = lon;
+                        customDropdown.innerHTML = '';
 
-                            // Now submit the form with latitude and longitude
-                            form.submit();
+                        if (data.length > 0) {
+                            customDropdown.style.display = 'block';
+                            data.forEach(item => {
+                                const optionDiv = document.createElement('div');
+                                optionDiv.textContent = item.display_name;
+                                optionDiv.addEventListener('click', function() {
+                                    locationInput.value = item.display_name;
+                                    latitudeField.value = item.lat;
+                                    longitudeField.value = item.lon;
+                                    customDropdown.style.display = 'none';
+                                });
+                                customDropdown.appendChild(optionDiv);
+                            });
                         } else {
-                            alert('Address not found. Please try again.');
+                            customDropdown.style.display = 'none';
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error fetching coordinates. Please try again.');
+                        console.error('Error fetching location suggestions:', error);
+                        customDropdown.style.display = 'none';
                     });
             });
         });
@@ -142,30 +181,31 @@
 <body>
     <div class="container">
         <h1>Create a New Event</h1>
-        <form id="eventForm" method="post">
+        <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <!-- Event Name -->
             <label for="id_name">Event Name</label>
             <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
             
-            <!-- Date and Time -->
             <label for="id_date_time">Date and Time</label>
             <input type="datetime-local" id="id_date_time" name="date_time" required>
             
-            <!-- Location -->
             <label for="id_location">Location</label>
-            <input type="text" id="id_location" name="location" placeholder="Enter location" required>
-            
-            <!-- Speakers -->
+            <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required>
+            <div id="custom-dropdown" class="custom-dropdown"></div>
+
             <label for="id_speakers">Speakers</label>
             <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
             
-            <!-- Description/Schedule -->
             <label for="id_schedule">Description/Schedule</label>
             <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
 
-            <!-- Hidden latitude and longitude fields -->
+            <label for="id_category">Category</label>
+            <input type="text" id="id_category" name="category" placeholder="Enter event category" required>
+
+            <label for="id_image">Event Image</label>
+            <input type="file" id="id_image" name="image" accept="image/*">
+
             <input type="hidden" id="id_latitude" name="latitude">
             <input type="hidden" id="id_longitude" name="longitude">
             

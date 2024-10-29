@@ -298,10 +298,13 @@
             <div class="card">
                 <a href="{% url 'event_detail' event.pk %}">
                     <div class="card-image-wrapper">
-                        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="{{ event.name }}" class="card-image">
+                        <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}" 
+     alt="{{ event.name }}" 
+     class="card-image">
+
                         <div class="overlay-text">
                             <span class="event-date">{{ event.date_time|date:"M d, Y" }}</span>
-                            <span class="event-tag">Free Entry</span> <!-- Add your tag here -->
+                            <span class="event-tag">{{ event.category }}</span> <!-- Display the event category here -->
                         </div>
                     </div>
                     <div class="card-content">
@@ -315,7 +318,7 @@
             <p class="no-events">No events found.</p>
         {% endfor %}
     </div>
-
+    
     <!-- See More Button -->
     <a href="#" class="see-more-button">See More</a>
 </div>

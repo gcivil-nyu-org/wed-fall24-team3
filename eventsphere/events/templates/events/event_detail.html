@@ -149,8 +149,11 @@
         <a href="{% url 'user_event_list' %}" class="back-to-events">← Back to Events</a>
 
         <!-- Event Image -->
-        <!-- <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image"> -->
-        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
+        {% if event.image_url %}
+            <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image">
+        {% else %}
+            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
+        {% endif %}
 
         <!-- Buy Tickets Button -->
         <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
@@ -163,7 +166,8 @@
             <div class="event-info-left">
                 <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
                 <p><strong>Location:</strong> {{ event.location }}</p>
-                </div>
+                <p><strong>Category:</strong> {{ event.category }}</p> <!-- Display Category -->
+            </div>
         </div>
 
         <!-- Leaflet Map -->

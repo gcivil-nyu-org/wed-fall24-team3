@@ -24,6 +24,7 @@
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
 
     .sidebar {
@@ -96,7 +97,8 @@
         color: #333;
     }
 
-    .form-group input, .form-group textarea {
+    .form-group input,
+    .form-group textarea {
         width: 100%;
         padding: 12px;
         font-size: 16px;
@@ -105,7 +107,8 @@
         transition: border-color 0.3s ease;
     }
 
-    .form-group input:focus, .form-group textarea:focus {
+    .form-group input:focus,
+    .form-group textarea:focus {
         border-color: #4CAF50;
         outline: none;
     }
@@ -129,6 +132,34 @@
     .btn-update:hover {
         background-color: #45a049;
         transform: translateY(-2px);
+    }
+
+    /* Custom dropdown styling */
+    .custom-dropdown {
+        position: absolute;
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-dropdown div {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+    }
+
+    .custom-dropdown div:last-child {
+        border-bottom: none;
+    }
+
+    .custom-dropdown div:hover {
+        background-color: #f0f2f5;
     }
 
     /* Responsive Design */
@@ -170,31 +201,43 @@
             {% if form %}
                 <form method="post" class="profile-form">
                     {% csrf_token %}
-                    
+
                     <div class="form-group">
-                        <label for="name">Name:</label>
+                        <label for="id_name">Name:</label>
                         {{ form.name }}
                     </div>
 
                     <div class="form-group">
-                        <label for="age">Age:</label>
+                        <label for="id_age">Age:</label>
                         {{ form.age }}
                     </div>
 
                     <div class="form-group">
-                        <label for="bio">Bio:</label>
+                        <label for="id_bio">Bio:</label>
                         {{ form.bio }}
                     </div>
 
+                    <!-- Email Field -->
                     <div class="form-group">
-                        <label for="location">Location:</label>
-                        {{ form.location }}
+                        <label for="id_email">Email:</label>
+                        {{ form.email }}
+                    </div>
+
+                    <!-- Location Field with Custom Dropdown -->
+                    <div class="form-group">
+                        <label for="id_location">Location:</label>
+                        <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required value="{{ form.location.value|default_if_none:'' }}">
+                        <!-- Custom dropdown container -->
+                        <div id="custom-dropdown" class="custom-dropdown"></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="interests">Interests:</label>
+                        <label for="id_interests">Interests:</label>
                         {{ form.interests }}
                     </div>
+
+                    <input type="hidden" id="id_latitude" name="latitude" value="{{ form.latitude.value|default_if_none:'' }}">
+                    <input type="hidden" id="id_longitude" name="longitude" value="{{ form.longitude.value|default_if_none:'' }}">
 
                     <div class="button-container">
                         <button type="submit" class="btn-update">Update Profile</button>
@@ -204,47 +247,97 @@
                 <p><strong>Name:</strong> {{ profile.name }}</p>
                 <p><strong>Age:</strong> {{ profile.age }}</p>
                 <p><strong>Bio:</strong> {{ profile.bio }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
                 <p><strong>Location:</strong> {{ profile.location }}</p>
                 <p><strong>Interests:</strong> {{ profile.interests }}</p>
             {% endif %}
         </div>
-
-        <!-- Ticket Information (COMMENTED OUT) -->
-        <!-- {# 
-        <div class="tickets">
-            <h3>My Tickets</h3>
-            {% if events_with_tickets %}
-                <table class="tickets-table">
-                    <thead>
-                        <tr>
-                            <th>Event</th>
-                            <th>Total Tickets</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for event in events_with_tickets %}
-                            <tr>
-                                <td>{{ event.event__name }}</td>
-                                <td>{{ event.total_tickets }} tickets</td>
-                                <td>
-                                    <button onclick="fetchQRCode({{ event.event__id }})">Show QR Code</button>
-                                </td>
-                            </tr>
-                            <tr id="qr-{{ event.event__id }}" style="display: none;">
-                                <td colspan="3">
-                                    <img id="qr-code-img-{{ event.event__id }}" src="" alt="QR Code">
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>No tickets purchased yet.</p>
-            {% endif %}
-        </div>
-        #} -->
     </div>
 </div>
+
+<!-- Add JavaScript for custom dropdown -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationInput = document.getElementById('id_location');
+        const customDropdown = document.getElementById('custom-dropdown');
+        const container = document.querySelector('.profile-container');
+
+        // Ensure the parent is positioned
+        locationInput.parentNode.style.position = 'relative';
+
+        // Function to position the dropdown
+        function positionDropdown() {
+            const topPosition = locationInput.offsetTop + locationInput.offsetHeight;
+            const leftPosition = locationInput.offsetLeft;
+
+            customDropdown.style.width = `${locationInput.offsetWidth}px`;
+            customDropdown.style.top = `${topPosition}px`;
+            customDropdown.style.left = `${leftPosition}px`;
+        }
+
+        // Fetch suggestions as the user types in the location input
+        locationInput.addEventListener('input', function() {
+            const query = locationInput.value;
+
+            if (query.length < 3) {
+                customDropdown.style.display = 'none';  // Hide dropdown if input is too short
+                return;
+            }
+
+            positionDropdown();
+
+            // Fetch location suggestions using Nominatim (OpenStreetMap API)
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous suggestions
+                    customDropdown.innerHTML = '';
+
+                    // Populate the dropdown with new suggestions
+                    if (data.length > 0) {
+                        customDropdown.style.display = 'block';  // Show dropdown
+                        data.forEach(item => {
+                            const optionDiv = document.createElement('div');
+                            optionDiv.textContent = item.display_name;
+                            optionDiv.addEventListener('click', function() {
+                                locationInput.value = item.display_name;
+                                customDropdown.style.display = 'none';  // Hide dropdown
+
+                                // Optionally, store latitude and longitude if needed
+                                document.getElementById('id_latitude').value = item.lat;
+                                document.getElementById('id_longitude').value = item.lon;
+                            });
+                            customDropdown.appendChild(optionDiv);
+                        });
+                    } else {
+                        customDropdown.style.display = 'none';  // Hide dropdown if no results
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching location suggestions:', error);
+                    customDropdown.style.display = 'none';  // Hide dropdown on error
+                });
+        });
+
+        // Position the dropdown on focus
+        locationInput.addEventListener('focus', function() {
+            positionDropdown();
+        });
+
+        // Reposition dropdown on window resize
+        window.addEventListener('resize', function() {
+            if (customDropdown.style.display === 'block') {
+                positionDropdown();
+            }
+        });
+
+        // Hide dropdown if user clicks outside of it
+        document.addEventListener('click', function(e) {
+            if (!locationInput.contains(e.target) && !customDropdown.contains(e.target)) {
+                customDropdown.style.display = 'none';
+            }
+        });
+    });
+</script>
 
 {% endblock %}

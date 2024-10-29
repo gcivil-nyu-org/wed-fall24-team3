@@ -1,22 +1,3 @@
-# from django import forms
-# from .models import Event
-# from django.contrib.auth.models import User
-# from django.contrib.auth.forms import UserCreationForm
-
-# class EventForm(forms.ModelForm):
-#     class Meta:
-#         model = Event
-#         fields = ['name', 'location', 'date_time', 'schedule', 'speakers']
-
-
-# class SignupForm(UserCreationForm):
-#     email = forms.EmailField(required=True)
-
-#     class Meta:
-#         model = User
-#         fields = ('username', 'email', 'password1', 'password2')
-
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -24,6 +5,8 @@ from .models import UserProfile, CreatorProfile, Event, Ticket
 
 
 class EventForm(forms.ModelForm):
+    image = forms.ImageField(required=False)  # Field for uploading the image
+
     class Meta:
         model = Event
         fields = [
@@ -32,8 +15,10 @@ class EventForm(forms.ModelForm):
             "date_time",
             "schedule",
             "speakers",
+            "category",
             "latitude",
             "longitude",
+            "image",
         ]
         widgets = {
             "latitude": forms.HiddenInput(),
@@ -52,11 +37,29 @@ class SignupForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ["name", "age", "bio", "location", "interests"]
+        fields = [
+            "name",
+            "age",
+            "bio",
+            "location",
+            "interests",
+            "email",
+        ]  # Include email field
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 3}),
             "interests": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if (
+            email
+            and UserProfile.objects.filter(email=email)
+            .exclude(pk=self.instance.pk)
+            .exists()
+        ):
+            raise forms.ValidationError("This email is already in use.")
+        return email
 
 
 class CreatorProfileForm(forms.ModelForm):

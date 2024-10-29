@@ -13,3 +13,4 @@ __pycache__/
 /eventsphere/.coverage
 /suprateek_accessKeys.csv
 newenv/
+/eventsphere/.xml

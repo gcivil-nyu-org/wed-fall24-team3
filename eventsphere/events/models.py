@@ -36,8 +36,12 @@ class Event(models.Model):
     date_time = models.DateTimeField()
     schedule = models.TextField()
     speakers = models.CharField(max_length=500)
-    latitude = models.FloatField(null=True, blank=True)  # Add this field for latitude
-    longitude = models.FloatField(null=True, blank=True)  # Add this field for longitude
+    category = models.CharField(max_length=100)  # Add this field for category
+    image_url = models.URLField(
+        blank=True, null=True
+    )  # Add this field for S3 image link
+    latitude = models.FloatField(null=True, blank=True)  # For latitude
+    longitude = models.FloatField(null=True, blank=True)  # For longitude
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -56,6 +60,7 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -70,19 +75,3 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"{self.event.name} - {self.user.username}"
-
-
-# from django.db import models
-
-# # Create your models here.
-# class Event(models.Model):
-#     name = models.CharField(max_length=200)
-#     location = models.CharField(max_length=200)
-#     date_time = models.DateTimeField()
-#     schedule = models.TextField()
-#     speakers = models.CharField(max_length=500)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return self.name
