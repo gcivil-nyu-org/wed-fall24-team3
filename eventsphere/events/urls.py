@@ -35,7 +35,7 @@ urlpatterns = [
         "creator/", views.creator_dashboard, name="creator_dashboard"
     ),  # creator dashboard url
     path("creatorprofile/", views.creator_profile, name="creator_profile"),
-    path("creatorcreates/", views.creator_creates_event, name="creator_creates_event"),
+    # path("creatorcreates/", views.creator_creates_event, name="creator_creates_event"),
     # Authentication URLs
     path(
         "userlogin/",

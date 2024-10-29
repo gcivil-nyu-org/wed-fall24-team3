@@ -43,10 +43,12 @@ def login_view(request):
             login(request, user)
 
             # Check if the user is an admin or a regular user
-            if user.is_staff or user.is_superuser:
+            if user.is_superuser:
                 return redirect(
                     "event_list"
                 )  # Admin is redirected to event_list (admin dashboard)
+            elif CreatorProfile.objects.filter(creator=request.user).exists():
+                return redirect("creator_dashboard")
             else:
                 return redirect("user_home")  # Regular user is redirected to user_home
     else:
@@ -165,21 +167,6 @@ def creator_signup(request):
     return render(request, "events/creator_signup.html", {"form": form})
 
 
-def creator_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            creator = form.save(commit=False)
-            creator.is_staff = True
-            creator.is_superuser = False
-            creator.save()
-            login(request, creator)
-            return redirect("creator_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/creator_signup.html", {"form": form})
-
-
 def signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -204,34 +191,34 @@ def signup(request):
     return render(request, "events/signup.html")
 
 
-@login_required
-def creator_creates_event(request):
-    if request.method == "POST":
-        form = EventForm(request.POST)
-        if form.is_valid():
-            event = form.save(commit=False)
-            event.created_by = request.user.creatorprofile
-            event.save()
-            events = Event.objects.filter(created_by=request.user.creatorprofile)
-            return render(request, "events/creator_dashboard.html", {"events": events})
-    else:
-        form = EventForm()
-    return render(request, "events/creator_creates_event.html", {"form": form})
+# @login_required
+# def creator_creates_event(request):
+#     if request.method == "POST":
+#         form = EventForm(request.POST)
+#         if form.is_valid():
+#             event = form.save(commit=False)
+#             event.created_by = request.user.creatorprofile
+#             event.save()
+#             events = Event.objects.filter(created_by=request.user.creatorprofile)
+#             return render(request, "events/creator_dashboard.html", {"events": events})
+#     else:
+#         form = EventForm()
+#     return render(request, "events/creator_creates_event.html", {"form": form})
 
 
-@login_required
-def creator_creates_event(request):
-    if request.method == "POST":
-        form = EventForm(request.POST)
-        if form.is_valid():
-            event = form.save(commit=False)
-            event.created_by = request.user.creatorprofile
-            event.save()
-            events = Event.objects.filter(created_by=request.user.creatorprofile)
-            return render(request, "events/creator_dashboard.html", {"events": events})
-    else:
-        form = EventForm()
-    return render(request, "events/creator_creates_event.html", {"form": form})
+# @login_required
+# def creator_creates_event(request):
+#     if request.method == "POST":
+#         form = EventForm(request.POST)
+#         if form.is_valid():
+#             event = form.save(commit=False)
+#             event.created_by = request.user.creatorprofile
+#             event.save()
+#             events = Event.objects.filter(created_by=request.user.creatorprofile)
+#             return render(request, "events/creator_dashboard.html", {"events": events})
+#     else:
+#         form = EventForm()
+#     return render(request, "events/creator_creates_event.html", {"form": form})
 
 
 @login_required
@@ -241,7 +228,8 @@ def create_event(request):
         if form.is_valid():
             event = form.save(commit=False)
             image = request.FILES.get("image")
-
+            event.created_by = request.user.creatorprofile
+            
             if image:
                 # Upload the image to S3
                 s3 = boto3.client("s3")
@@ -261,7 +249,9 @@ def create_event(request):
 
             event.save()
             messages.success(request, "Event created successfully!")
-            return redirect("event_list")
+            if request.user.is_superuser:
+                return redirect("event_list")
+            return redirect("creator_dashboard")            
     else:
         form = EventForm()
 
@@ -377,9 +367,17 @@ def buy_tickets(request, event_id):
             ticket.user = request.user
             ticket.event = event
 
-            # Save the updated event object
-            # to reflect the new numTickets value
-            ticket.save()  # Save the ticket after event has been updated
+            if ticket.quantity > event.tickets_left:
+                messages.error(request, "Not enough tickets available!")
+                return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+
+            # Save the ticket
+            ticket.save()
+
+            # Update the event's ticketsSold
+            event.ticketsSold += ticket.quantity
+            event.save(update_fields=["ticketsSold"])
+            
             messages.success(request, "Ticket purchased successfully!")
             return redirect("user_profile")
 

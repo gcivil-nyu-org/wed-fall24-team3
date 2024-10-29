@@ -57,6 +57,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
         }
 
         h1 {
@@ -147,9 +148,9 @@
     </style>
 </head>
 <div class="container">
-    <h1>Welcome, {{ user.username }}!</h1>
-    <p>Here are the events you have created and the number of tickets sold for each:</p>
-
+    <!-- <h1>Welcome, {{ user.username }}!</h1> -->
+    <h2>Here are the events you have created and the number of tickets sold for each:</h2>
+    <br>
     <table>
         <tr>
             <th>Name</th>
@@ -157,6 +158,7 @@
             <th>Location</th>
             <th>Speakers</th>
             <th>Description</th>
+            <th>Total tickets</th>
             <th>Remaining tickets</th>
             <th>Actions</th>
         </tr>
@@ -168,6 +170,7 @@
                 <td>{{ event.speakers }}</td>
                 <td>{{ event.schedule }}</td>
                 <td>{{ event.numTickets }}</td>
+                <td>{{ event.tickets_left }}</td>
                 <td>
                     <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
                     <a href="{% url 'delete_event' event.id %}" class="btn-delete">Delete</a>
@@ -182,7 +185,7 @@
 
     <!-- Call to action buttons -->
     <div style="margin-top: 20px;">
-        <a href="{% url 'creator_creates_event' %}" class="cta-button">Create New Event</a>
+        <a href="{% url 'create_event' %}" class="cta-button">Create New Event</a>
         <!-- <form action="{% url 'creator_login' %}" method="POST" style="display:inline-block;">
             {% csrf_token %}
             <button type="submit" class="cta-button" style="background-color: #f44336;">Logout</button>

@@ -48,6 +48,11 @@ class Event(models.Model):
         CreatorProfile, on_delete=models.CASCADE, null=True, blank=True
     )
     numTickets = models.IntegerField(null=True, blank=True)
+    ticketsSold = models.IntegerField(default=0)
+
+    @property
+    def tickets_left(self):
+        return self.numTickets - self.ticketsSold if self.numTickets >= self.ticketsSold else 0
 
     def __str__(self):
         return self.name
