@@ -165,50 +165,49 @@
     {% endif %}
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-
+    
         <!-- Event Name -->
         <label for="id_name">Event Name</label>
         <input type="text" id="id_name" name="name" placeholder="Enter event name"
                value="{{ form.name.value|default_if_none:'' }}" required>
-        
+    
         <!-- Category Field -->
         <label for="id_category">Category</label>
         <input type="text" id="id_category" name="category" placeholder="Enter event category"
-            value="{{ form.category.value|default_if_none:'' }}" required>
-
+               value="{{ form.category.value|default_if_none:'' }}" required>
+    
         <!-- Date and Time -->
         <label for="id_date_time">Date and Time</label>
         <input type="datetime-local" id="id_date_time" name="date_time"
                value="{{ form.date_time.value|default_if_none:'' }}" required>
-
+    
         <!-- Location -->
         <label for="id_location">Location</label>
         <input type="text" id="id_location" name="location" placeholder="Enter location"
                value="{{ form.location.value|default_if_none:'' }}" required>
-
+    
         <!-- Speakers -->
         <label for="id_speakers">Speakers</label>
         <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
                value="{{ form.speakers.value|default_if_none:'' }}" required>
-
+    
         <!-- Description/Schedule -->
         <label for="id_schedule">Description/Schedule</label>
         <textarea id="id_schedule" name="schedule"
                   placeholder="Enter event description or schedule"
                   required>{{ form.schedule.value|default_if_none:'' }}</textarea>
-
+    
+        <!-- Number of Tickets -->
         <label for="id_numTickets">Number of Tickets</label>
         <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="0">
         
+        <!-- Image Upload -->
+        <label for="id_image">Upload Image</label>
+        <input type="file" id="id_image" name="image">
+    
         <button type="submit">Update Event</button>
     </form>
-    {% if errors %}
-    <ul>
-        {% for field, error_list in errors.items %}
-            <li><strong>{{ field }}:</strong> {{ error_list|join:", " }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
+    
 
 </div>
 </body>
