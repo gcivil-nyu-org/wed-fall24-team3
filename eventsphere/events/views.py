@@ -1,7 +1,4 @@
 import base64
-from io import BytesIO
-
-import boto3
 import qrcode  # type: ignore
 from django.contrib import messages
 from django.contrib.auth import login
@@ -14,10 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import UserProfile, CreatorProfile, Ticket, Event
-from django.contrib.auth.forms import AuthenticationForm
-import qrcode  # type: ignore
 from io import BytesIO
-import base64
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
