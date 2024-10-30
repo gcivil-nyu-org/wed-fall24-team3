@@ -230,10 +230,12 @@ def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if request.method == "POST":
-        form = EventForm(request.POST, request.FILES, instance=event)  # Include request.FILES
+        form = EventForm(
+            request.POST, request.FILES, instance=event
+        )  # Include request.FILES
         if form.is_valid():
             event = form.save(commit=False)
-            
+
             # Handle image upload
             image = request.FILES.get("image")
             if image:
@@ -254,7 +256,7 @@ def update_event_view(request, event_id):
                 event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
 
             event.save()
-            
+
             # Redirect based on user type
             if request.user.is_superuser:
                 return redirect("event_list")
@@ -271,7 +273,6 @@ def update_event_view(request, event_id):
         form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
-
 
 
 def event_success(request):
