@@ -23,11 +23,11 @@
 
         .container {
             background-color: #ffffff;
-            padding: 40px 30px;
+            padding: 40px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 1000px;
+            width: 90%; /* Make the form occupy more of the page width */
+            max-width: 1200px;
             position: relative;
         }
 
@@ -50,7 +50,9 @@
 
         input[type="text"],
         input[type="datetime-local"],
-        textarea {
+        textarea,
+        input[type="file"],
+        input[type="number"] {
             padding: 12px 15px;
             margin-bottom: 20px;
             border: 1px solid #cccccc;
@@ -62,7 +64,9 @@
 
         input[type="text"]:focus,
         input[type="datetime-local"]:focus,
-        textarea:focus {
+        textarea:focus,
+        input[type="file"]:focus,
+        input[type="number"]:focus {
             border-color: #4CAF50;
             outline: none;
         }
@@ -72,8 +76,30 @@
             min-height: 100px;
         }
 
+        /* Style for the file input and number input container */
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Adds space between file input and number input */
+        }
+
+        .input-group label {
+            flex: 1;
+        }
+
+        /* Style for the file input */
+        input[type="file"] {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        /* Adjusting button style */
         button {
-            padding: 12px;
+            padding: 15px;
             background-color: #4CAF50;
             color: #ffffff;
             border: none;
@@ -81,44 +107,18 @@
             cursor: pointer;
             font-size: 18px;
             transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 20px;
         }
 
         button:hover {
             background-color: #45a049;
         }
 
-        /* Custom dropdown styling */
-        .custom-dropdown {
-            position: absolute;
-            background-color: #ffffff;
-            border: 1px solid #cccccc;
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-dropdown div {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-        }
-
-        .custom-dropdown div:last-child {
-            border-bottom: none;
-        }
-
-        .custom-dropdown div:hover {
-            background-color: #f0f2f5;
-        }
-
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
-                padding: 30px 20px;
+                padding: 20px;
             }
 
             h1 {
@@ -127,6 +127,11 @@
 
             button {
                 font-size: 16px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -183,35 +188,41 @@
         <h1>Create a New Event</h1>
         <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            
+
             <label for="id_name">Event Name</label>
             <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
-            
+
             <label for="id_date_time">Date and Time</label>
             <input type="datetime-local" id="id_date_time" name="date_time" required>
-            
+
             <label for="id_location">Location</label>
             <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required>
             <div id="custom-dropdown" class="custom-dropdown"></div>
 
             <label for="id_speakers">Speakers</label>
             <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers" required>
-            
+
             <label for="id_schedule">Description/Schedule</label>
             <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
 
             <label for="id_category">Category</label>
             <input type="text" id="id_category" name="category" placeholder="Enter event category" required>
 
-            <label for="id_image">Event Image</label>
-            <input type="file" id="id_image" name="image" accept="image/*">
-
-            <label for="id_numTickets">Total Number of Tickets</label>
-            <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets available" min="1" required>
+            <!-- Improved File Upload and Number of Tickets Fields -->
+            <div class="input-group">
+                <div>
+                    <label for="id_image">Event Image</label>
+                    <input type="file" id="id_image" name="image" accept="image/*">
+                </div>
+                <div>
+                    <label for="id_numTickets">Total Number of Tickets</label>
+                    <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets available" min="1" required>
+                </div>
+            </div>
 
             <input type="hidden" id="id_latitude" name="latitude">
             <input type="hidden" id="id_longitude" name="longitude">
-            
+
             <button type="submit">Create Event</button>
         </form>
     </div>
