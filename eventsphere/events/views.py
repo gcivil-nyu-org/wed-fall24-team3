@@ -2,19 +2,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.db.models import Q
-from .models import UserProfile, Ticket, Event
-from .forms import UserProfileForm
+from django.db.models import Q, Sum
+from .models import UserProfile, CreatorProfile, Ticket, Event
+from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import TicketPurchaseForm
 from django.contrib import messages
-import qrcode  # type: ignore
 from django.http import JsonResponse
+from django.contrib.auth.forms import AuthenticationForm
+import qrcode  # type: ignore
 from io import BytesIO
 import base64
-from django.db.models import Sum
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import EventForm
 import boto3
 
 
@@ -43,10 +40,12 @@ def login_view(request):
             login(request, user)
 
             # Check if the user is an admin or a regular user
-            if user.is_staff or user.is_superuser:
+            if user.is_superuser:
                 return redirect(
                     "event_list"
                 )  # Admin is redirected to event_list (admin dashboard)
+            elif CreatorProfile.objects.filter(creator=request.user).exists():
+                return redirect("creator_dashboard")
             else:
                 return redirect("user_home")  # Regular user is redirected to user_home
     else:
@@ -109,6 +108,24 @@ def user_event_list(request):
     )
 
 
+@login_required
+def creator_dashboard(request):
+    try:
+        creator_profile = CreatorProfile.objects.get(creator=request.user)
+    except CreatorProfile.DoesNotExist:
+        # Handle case where logged-in user doesn't have a CreatorProfile
+        creator_profile = None
+
+    if creator_profile:
+        # Get all events created by the logged-in user's creator profile
+        events = Event.objects.filter(created_by=creator_profile)
+    else:
+        # If no creator profile exists, return an empty queryset
+        events = Event.objects.none()
+
+    return render(request, "events/creator_dashboard.html", {"events": events})
+
+
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -119,16 +136,32 @@ def event_detail(request, pk):
     return render(request, "events/event_detail.html", {"event": event})
 
 
+# All signups
 def user_signup(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("user_home")
+            return redirect("user_profile")
     else:
         form = UserCreationForm()
     return render(request, "events/user_signup.html", {"form": form})
+
+
+def creator_signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            creator = form.save(commit=False)
+            creator.is_staff = True
+            creator.is_superuser = False
+            creator.save()
+            login(request, creator)
+            return redirect("creator_profile")
+    else:
+        form = UserCreationForm()
+    return render(request, "events/creator_signup.html", {"form": form})
 
 
 def signup(request):
@@ -162,6 +195,7 @@ def create_event(request):
         if form.is_valid():
             event = form.save(commit=False)
             image = request.FILES.get("image")
+            event.created_by = request.user.creatorprofile
 
             if image:
                 # Upload the image to S3
@@ -182,7 +216,9 @@ def create_event(request):
 
             event.save()
             messages.success(request, "Event created successfully!")
-            return redirect("event_list")
+            if request.user.is_superuser:
+                return redirect("event_list")
+            return redirect("creator_dashboard")
     else:
         form = EventForm()
 
@@ -195,14 +231,38 @@ def update_event_view(request, event_id):
 
     if request.method == "POST":
         form = EventForm(
-            request.POST, instance=event
-        )  # Pass the event instance to the form
+            request.POST, request.FILES, instance=event
+        )  # Include request.FILES
         if form.is_valid():
-            form.save()
-            return redirect(
-                "event_list"
-            )  # Redirect to the event list page after successful update
+            event = form.save(commit=False)
+
+            # Handle image upload
+            image = request.FILES.get("image")
+            if image:
+                # Upload the image to S3
+                s3 = boto3.client("s3")
+                bucket_name = "eventsphere-images"
+                image_key = f"events/{image.name}"
+
+                # Upload the file
+                s3.upload_fileobj(
+                    image,
+                    bucket_name,
+                    image_key,
+                    ExtraArgs={"ContentType": image.content_type},
+                )
+
+                # Get the image URL
+                event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+
+            event.save()
+
+            # Redirect based on user type
+            if request.user.is_superuser:
+                return redirect("event_list")
+            return redirect("creator_dashboard")
         else:
+            # Render the form with errors if invalid
             return render(
                 request,
                 "events/update_event.html",
@@ -210,7 +270,7 @@ def update_event_view(request, event_id):
                 status=400,
             )
     else:
-        form = EventForm(instance=event)  # Pre-fill the form with the event data
+        form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
 
@@ -225,7 +285,10 @@ def delete_event_view(request, event_id):
 
     if request.method == "POST":
         event.delete()
-        return redirect("event_list")  # Redirect to a success page after deletion
+        if request.user.is_superuser:
+            return redirect("event_list")  # Redirect to a success page after deletion
+        else:
+            return redirect("creator_dashboard")
 
     return render(request, "events/delete.html", {"event": event})
 
@@ -257,6 +320,26 @@ def user_profile(request):
 
 
 @login_required
+def creator_profile(request):
+    profile, created = CreatorProfile.objects.get_or_create(creator=request.user)
+
+    if request.method == "POST":
+        form = CreatorProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("creator_profile")
+    else:
+        form = CreatorProfileForm(instance=profile)
+
+    # Fetch the tickets for the current user
+    tickets = Ticket.objects.filter(user=request.user)
+
+    return render(
+        request, "events/creator_profile.html", {"form": form, "tickets": tickets}
+    )
+
+
+@login_required
 def my_tickets(request):
     tickets = Ticket.objects.filter(user=request.user)
     return render(request, "events/my_tickets.html", {"tickets": tickets})
@@ -272,9 +355,23 @@ def buy_tickets(request, event_id):
             ticket = form.save(commit=False)
             ticket.user = request.user
             ticket.event = event
+
+            if ticket.quantity > event.tickets_left:
+                messages.error(request, "Not enough tickets available!")
+                return render(
+                    request, "events/buy_tickets.html", {"event": event, "form": form}
+                )
+
+            # Save the ticket
             ticket.save()
+
+            # Update the event's ticketsSold
+            event.ticketsSold += ticket.quantity
+            event.save(update_fields=["ticketsSold"])
+
             messages.success(request, "Ticket purchased successfully!")
             return redirect("user_profile")
+
     else:
         form = TicketPurchaseForm()
 

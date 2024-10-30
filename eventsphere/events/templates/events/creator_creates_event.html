@@ -1,0 +1,150 @@
+<!-- events/templates/events/create_event.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event - EventSphere</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Create a New Event</h1>
+    <form method="post">
+        {% csrf_token %}
+
+        <a href="{% url 'creator_dashboard' %}" style="text-decoration: none;">
+            <button type="button" style="margin-bottom: 20px; background-color: #f0f0f0; color: #333; border: 1px solid #cccccc; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 18px;">
+                Back to Dashboard
+            </button>
+        </a>
+        
+        <!-- Event Name -->
+        <label for="id_name">Event Name</label>
+        <input type="text" id="id_name" name="name" placeholder="Enter event name"
+               required>
+
+        <!-- Date and Time -->
+        <label for="id_date_time">Date and Time</label>
+        <input type="datetime-local" id="id_date_time" name="date_time" required>
+
+        <!-- Location -->
+        <label for="id_location">Location</label>
+        <input type="text" id="id_location" name="location" placeholder="Enter location"
+               required>
+
+        <!-- Speakers -->
+        <label for="id_speakers">Speakers</label>
+        <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
+               required>
+
+        <!-- Description/Schedule -->
+        <label for="id_schedule">Description/Schedule</label>
+        <textarea id="id_schedule" name="schedule"
+                  placeholder="Enter event description or schedule" required></textarea>
+
+        <!-- Number of Tickets -->
+        <label for="id_numTickets">Number of Tickets</label>
+        <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="0">
+
+        <button type="submit">Create Event</button>
+    </form>
+</div>
+</body>
+</html>

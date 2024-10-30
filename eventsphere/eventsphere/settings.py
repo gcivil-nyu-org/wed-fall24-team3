@@ -179,8 +179,7 @@ load_dotenv(os.path.join(ENV_DIR, ".env"))
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = os.getenv('SECRET_KEY')
-SECRET_KEY = "django-insecure-tchc0rh*i4e3k%22dy@ub(9(n3&^0-9+)8qf-8t5c6%j6^8xf5"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -239,13 +238,14 @@ WSGI_APPLICATION = "eventsphere.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres_swe",
-        "PASSWORD": "civil2078",
-        "HOST": "database-1.cv4ayyoqw4w3.us-west-2.rds.amazonaws.com",
-        "PORT": "5432",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -253,8 +253,6 @@ DATABASES = {
 #                  # If one doesn't exist, it will be created at migration time.
 #     }
 # }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

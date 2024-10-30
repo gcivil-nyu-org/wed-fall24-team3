@@ -1,5 +1,3 @@
-<!-- events/templates/events/update_event.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,6 +90,16 @@
             transform: translateY(-2px); /* Slight lift on hover */
         }
 
+        /* Back button style */
+        .btn-back {
+            background-color: #2196F3; /* Blue color for the back button */
+            margin-bottom: 20px; /* Space below the back button */
+        }
+
+        .btn-back:hover {
+            background-color: #0b7dda; /* Darker blue on hover */
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
@@ -142,13 +150,31 @@
 <body>
 <div class="container">
     <h1>Update Event</h1>
-    <form method="POST">
+    
+    <!-- Back Button -->
+     {% if user.is_authenticated %}
+        {% if user.is_superuser %}
+        <form action="{% url 'event_list' %}" method="GET" style="margin-bottom: 20px;">
+            <button type="submit" class="btn-back">Back to All Events</button>
+        </form>
+        {% else %}
+        <form action="{% url 'creator_dashboard' %}" method="GET" style="margin-bottom: 20px;">
+            <button type="submit" class="btn-back">Back to Dashboard</button>
+        </form>
+        {% endif %}
+    {% endif %}
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Event Name -->
         <label for="id_name">Event Name</label>
         <input type="text" id="id_name" name="name" placeholder="Enter event name"
                value="{{ form.name.value|default_if_none:'' }}" required>
+        
+        <!-- Category Field -->
+        <label for="id_category">Category</label>
+        <input type="text" id="id_category" name="category" placeholder="Enter event category"
+            value="{{ form.category.value|default_if_none:'' }}" required>
 
         <!-- Date and Time -->
         <label for="id_date_time">Date and Time</label>
@@ -171,8 +197,19 @@
                   placeholder="Enter event description or schedule"
                   required>{{ form.schedule.value|default_if_none:'' }}</textarea>
 
+        <label for="id_numTickets">Number of Tickets</label>
+        <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="0">
+        
         <button type="submit">Update Event</button>
     </form>
+    {% if errors %}
+    <ul>
+        {% for field, error_list in errors.items %}
+            <li><strong>{{ field }}:</strong> {{ error_list|join:", " }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
 </div>
 </body>
 </html>

@@ -1,0 +1,43 @@
+<!-- events/templates/events/creator_signup.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up - EventSphere</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="{% url 'creator_dashboard' %}">View Your Events</a></li>
+        <!-- <li><a href="{% url 'user_event_list' %}">Events</a></li> -->
+        {% if user.is_authenticated %}
+            <li style="float:right;">Welcome, {{ user.username }} | <a
+                    href="{% url 'creator_logout' %}">Logout</a></li>
+        {% else %}
+            <li style="float:right;"><a href="{% url 'creator_login' %}">Login</a> | <a
+                    href="{% url 'creator_signup' %}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    <h2>Sign Up</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'creator_login' %}">Login here</a>.</p>
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 EventSphere. All rights reserved.</p>
+</footer>
+</body>
+</html>

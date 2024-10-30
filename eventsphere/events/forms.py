@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Event, Ticket
+from .models import UserProfile, CreatorProfile, Event, Ticket
 
 
 class EventForm(forms.ModelForm):
@@ -19,6 +19,7 @@ class EventForm(forms.ModelForm):
             "latitude",
             "longitude",
             "image",
+            "numTickets",
         ]
         widgets = {
             "latitude": forms.HiddenInput(),
@@ -60,6 +61,16 @@ class UserProfileForm(forms.ModelForm):
         ):
             raise forms.ValidationError("This email is already in use.")
         return email
+
+
+class CreatorProfileForm(forms.ModelForm):
+    class Meta:
+        model = CreatorProfile
+        fields = ["name", "age", "bio", "organisation", "location", "interests"]
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 3}),
+            "interests": forms.Textarea(attrs={"rows": 2}),
+        }
 
 
 class TicketPurchaseForm(forms.ModelForm):
