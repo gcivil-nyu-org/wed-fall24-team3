@@ -13,7 +13,7 @@ import qrcode  # type: ignore
 from io import BytesIO
 import base64
 import boto3
-
+from botocore.exceptions import BotoCoreError, ClientError
 
 @login_required
 def profile_tickets(request):
@@ -226,52 +226,80 @@ def create_event(request):
 
 
 def update_event_view(request, event_id):
-    # Fetch the event by its ID
+    # Fetch the event by its ID and store initial location, latitude, and longitude
     event = get_object_or_404(Event, id=event_id)
+    initial_location = event.location
+    initial_latitude = event.latitude
+    initial_longitude = event.longitude
 
     if request.method == "POST":
-        form = EventForm(
-            request.POST, request.FILES, instance=event
-        )  # Include request.FILES
+        # Initialize the form with POST data, uploaded files, and the existing event instance
+        form = EventForm(request.POST, request.FILES, instance=event)
+        
         if form.is_valid():
+            # Save form data excluding image and coordinates
             event = form.save(commit=False)
 
-            # Handle image upload
+            # Check if location has changed
+            if form.cleaned_data.get("location") == initial_location:
+                # If location is unchanged, retain the original latitude and longitude
+                event.latitude = initial_latitude
+                event.longitude = initial_longitude
+            else:
+                # Optional: Logic to update latitude and longitude based on the new location, if needed
+                # Example: event.latitude, event.longitude = get_coordinates_from_location(event.location)
+                pass
+
+            # Handle image upload if a new image is uploaded
             image = request.FILES.get("image")
             if image:
-                # Upload the image to S3
-                s3 = boto3.client("s3")
-                bucket_name = "eventsphere-images"
-                image_key = f"events/{image.name}"
+                try:
+                    # Initialize S3 client
+                    s3 = boto3.client("s3")
 
-                # Upload the file
-                s3.upload_fileobj(
-                    image,
-                    bucket_name,
-                    image_key,
-                    ExtraArgs={"ContentType": image.content_type},
-                )
+                    # Define S3 bucket and object key
+                    bucket_name = "eventsphere-images"
+                    image_key = f"events/{image.name}"
 
-                # Get the image URL
-                event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+                    # Upload the file
+                    s3.upload_fileobj(
+                        image,
+                        bucket_name,
+                        image_key,
+                        ExtraArgs={"ContentType": image.content_type}
+                    )
 
+                    # Set the image URL
+                    event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+                
+                except (BotoCoreError, ClientError) as e:
+                    # Log or handle the exception as needed
+                    print(f"Error uploading to S3: {e}")
+                    return render(request, "events/update_event.html", {
+                        "form": form,
+                        "errors": ["Failed to upload image. Please try again."]
+                    })
+
+            # Save the event instance to the database
             event.save()
 
             # Redirect based on user type
             if request.user.is_superuser:
                 return redirect("event_list")
             return redirect("creator_dashboard")
+        
         else:
-            # Render the form with errors if invalid
-            return render(
-                request,
-                "events/update_event.html",
-                {"form": form, "errors": form.errors},
-                status=400,
-            )
+            # Render the form with validation errors if form is invalid
+            return render(request, "events/update_event.html", {
+                "form": form,
+                "errors": form.errors
+            }, status=400)
+
     else:
+        # GET request, render the form with the existing event instance
         form = EventForm(instance=event)
 
+    # Render the form with GET request or any encountered errors
     return render(request, "events/update_event.html", {"form": form})
 
 
