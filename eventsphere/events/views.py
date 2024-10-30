@@ -15,6 +15,7 @@ import base64
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
+
 @login_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
@@ -235,7 +236,7 @@ def update_event_view(request, event_id):
     if request.method == "POST":
         # Initialize the form with POST data, uploaded files, and the existing event instance
         form = EventForm(request.POST, request.FILES, instance=event)
-        
+
         if form.is_valid():
             # Save form data excluding image and coordinates
             event = form.save(commit=False)
@@ -266,19 +267,25 @@ def update_event_view(request, event_id):
                         image,
                         bucket_name,
                         image_key,
-                        ExtraArgs={"ContentType": image.content_type}
+                        ExtraArgs={"ContentType": image.content_type},
                     )
 
                     # Set the image URL
-                    event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
-                
+                    event.image_url = (
+                        f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+                    )
+
                 except (BotoCoreError, ClientError) as e:
                     # Log or handle the exception as needed
                     print(f"Error uploading to S3: {e}")
-                    return render(request, "events/update_event.html", {
-                        "form": form,
-                        "errors": ["Failed to upload image. Please try again."]
-                    })
+                    return render(
+                        request,
+                        "events/update_event.html",
+                        {
+                            "form": form,
+                            "errors": ["Failed to upload image. Please try again."],
+                        },
+                    )
 
             # Save the event instance to the database
             event.save()
@@ -287,13 +294,15 @@ def update_event_view(request, event_id):
             if request.user.is_superuser:
                 return redirect("event_list")
             return redirect("creator_dashboard")
-        
+
         else:
             # Render the form with validation errors if form is invalid
-            return render(request, "events/update_event.html", {
-                "form": form,
-                "errors": form.errors
-            }, status=400)
+            return render(
+                request,
+                "events/update_event.html",
+                {"form": form, "errors": form.errors},
+                status=400,
+            )
 
     else:
         # GET request, render the form with the existing event instance
