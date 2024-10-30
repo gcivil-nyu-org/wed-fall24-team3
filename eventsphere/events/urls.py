@@ -1,7 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
-from .views import user_profile, my_tickets
+
 from . import views
+from .views import user_profile, my_tickets
 
 urlpatterns = [
     path(
