@@ -1,13 +1,19 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+import base64
+from io import BytesIO
+
+import boto3
+import qrcode  # type: ignore
+from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
-from .models import UserProfile, CreatorProfile, Ticket, Event
-from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
 from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
+from .models import UserProfile, CreatorProfile, Ticket, Event
 from django.contrib.auth.forms import AuthenticationForm
 import qrcode  # type: ignore
 from io import BytesIO
