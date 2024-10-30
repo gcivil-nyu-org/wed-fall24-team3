@@ -163,13 +163,18 @@
         </form>
         {% endif %}
     {% endif %}
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Event Name -->
         <label for="id_name">Event Name</label>
         <input type="text" id="id_name" name="name" placeholder="Enter event name"
                value="{{ form.name.value|default_if_none:'' }}" required>
+        
+        <!-- Category Field -->
+        <label for="id_category">Category</label>
+        <input type="text" id="id_category" name="category" placeholder="Enter event category"
+            value="{{ form.category.value|default_if_none:'' }}" required>
 
         <!-- Date and Time -->
         <label for="id_date_time">Date and Time</label>
@@ -197,6 +202,14 @@
         
         <button type="submit">Update Event</button>
     </form>
+    {% if errors %}
+    <ul>
+        {% for field, error_list in errors.items %}
+            <li><strong>{{ field }}:</strong> {{ error_list|join:", " }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
 </div>
 </body>
 </html>

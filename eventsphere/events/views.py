@@ -230,17 +230,37 @@ def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if request.method == "POST":
-        form = EventForm(
-            request.POST, instance=event
-        )  # Pass the event instance to the form
+        form = EventForm(request.POST, request.FILES, instance=event)  # Include request.FILES
         if form.is_valid():
-            form.save()
+            event = form.save(commit=False)
+            
+            # Handle image upload
+            image = request.FILES.get("image")
+            if image:
+                # Upload the image to S3
+                s3 = boto3.client("s3")
+                bucket_name = "eventsphere-images"
+                image_key = f"events/{image.name}"
+
+                # Upload the file
+                s3.upload_fileobj(
+                    image,
+                    bucket_name,
+                    image_key,
+                    ExtraArgs={"ContentType": image.content_type},
+                )
+
+                # Get the image URL
+                event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+
+            event.save()
+            
+            # Redirect based on user type
             if request.user.is_superuser:
-                return redirect(
-                    "event_list"
-                )  # Redirect to the event list page after successful update
+                return redirect("event_list")
             return redirect("creator_dashboard")
         else:
+            # Render the form with errors if invalid
             return render(
                 request,
                 "events/update_event.html",
@@ -248,9 +268,10 @@ def update_event_view(request, event_id):
                 status=400,
             )
     else:
-        form = EventForm(instance=event)  # Pre-fill the form with the event data
+        form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
+
 
 
 def event_success(request):
