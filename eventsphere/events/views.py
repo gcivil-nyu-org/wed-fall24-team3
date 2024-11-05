@@ -97,9 +97,11 @@ def home(request):
 
 def user_event_list(request):
     query = request.GET.get("q")
-    category = request.GET.get("category")  # Get the selected category from the URL parameters
+    category = request.GET.get(
+        "category"
+    )  # Get the selected category from the URL parameters
     events = Event.objects.all()
-    
+
     # Filter by search query if provided
     if query:
         events = events.filter(
@@ -108,13 +110,15 @@ def user_event_list(request):
             | Q(speakers__icontains=query)
             | Q(category__icontains=query)
         )
-    
+
     # Filter by category if provided, ignoring case
     if category:
         events = events.filter(category__iexact=category)
-    
+
     return render(
-        request, "events/user_event_list.html", {"events": events, "query": query, "category": category}
+        request,
+        "events/user_event_list.html",
+        {"events": events, "query": query, "category": category},
     )
 
 
@@ -234,6 +238,7 @@ def create_event(request):
 
     return render(request, "events/create_event.html", {"form": form})
 
+
 @login_required
 def update_event_view(request, event_id):
     # Fetch the event by its ID and store initial location, latitude, and longitude
@@ -271,7 +276,9 @@ def update_event_view(request, event_id):
                         image_key,
                         ExtraArgs={"ContentType": image.content_type},
                     )
-                    event.image_url = f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+                    event.image_url = (
+                        f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
+                    )
 
                 except (BotoCoreError, ClientError) as e:
                     print(f"Error uploading to S3: {e}")

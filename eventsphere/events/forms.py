@@ -5,17 +5,16 @@ from .models import UserProfile, CreatorProfile, Event, Ticket
 
 
 EVENT_CATEGORIES = [
-    ('Entertainment', 'Entertainment'),
-    ('Business', 'Business'),
-    ('Sports', 'Sports'),
-    ('Technology', 'Technology'),
-    ('Travel', 'Travel'),
-    ('Food', 'Food'),
-    ('Health', 'Health'),
-    ('Music', 'Music'),
-    ('Art', 'Art')
+    ("Entertainment", "Entertainment"),
+    ("Business", "Business"),
+    ("Sports", "Sports"),
+    ("Technology", "Technology"),
+    ("Travel", "Travel"),
+    ("Food", "Food"),
+    ("Health", "Health"),
+    ("Music", "Music"),
+    ("Art", "Art"),
 ]
-
 
 
 class EventForm(forms.ModelForm):
