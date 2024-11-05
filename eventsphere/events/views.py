@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F, FloatField, Case, When
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
@@ -14,7 +14,10 @@ from .models import UserProfile, CreatorProfile, Ticket, Event
 from io import BytesIO
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 @login_required
 def profile_tickets(request):
@@ -127,17 +130,68 @@ def creator_dashboard(request):
     try:
         creator_profile = CreatorProfile.objects.get(creator=request.user)
     except CreatorProfile.DoesNotExist:
-        # Handle case where logged-in user doesn't have a CreatorProfile
         creator_profile = None
 
     if creator_profile:
-        # Get all events created by the logged-in user's creator profile
         events = Event.objects.filter(created_by=creator_profile)
-    else:
-        # If no creator profile exists, return an empty queryset
-        events = Event.objects.none()
+        
+        # Upcoming events data
+        upcoming_events = events.filter(date_time__gt=timezone.now())
+        
+        # Calculate category-wise total tickets sold for upcoming events
+        category_wise_tickets_sold = list(
+            upcoming_events
+            .values('category')
+            .annotate(total_sold=Coalesce(Sum('ticketsSold'), 0))
+        )
 
-    return render(request, "events/creator_dashboard.html", {"events": events})
+        # Calculate percentage of tickets sold for each category in upcoming events
+        category_wise_percentage_sold = list(
+            upcoming_events
+            .values('category')
+            .annotate(
+                total_sold=Coalesce(Sum('ticketsSold'), 0),
+                total_capacity=Coalesce(Sum('numTickets'), 1),  # Use 1 to avoid division by zero
+            )
+            .annotate(
+                percentage_sold=Case(
+                    When(total_capacity__gt=0, then=(F('total_sold') * 100.0 / F('total_capacity'))),
+                    default=0,
+                    output_field=FloatField()
+                )
+            )
+        )
+
+        # Unsold tickets for past events
+        past_events = events.filter(date_time__lt=timezone.now())
+        unsold_tickets_data = list(
+            past_events
+            .values('category')
+            .annotate(
+                unsold_tickets=Coalesce(Sum(F('numTickets') - F('ticketsSold')), 0),
+                total_capacity=Coalesce(Sum('numTickets'), 1),
+            )
+            .annotate(
+                percentage_unsold=Case(
+                    When(total_capacity__gt=0, then=(F('unsold_tickets') * 100.0 / F('total_capacity'))),
+                    default=0,
+                    output_field=FloatField()
+                )
+            )
+        )
+
+    else:
+        events = Event.objects.none()
+        category_wise_tickets_sold = []
+        category_wise_percentage_sold = []
+        unsold_tickets_data = []
+
+    return render(request, "events/creator_dashboard.html", {
+        "events": events,
+        "category_wise_tickets_sold": category_wise_tickets_sold,
+        "category_wise_percentage_sold": category_wise_percentage_sold,
+        "unsold_tickets_data": unsold_tickets_data,
+    })
 
 
 def event_list(request):
