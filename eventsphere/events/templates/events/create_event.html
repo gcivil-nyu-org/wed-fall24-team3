@@ -206,7 +206,12 @@
             <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule" required></textarea>
 
             <label for="id_category">Category</label>
-            <input type="text" id="id_category" name="category" placeholder="Enter event category" required>
+            <select id="id_category" name="category" required>
+                {% for code, name in form.category.field.choices %}
+                    <option value="{{ code }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            
 
             <!-- Improved File Upload and Number of Tickets Fields -->
             <div class="input-group">
