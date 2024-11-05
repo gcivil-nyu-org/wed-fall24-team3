@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+
 @login_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
@@ -134,30 +135,34 @@ def creator_dashboard(request):
 
     if creator_profile:
         events = Event.objects.filter(created_by=creator_profile)
-        
+
         # Upcoming events data
         upcoming_events = events.filter(date_time__gt=timezone.now())
-        
+
         # Calculate category-wise total tickets sold for upcoming events
         category_wise_tickets_sold = list(
-            upcoming_events
-            .values('category')
-            .annotate(total_sold=Coalesce(Sum('ticketsSold'), 0))
+            upcoming_events.values("category").annotate(
+                total_sold=Coalesce(Sum("ticketsSold"), 0)
+            )
         )
 
         # Calculate percentage of tickets sold for each category in upcoming events
         category_wise_percentage_sold = list(
-            upcoming_events
-            .values('category')
+            upcoming_events.values("category")
             .annotate(
-                total_sold=Coalesce(Sum('ticketsSold'), 0),
-                total_capacity=Coalesce(Sum('numTickets'), 1),  # Use 1 to avoid division by zero
+                total_sold=Coalesce(Sum("ticketsSold"), 0),
+                total_capacity=Coalesce(
+                    Sum("numTickets"), 1
+                ),  # Use 1 to avoid division by zero
             )
             .annotate(
                 percentage_sold=Case(
-                    When(total_capacity__gt=0, then=(F('total_sold') * 100.0 / F('total_capacity'))),
+                    When(
+                        total_capacity__gt=0,
+                        then=(F("total_sold") * 100.0 / F("total_capacity")),
+                    ),
                     default=0,
-                    output_field=FloatField()
+                    output_field=FloatField(),
                 )
             )
         )
@@ -165,17 +170,19 @@ def creator_dashboard(request):
         # Unsold tickets for past events
         past_events = events.filter(date_time__lt=timezone.now())
         unsold_tickets_data = list(
-            past_events
-            .values('category')
+            past_events.values("category")
             .annotate(
-                unsold_tickets=Coalesce(Sum(F('numTickets') - F('ticketsSold')), 0),
-                total_capacity=Coalesce(Sum('numTickets'), 1),
+                unsold_tickets=Coalesce(Sum(F("numTickets") - F("ticketsSold")), 0),
+                total_capacity=Coalesce(Sum("numTickets"), 1),
             )
             .annotate(
                 percentage_unsold=Case(
-                    When(total_capacity__gt=0, then=(F('unsold_tickets') * 100.0 / F('total_capacity'))),
+                    When(
+                        total_capacity__gt=0,
+                        then=(F("unsold_tickets") * 100.0 / F("total_capacity")),
+                    ),
                     default=0,
-                    output_field=FloatField()
+                    output_field=FloatField(),
                 )
             )
         )
@@ -186,12 +193,16 @@ def creator_dashboard(request):
         category_wise_percentage_sold = []
         unsold_tickets_data = []
 
-    return render(request, "events/creator_dashboard.html", {
-        "events": events,
-        "category_wise_tickets_sold": category_wise_tickets_sold,
-        "category_wise_percentage_sold": category_wise_percentage_sold,
-        "unsold_tickets_data": unsold_tickets_data,
-    })
+    return render(
+        request,
+        "events/creator_dashboard.html",
+        {
+            "events": events,
+            "category_wise_tickets_sold": category_wise_tickets_sold,
+            "category_wise_percentage_sold": category_wise_percentage_sold,
+            "unsold_tickets_data": unsold_tickets_data,
+        },
+    )
 
 
 def event_list(request):
