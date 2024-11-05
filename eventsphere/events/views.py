@@ -1,5 +1,9 @@
 import base64
+from io import BytesIO
+
+import boto3
 import qrcode  # type: ignore
+from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -9,11 +13,9 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import UserProfile, CreatorProfile, Ticket, Event
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
 
 
 @login_required
@@ -92,7 +94,7 @@ def user_home(request):
 
 
 def home(request):
-    return render(request, "events/home.html")
+    return render(request, "events/homepage.html")
 
 
 def user_event_list(request):
