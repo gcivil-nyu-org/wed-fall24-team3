@@ -36,30 +36,29 @@ urlpatterns = [
         "creator/", views.creator_dashboard, name="creator_dashboard"
     ),  # creator dashboard url
     path("creatorprofile/", views.creator_profile, name="creator_profile"),
-    # path("creatorcreates/", views.creator_creates_event, name="creator_creates_event"),
     # Authentication URLs
-    path(
-        "userlogin/",
-        auth_views.LoginView.as_view(template_name="events/user_login.html"),
-        name="user_login",
-    ),
-    path(
-        "creatorlogin/",
-        auth_views.LoginView.as_view(template_name="events/creator_login.html"),
-        name="creator_login",
-    ),
-    path(
-        "userlogout/",
-        auth_views.LogoutView.as_view(next_page="user_login"),
-        name="user_logout",
-    ),
-    path(
-        "creatorlogout/",
-        auth_views.LogoutView.as_view(next_page="creator_login"),
-        name="creator_logout",
-    ),
-    path(
-        "usersignup/", views.user_signup, name="user_signup"
-    ),  # Define the success URL
-    path("creatorsignup/", views.creator_signup, name="creator_signup"),
+    # path(
+    #     "userlogin/",
+    #     auth_views.LoginView.as_view(template_name="events/user_login.html"),
+    #     name="user_login",
+    # ),
+    # path(
+    #     "creatorlogin/",
+    #     auth_views.LoginView.as_view(template_name="events/creator_login.html"),
+    #     name="creator_login",
+    # ),
+    # path(
+    #     "userlogout/",
+    #     auth_views.LogoutView.as_view(next_page="user_login"),
+    #     name="user_logout",
+    # ),
+    # path(
+    #     "creatorlogout/",
+    #     auth_views.LogoutView.as_view(next_page="creator_login"),
+    #     name="creator_logout",
+    # ),
+    # path(
+    #     "usersignup/", views.user_signup, name="user_signup"
+    # ),  # Define the success URL
+    # path("creatorsignup/", views.creator_signup, name="creator_signup"),
 ]
