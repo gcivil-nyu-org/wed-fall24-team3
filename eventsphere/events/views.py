@@ -7,6 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
@@ -14,6 +15,8 @@ from .models import UserProfile, CreatorProfile, Ticket, Event
 from io import BytesIO
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
+
+# from datetime import timedelta
 
 
 @login_required
@@ -413,6 +416,7 @@ def buy_tickets(request, event_id):
             ticket = form.save(commit=False)
             ticket.user = request.user
             ticket.event = event
+            ticket.created_at = timezone.now().date()
 
             if ticket.quantity > event.tickets_left:
                 messages.error(request, "Not enough tickets available!")
