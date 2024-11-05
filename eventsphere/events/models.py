@@ -11,7 +11,7 @@ class CreatorProfile(models.Model):
     organisation = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
-
+    
     def __str__(self):
         return self.creator.username
 
@@ -35,7 +35,7 @@ class Event(models.Model):
     )
     numTickets = models.IntegerField(null=True, blank=True)
     ticketsSold = models.IntegerField(default=0)
-
+    
     @property
     def tickets_left(self):
         return (
@@ -43,7 +43,7 @@ class Event(models.Model):
             if self.numTickets >= self.ticketsSold
             else 0
         )
-
+    
     def __str__(self):
         return self.name
 
@@ -56,7 +56,7 @@ class UserProfile(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
-
+    
     def __str__(self):
         return self.user.username
 
@@ -67,6 +67,6 @@ class Ticket(models.Model):
     email = models.EmailField(default="dummy@example.com")
     phone_number = models.CharField(default="999999999", max_length=12)
     quantity = models.PositiveIntegerField(default=0)
-
+    
     def __str__(self):
         return f"{self.event.name} - {self.user.username}"

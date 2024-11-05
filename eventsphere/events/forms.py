@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, CreatorProfile, Event, Ticket
 
+from .models import UserProfile, CreatorProfile, Event, Ticket
 
 EVENT_CATEGORIES = [
     ("Entertainment", "Entertainment"),
@@ -20,7 +20,7 @@ EVENT_CATEGORIES = [
 class EventForm(forms.ModelForm):
     image = forms.ImageField(required=False)
     category = forms.ChoiceField(choices=EVENT_CATEGORIES)  # Dropdown for categories
-
+    
     class Meta:
         model = Event
         fields = [
@@ -43,7 +43,7 @@ class EventForm(forms.ModelForm):
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
-
+    
     class Meta:
         model = User
         fields = ("username", "email", "password1", "password2")
@@ -64,7 +64,7 @@ class UserProfileForm(forms.ModelForm):
             "bio": forms.Textarea(attrs={"rows": 3}),
             "interests": forms.Textarea(attrs={"rows": 3}),
         }
-
+    
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if (
@@ -94,7 +94,7 @@ class TicketPurchaseForm(forms.ModelForm):
         widgets = {
             "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
         }
-
+    
     def clean_quantity(self):
         quantity = self.cleaned_data.get("quantity")
         if quantity > 5:
