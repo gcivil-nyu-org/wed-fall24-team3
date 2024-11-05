@@ -16,8 +16,6 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.core.serializers.json import DjangoJSONEncoder
-import json
 
 
 @login_required
