@@ -405,7 +405,7 @@ def buy_tickets(request, event_id):
             event.save(update_fields=["ticketsSold"])
 
             messages.success(request, "Ticket purchased successfully!")
-            return redirect("user_profile")
+            return redirect("profile_tickets")
 
     else:
         form = TicketPurchaseForm()
