@@ -430,6 +430,7 @@ class LoginViewTest(TestCase):
         self.assertTrue(form.errors)
 
 
+# TODO: Fix test case
 # class HomePageViewTest(TestCase):
     # def test_home_page_view(self):
     #     response = self.client.get(reverse('homepage'))
@@ -485,7 +486,8 @@ class GenerateEventQRCodeTest(TestCase):
         response = self.client.get(reverse('generate_event_qr', args=[new_event.id]))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()['error'], 'No tickets found for this event.')
-
+    
+    # TODO: Fix test case
     # def test_generate_event_qr_code_unauthenticated(self):
     #     response = self.client.get(reverse('generate_event_qr', args=[self.event.id]))
     #     login_url = reverse('login') + '?next=' + reverse('generate_event_qr', args=[self.event.id])
@@ -658,7 +660,8 @@ class CreateEventViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/create_event.html')
         self.assertIsInstance(response.context['form'], EventForm)
-
+    
+    # TODO: Fix test case
     # @patch('events.views.boto3.client')
     # def test_create_event_post_creator_valid(self, mock_boto_client):
     #     self.client.login(username='creator', password='creatorpass')
@@ -795,7 +798,8 @@ class BuyTicketsViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/buy_tickets.html')
         self.assertIsInstance(response.context['form'], TicketPurchaseForm)
-
+    
+    # TODO: Fix test case
     # def test_buy_tickets_post_valid(self):
     #     response = self.client.post(
     #         reverse('buy_tickets', args=[self.event.id]),
@@ -885,6 +889,7 @@ class MyTicketsViewTest(TestCase):
         self.client = Client()
         self.client.login(username='user', password='pass')
 
+    # TODO: Fix test case
     # def test_my_tickets_view(self):
     #     response = self.client.get(reverse('my_tickets'))
     #     self.assertEqual(response.status_code, 200)
@@ -892,8 +897,8 @@ class MyTicketsViewTest(TestCase):
     #     self.assertEqual(len(response.context['tickets']), 1)
 
 
-# class HomeViewTest(TestCase):
-#     def test_home_view(self):
-#         response = self.client.get(reverse('home'))
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'events/homepage.html')
+class HomeViewTest(TestCase):
+    def test_home_view(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/homepage.html')

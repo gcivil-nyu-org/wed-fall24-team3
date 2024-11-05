@@ -92,7 +92,7 @@ def user_home(request):
 
 
 def home(request):
-    return render(request, "events/home.html")
+    return render(request, "events/homepage.html")
 
 
 def user_event_list(request):
