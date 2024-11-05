@@ -173,8 +173,12 @@
     
         <!-- Category Field -->
         <label for="id_category">Category</label>
-        <input type="text" id="id_category" name="category" placeholder="Enter event category"
-               value="{{ form.category.value|default_if_none:'' }}" required>
+        <select id="id_category" name="category" required>
+            {% for code, name in form.category.field.choices %}
+                <option value="{{ code }}" {% if form.category.value == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        
     
         <!-- Date and Time -->
         <label for="id_date_time">Date and Time</label>
@@ -183,8 +187,56 @@
     
         <!-- Location -->
         <label for="id_location">Location</label>
-        <input type="text" id="id_location" name="location" placeholder="Enter location"
-               value="{{ form.location.value|default_if_none:'' }}" required>
+        <input type="text" id="id_location" name="location" placeholder="Enter location" value="{{ form.location.value|default_if_none:'' }}" required>
+        <div id="custom-dropdown" class="custom-dropdown"></div>
+        
+    <!-- Add JavaScript for custom dropdown -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationInput = document.getElementById('id_location');
+            const customDropdown = document.getElementById('custom-dropdown');
+            const latitudeField = document.getElementById('id_latitude');
+            const longitudeField = document.getElementById('id_longitude');
+
+            // Fetch suggestions as the user types in the location input
+            locationInput.addEventListener('input', function() {
+                const query = locationInput.value;
+
+                if (query.length < 3) {
+                    customDropdown.style.display = 'none';
+                    return;
+                }
+
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
+                    .then(response => response.json())
+                    .then(data => {
+                        customDropdown.innerHTML = '';
+
+                        if (data.length > 0) {
+                            customDropdown.style.display = 'block';
+                            data.forEach(item => {
+                                const optionDiv = document.createElement('div');
+                                optionDiv.textContent = item.display_name;
+                                optionDiv.addEventListener('click', function() {
+                                    locationInput.value = item.display_name;
+                                    latitudeField.value = item.lat;
+                                    longitudeField.value = item.lon;
+                                    customDropdown.style.display = 'none';
+                                });
+                                customDropdown.appendChild(optionDiv);
+                            });
+                        } else {
+                            customDropdown.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching location suggestions:', error);
+                        customDropdown.style.display = 'none';
+                    });
+            });
+        });
+    </script>
+        
     
         <!-- Speakers -->
         <label for="id_speakers">Speakers</label>

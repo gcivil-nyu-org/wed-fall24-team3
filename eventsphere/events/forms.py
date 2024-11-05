@@ -1,12 +1,25 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
 from .models import UserProfile, CreatorProfile, Event, Ticket
 
 
+EVENT_CATEGORIES = [
+    ("Entertainment", "Entertainment"),
+    ("Business", "Business"),
+    ("Sports", "Sports"),
+    ("Technology", "Technology"),
+    ("Travel", "Travel"),
+    ("Food", "Food"),
+    ("Health", "Health"),
+    ("Music", "Music"),
+    ("Art", "Art"),
+]
+
+
 class EventForm(forms.ModelForm):
-    image = forms.ImageField(required=False)  # Field for uploading the image
+    image = forms.ImageField(required=False)
+    category = forms.ChoiceField(choices=EVENT_CATEGORIES)  # Dropdown for categories
 
     class Meta:
         model = Event

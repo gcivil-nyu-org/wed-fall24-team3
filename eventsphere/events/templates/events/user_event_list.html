@@ -250,6 +250,63 @@
     .see-more-button:hover {
         background-color: #218838;
     }
+
+   /* Categories Section */
+   .categories-section {
+        margin: 30px 0;
+        text-align: center;
+    }
+
+    .categories-section h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 20px;
+        justify-items: center;
+        max-width: 1000px;
+        margin: 0 auto; /* Center the grid */
+    }
+
+    .category-item {
+        width: 100px;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        padding: 10px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .category-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .category-item img {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+    }
+
+    .category-item p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+    }
+
 </style>
 
 <!-- Hero Section -->
@@ -264,23 +321,51 @@
 <div class="container categories-section">
     <h2>Explore Categories</h2>
     <div class="category-grid">
-        <a href="?category=Entertainment" class="category-item">
+        <!-- All Events Button -->
+        <a href="{% url 'user_event_list' %}" class="category-item" title="All Events">
+            <img src="https://cdn-icons-png.flaticon.com/512/2620/2620573.png" alt="All Events">
+            <p>All Events</p>
+        </a>
+        <a href="?category=Entertainment" class="category-item" title="Entertainment">
             <img src="https://cdn-icons-png.flaticon.com/512/1046/1046760.png" alt="Entertainment">
+            <p>Entertainment</p>
         </a>
-        <a href="?category=Business" class="category-item">
+        <a href="?category=Business" class="category-item" title="Business">
             <img src="https://cdn-icons-png.flaticon.com/512/2302/2302848.png" alt="Business">
+            <p>Business</p>
         </a>
-        <a href="?category=Sports" class="category-item">
+        <a href="?category=Sports" class="category-item" title="Sports">
             <img src="https://cdn-icons-png.flaticon.com/512/681/681494.png" alt="Sports">
+            <p>Sports</p>
         </a>
-        <a href="?category=Technology" class="category-item">
+        <a href="?category=Technology" class="category-item" title="Technology">
             <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Technology">
+            <p>Technology</p>
         </a>
-        <a href="?category=Travel" class="category-item">
+        <a href="?category=Travel" class="category-item" title="Travel">
             <img src="https://cdn-icons-png.flaticon.com/512/2737/2737695.png" alt="Travel">
+            <p>Travel</p>
+        </a>
+        <a href="?category=Food" class="category-item" title="Food">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Food">
+            <p>Food</p>
+        </a>
+        <a href="?category=Health" class="category-item" title="Health">
+            <img src="https://cdn-icons-png.flaticon.com/512/1047/1047445.png" alt="Health">
+            <p>Health</p>
+        </a>
+        <a href="?category=Music" class="category-item" title="Music">
+            <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Music">
+            <p>Music</p>
+        </a>
+        <a href="?category=Art" class="category-item" title="Art">
+            <img src="https://cdn-icons-png.flaticon.com/512/1086/1086765.png" alt="Art">
+            <p>Art</p>
         </a>
     </div>
 </div>
+
+
 
 <!-- Search Bar -->
 <div class="search-bar">
@@ -320,7 +405,7 @@
     </div>
     
     <!-- See More Button -->
-    <a href="#" class="see-more-button">See More</a>
+    <!-- <a href="#" class="see-more-button">See More</a> -->
 </div>
 
 {% endblock %}

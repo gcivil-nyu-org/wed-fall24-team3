@@ -97,15 +97,28 @@ def home(request):
 
 def user_event_list(request):
     query = request.GET.get("q")
+    category = request.GET.get(
+        "category"
+    )  # Get the selected category from the URL parameters
     events = Event.objects.all()
+
+    # Filter by search query if provided
     if query:
         events = events.filter(
             Q(name__icontains=query)
             | Q(location__icontains=query)
             | Q(speakers__icontains=query)
+            | Q(category__icontains=query)
         )
+
+    # Filter by category if provided, ignoring case
+    if category:
+        events = events.filter(category__iexact=category)
+
     return render(
-        request, "events/user_event_list.html", {"events": events, "query": query}
+        request,
+        "events/user_event_list.html",
+        {"events": events, "query": query, "category": category},
     )
 
 
@@ -226,6 +239,7 @@ def create_event(request):
     return render(request, "events/create_event.html", {"form": form})
 
 
+@login_required
 def update_event_view(request, event_id):
     # Fetch the event by its ID and store initial location, latitude, and longitude
     event = get_object_or_404(Event, id=event_id)
@@ -234,11 +248,9 @@ def update_event_view(request, event_id):
     initial_longitude = event.longitude
 
     if request.method == "POST":
-        # Initialize the form with POST data, uploaded files, and the existing event instance
         form = EventForm(request.POST, request.FILES, instance=event)
 
         if form.is_valid():
-            # Save form data excluding image and coordinates
             event = form.save(commit=False)
 
             # Check if location has changed
@@ -247,36 +259,28 @@ def update_event_view(request, event_id):
                 event.latitude = initial_latitude
                 event.longitude = initial_longitude
             else:
-                # Optional: Logic to update latitude and longitude based on the new location, if needed
-                # Example: event.latitude, event.longitude = get_coordinates_from_location(event.location)
-                pass
+                # Update latitude and longitude if location changed
+                pass  # Add location-to-coordinates logic if needed
 
             # Handle image upload if a new image is uploaded
             image = request.FILES.get("image")
             if image:
                 try:
-                    # Initialize S3 client
                     s3 = boto3.client("s3")
-
-                    # Define S3 bucket and object key
                     bucket_name = "eventsphere-images"
                     image_key = f"events/{image.name}"
 
-                    # Upload the file
                     s3.upload_fileobj(
                         image,
                         bucket_name,
                         image_key,
                         ExtraArgs={"ContentType": image.content_type},
                     )
-
-                    # Set the image URL
                     event.image_url = (
                         f"https://{bucket_name}.s3.amazonaws.com/{image_key}"
                     )
 
                 except (BotoCoreError, ClientError) as e:
-                    # Log or handle the exception as needed
                     print(f"Error uploading to S3: {e}")
                     return render(
                         request,
@@ -287,16 +291,12 @@ def update_event_view(request, event_id):
                         },
                     )
 
-            # Save the event instance to the database
             event.save()
-
-            # Redirect based on user type
             if request.user.is_superuser:
                 return redirect("event_list")
             return redirect("creator_dashboard")
 
         else:
-            # Render the form with validation errors if form is invalid
             return render(
                 request,
                 "events/update_event.html",
@@ -305,10 +305,8 @@ def update_event_view(request, event_id):
             )
 
     else:
-        # GET request, render the form with the existing event instance
         form = EventForm(instance=event)
 
-    # Render the form with GET request or any encountered errors
     return render(request, "events/update_event.html", {"form": form})
 
 
@@ -407,7 +405,7 @@ def buy_tickets(request, event_id):
             event.save(update_fields=["ticketsSold"])
 
             messages.success(request, "Ticket purchased successfully!")
-            return redirect("user_profile")
+            return redirect("profile_tickets")
 
     else:
         form = TicketPurchaseForm()
