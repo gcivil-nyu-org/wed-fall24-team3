@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class CreatorProfile(models.Model):
@@ -67,6 +68,7 @@ class Ticket(models.Model):
     email = models.EmailField(default="dummy@example.com")
     phone_number = models.CharField(default="999999999", max_length=12)
     quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.event.name} - {self.user.username}"

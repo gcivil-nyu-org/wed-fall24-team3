@@ -8,14 +8,16 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import UserProfile, CreatorProfile, Ticket, Event
+
+# from datetime import timedelta
 
 
 @login_required
@@ -152,39 +154,12 @@ def event_detail(request, pk):
     return render(request, "events/event_detail.html", {"event": event})
 
 
-# All signups
-def user_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("user_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/user_signup.html", {"form": form})
-
-
-def creator_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            creator = form.save(commit=False)
-            creator.is_staff = True
-            creator.is_superuser = False
-            creator.save()
-            login(request, creator)
-            return redirect("creator_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/creator_signup.html", {"form": form})
-
-
 def signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
+        user_type = request.POST.get("user_type")
 
         # Check if passwords match
         if password != confirm_password:
@@ -196,10 +171,30 @@ def signup(request):
             messages.error(request, "Username already exists.")
             return render(request, "events/signup.html")
 
+        # Ensure a user type was selected
+        if not user_type:
+            messages.error(request, "Please select an account type.")
+            return render(request, "events/signup.html")
+
         # If validations pass, create the user
         user = User.objects.create_user(username=username, password=password)
-        login(request, user)  # Log the user in after signup
-        return redirect("event_list")  # Redirect to the event list page
+        if user_type == "admin":
+            user.is_superuser = True
+            user.save()
+            login(request, user)
+            return redirect("event_list")
+
+        elif user_type == "creator":
+            user.is_staff = True
+            user.save()
+            CreatorProfile.objects.create(creator=user)
+            login(request, user)
+            return redirect("creator_profile")
+
+        else:
+            UserProfile.objects.create(user=user)
+            login(request, user)
+            return redirect("user_profile")
 
     return render(request, "events/signup.html")
 
@@ -392,6 +387,7 @@ def buy_tickets(request, event_id):
             ticket = form.save(commit=False)
             ticket.user = request.user
             ticket.event = event
+            ticket.created_at = timezone.now().date()
 
             if ticket.quantity > event.tickets_left:
                 messages.error(request, "Not enough tickets available!")

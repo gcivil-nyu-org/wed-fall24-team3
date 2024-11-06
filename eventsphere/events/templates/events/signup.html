@@ -143,6 +143,13 @@
                 max-width: 100%;
             }
         }
+        form select {
+            margin-bottom: 20px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -171,6 +178,14 @@
                 <input type="text" name="username" placeholder="Enter your username" required>
                 <input type="password" name="password" placeholder="Enter your password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+
+                <select name="user_type" required>
+                    <option value="user">Select account type</option>
+                    <option value="user">User</option>
+                    <option value="creator">Creator</option>
+                    <option value="admin">Admin</option>
+                </select>
+
                 <button type="submit">Create Account</button>
             </form>
 
