@@ -4,269 +4,615 @@
 {% block title %}Creator Dashboard{% endblock %}
 
 {% block extra_head %}
-    <style>
-        /* Creator Dashboard Specific Styles */
+<style>
+    /* Creator Dashboard Specific Styles */
+    .container {
+        margin: 0;
+        max-width: 100%;
+    }
 
-        /* Dashboard Container */
-        .dashboard-container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 120px auto 50px; /* Adjusted top margin to account for fixed navbar */
-            background-color: #f0f5f1; /* Very light green background */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+    /* Dashboard Container */
+    .dashboard-container {
+        display: flex; /* Flex to allow side-by-side sections */
+        background-color: #f0f5f1;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-height: 100%;
+    }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
+    /* Sidebar */
+    .sidebar {
+        width: 20%; /* Smaller width for the sidebar */
+        margin-right: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 10px;
+    }
+
+    .sidebar ul li button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        color: #333;
+        background-color: #f0f2f5;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li button:hover,
+    .sidebar ul li button.active {
+        background-color: #28a745;
+        color: #ffffff;
+    }
+
+    /* Right Content Area */
+    .right-content {
+        flex-grow: 1; /* Take up remaining space */
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .right-content h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Search Bar */
+    .search-bar {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .search-bar input {
+        width: 80%;
+        max-width: 600px;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-bar input:focus {
+        border-color: #28a745; /* Green border when focused */
+    }
+
+        /* Card Grid Layout */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+        /* Individual Event Card */
+    .card {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h3 {
+        font-size: 22px;
+        color: #333333;
+        margin-bottom: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card p {
+        margin-bottom: 10px;
+        color: #666666;
+        font-size: 16px;
+        line-height: 1.5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card .actions {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+        /* Action Buttons */
+    .btn-edit, .btn-delete {
+        padding: 10px 20px;
+        border-radius: 5px;
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+        border: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    }
 
-        /* Search Bar */
-        .search-bar {
-            margin-bottom: 30px;
-            text-align: center;
+    .btn-edit {
+        background-color: #28a745;
+    }
+
+    .btn-edit:hover {
+        background-color: #218838; /* Darker green on hover */
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background-color: #e74c3c;
+    }
+
+    .btn-delete:hover {
+        background-color: #c0392b; /* Darker red on hover */
+        transform: translateY(-2px);
+    }
+
+    /* Create Event Button */
+    .btn-create-event {
+        background-color: #444444; /* Gray for Create Event button */
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s ease, transform 0.2s;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+    }
+
+    .btn-create-event:hover {
+        background-color: rgb(96, 163, 221); /* Darker gray on hover */
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            width: 95%;
+            padding: 15px;
         }
 
         .search-bar input {
-            width: 80%;
-            max-width: 600px;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            outline: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-bar input:focus {
-            border-color: #28a745; /* Green border when focused */
-        }
-
-        /* Card Grid Layout */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        /* Individual Event Card */
-        .card {
-            background-color: #ffffff; /* Pure white card background */
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
         }
 
         .card h3 {
-            font-size: 22px;
-            color: #333333; /* Dark gray text */
-            margin-bottom: 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 20px;
         }
 
         .card p {
-            margin-bottom: 10px;
-            color: #666666; /* Medium gray for secondary text */
-            font-size: 16px;
-            line-height: 1.5;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
         }
 
-        .card .actions {
-            display: flex;
-            justify-content: flex-start; /* Align buttons side by side */
-            gap: 10px; /* Add space between buttons */
-            margin-top: 10px;
-        }
-
-        /* Action Buttons */
         .btn-edit, .btn-delete {
-            padding: 10px 20px;
-            border-radius: 5px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            border: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 8px 16px;
+            font-size: 12px;
         }
 
-        .btn-edit {
-            background-color: #28a745; /* Green for Edit button */
-        }
-
-        .btn-edit:hover {
-            background-color: #218838; /* Darker green on hover */
-            transform: translateY(-2px);
-        }
-
-        .btn-delete {
-            background-color: #e74c3c; /* Soft red for Delete button */
-        }
-
-        .btn-delete:hover {
-            background-color: #c0392b; /* Darker red on hover */
-            transform: translateY(-2px);
-        }
-
-        /* Create Event Button */
         .btn-create-event {
-            background-color: #444444; /* Gray for Create Event button */
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease, transform 0.2s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 14px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-grid {
+            grid-template-columns: 1fr;
         }
 
-        .btn-create-event:hover {
-            background-color: rgb(96, 163, 221); /* Darker gray on hover */
-            transform: translateY(-2px);
+        .actions {
+            flex-direction: column;
+            align-items: stretch;
         }
 
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .dashboard-container {
-                width: 95%;
-                padding: 15px;
-            }
-
-            .search-bar input {
-                width: 90%;
-            }
-
-            .card h3 {
-                font-size: 20px;
-            }
-
-            .card p {
-                font-size: 14px;
-            }
-
-            .btn-edit, .btn-delete {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-
-            .btn-create-event {
-                padding: 8px 12px;
-                font-size: 12px;
-            }
+        .btn-edit, .btn-delete {
+            width: 100%;
+            margin-bottom: 5px;
         }
 
-        @media (max-width: 480px) {
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn-edit, .btn-delete {
-                width: 100%;
-                margin-bottom: 5px;
-            }
-
-            /* Adjust navigation for mobile */
-            nav .nav-right {
-                display: none; /* Hide logout button on smaller screens */
-            }
-
-            nav .hamburger {
-                display: flex;
-            }
-
-            nav .nav-left {
-                display: none;
-            }
-
-            .dropdown-menu {
-                right: 10px;
-                top: 50px;
-            }
-
-            /* Ensure the search bar input takes full width */
-            .search-bar input {
-                width: 100%;
-            }
+        /* Adjust navigation for mobile */
+        nav .nav-right {
+            display: none; /* Hide logout button on smaller screens */
         }
-    </style>
+
+        nav .hamburger {
+            display: flex;
+        }
+
+        nav .nav-left {
+            display: none;
+        }
+
+        .dropdown-menu {
+            right: 10px;
+            top: 50px;
+        }
+
+        /* Ensure the search bar input takes full width */
+        .search-bar input {
+            width: 100%;
+        }
+    }
+
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard-container">
-        <h1>Creator Dashboard</h1>
+<div class="dashboard-container">
+    <!-- Sidebar Section -->
+    <div class="sidebar">
+        <h2>Creator Dashboard</h2>
+        <ul>
+            <li><button class="active" onclick="showSection('dashboard')">My Events</button></li>
+            <li><button onclick="showSection('all-events')">All Events Analytics</button></li>
+            <li><button onclick="showSection('event-wise')">Event Wise Analytics</button></li>
+        </ul>
+    </div>
 
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search for events..." onkeyup="filterEvents()">
+    <!-- Right Content Section -->
+    <div class="right-content">
+        <!-- My Events Section (Default) -->
+        <div id="dashboard" class="content-section" style="display: block;">
+            <h1>My Events</h1>
+
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search for events..." onkeyup="filterEvents()">
+            </div>
+
+            <!-- Event Cards -->
+            <div class="card-grid" id="eventGrid">
+                {% for event in events %}
+                    <div class="card">
+                        <h3>{{ event.name }}</h3>
+                        <p><strong>Date and Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Speakers:</strong> {{ event.speakers }}</p>
+                        <p><strong>Description:</strong> {{ event.schedule|truncatechars:100 }}</p>
+                        <div class="actions">
+                            <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
+                            <a href="{% url 'delete_event' event.id %}" class="btn-delete" onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="text-align: center; font-size: 18px; color: #666;">No events found.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Call to Action Button -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{% url 'create_event' %}" class="btn-create-event">Create New Event</a>
+            </div>
         </div>
 
-        <!-- Event Cards -->
-        <div class="card-grid" id="eventGrid">
-            {% for event in events %}
-                <div class="card">
-                    <h3>{{ event.name }}</h3>
-                    <p><strong>Date and Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
-                    <p><strong>Location:</strong> {{ event.location }}</p>
-                    <p><strong>Speakers:</strong> {{ event.speakers }}</p>
-                    <p><strong>Description:</strong> {{ event.schedule|truncatechars:100 }}</p>
-                    <div class="actions">
-                        <a href="{% url 'update_event' event.id %}" class="btn-edit">Edit</a>
-                        <a href="{% url 'delete_event' event.id %}" class="btn-delete" onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
+        <div id="all-events" class="content-section" style="display: none;">
+            <h1>All Events</h1>
+        
+            <!-- Load Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+            <!-- Store JSON data in script tags -->
+            {{ category_wise_tickets_sold|json_script:"tickets-sold-data" }}
+            {{ category_wise_percentage_sold|json_script:"percentage-sold-data" }}
+            {{ unsold_tickets_data|json_script:"unsold-tickets-data" }}
+        
+            <!-- Chart Containers -->
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                
+                <!-- Upcoming Events Heading -->
+                <h2 style="text-align: center; font-size: 24px; margin-top: 20px;">Upcoming Events</h2>
+
+                <!-- Row 1: Two Charts Side-by-Side -->
+                <div style="display: flex; width: 100%; justify-content: center; gap: 20px;">
+                    <div style="width: 30%; min-width: 250px;">
+                        <h3>Category-wise Tickets Sold</h3>
+                        <canvas id="ticketsSoldChart"></canvas>
+                    </div>
+                
+                    <div style="width: 30%; min-width: 250px;">
+                        <h3>Category-wise Percentage of Tickets Sold</h3>
+                        <canvas id="percentageSoldChart"></canvas>
                     </div>
                 </div>
-            {% empty %}
-                <p style="text-align: center; font-size: 18px; color: #666;">No events found.</p>
-            {% endfor %}
-        </div>
 
-        <!-- Call to Action Button -->
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="{% url 'create_event' %}" class="btn-create-event">Create New Event</a>
+                <!-- Row 2: Single Centered Chart -->
+                <div style="width: 30%; text-align: center;">
+                    <h3>Percentage of Tickets Sold Category-wise out of all tickets sold</h3>
+                    <canvas id="percentageSoldPieChart"></canvas>
+                </div>
+
+                <!-- Past Events Heading -->
+                <h2 style="text-align: center; font-size: 24px; margin-top: 40px;">Past Events</h2>
+
+                <!-- Row 3: Two Charts Side-by-Side -->
+                <div style="display: flex; width: 100%; justify-content: center; gap: 20px;">
+                    <div style="width: 30%; min-width: 250px;">
+                        <h3>Unsold Tickets</h3>
+                        <canvas id="unsoldTicketsChart"></canvas>
+                    </div>
+                
+                    <div style="width: 30%; min-width: 250px;">
+                        <h3>Category-wise Unsold Tickets Percentage</h3>
+                        <canvas id="percentageUnsoldChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Row 4: Single Centered Chart -->
+                <div style="width: 30%; min-width: 300px; text-align: center;">
+                    <h3>Percentage of Tickets Unsold Category-wise out of all tickets sold</h3>
+                    <canvas id="percentageUnsoldPieChart"></canvas>
+                </div>
+            </div>
+                        
+        
+            <!-- Chart Data and Script -->
+            <script>
+                // Parse JSON data
+                // const ticketsSoldData = JSON.parse(document.getElementById('tickets-sold-data').textContent);
+                const ticketsSoldData = JSON.parse(document.getElementById('percentage-sold-data').textContent);
+                const unsoldTicketsData = JSON.parse(document.getElementById('unsold-tickets-data').textContent);
+                console.log("ticketsSoldData", ticketsSoldData)
+                // console.log("percentageSoldData", percentageSoldData)
+
+                let totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue.total_sold;
+                }, 0);
+
+                console.log("totalTicketsSoldUpcomingEvents", totalTicketsSoldUpcomingEvents)
+
+                let totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue.unsold_tickets;
+                }, 0);
+
+                console.log("totalTicketsUnsoldUpcomingEvents", totalTicketsUnsoldPastEvents)
+
+                // Define solid colors for each category
+                const solidColors = [
+                    'rgba(255, 99, 132)', 'rgba(54, 162, 235)', 'rgba(255, 206, 86)',
+                    'rgba(75, 192, 192)', 'rgba(153, 102, 255)', 'rgba(255, 159, 64)'
+                ];
+                const solidBorderColors = [
+                    'rgba(255, 99, 132)', 'rgba(54, 162, 235)', 'rgba(255, 206, 86)',
+                    'rgba(75, 192, 192)', 'rgba(153, 102, 255)', 'rgba(255, 159, 64)'
+                ];
+
+                // Data for Tickets Sold by Category (Upcoming Events)
+                const ticketsSoldConfig = {
+                    labels: ticketsSoldData.map(item => item.category),
+                    datasets: [{
+                        label: 'Tickets Sold',
+                        data: ticketsSoldData.map(item => item.total_sold),
+                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
+                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
+                        borderWidth: 1
+                    }],
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    suggestedMax: Math.max(...ticketsSoldData.map(item => item.total_sold)) * 1.2
+                                }
+                            }
+                        }
+                    }
+                };
+
+                // Data for Category-wise Percentage of Tickets Sold (Upcoming Events)
+                const percentageSoldConfig = {
+                    labels: ticketsSoldData.map(item => item.category),
+                    datasets: [{
+                        label: '% Tickets Sold',
+                        data: ticketsSoldData.map(item => item.percentage_sold),
+                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
+                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
+                        borderWidth: 1
+                    }],
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    suggestedMax: Math.max(...ticketsSoldData.map(item => item.percentage_sold)) * 1.2
+                                }
+                            }
+                        }
+                    }
+                };
+
+                // Data for Category-wise Percentage of overall Tickets Sold
+                const percentageSoldAllCategoriesConfig = {
+                    labels: ticketsSoldData.map(item => item.category),
+                    datasets: [{
+                        label: '% Tickets Sold',
+                        data: ticketsSoldData.map(item => item.total_sold / totalTicketsSoldUpcomingEvents * 100),
+                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
+                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
+                        borderWidth: 1
+                    }]
+                };
+
+                // Data for Unsold Tickets by Category (Past Events)
+                const unsoldTicketsConfig = {
+                    labels: unsoldTicketsData.map(item => item.category),
+                    datasets: [{
+                        label: 'Unsold Tickets',
+                        data: unsoldTicketsData.map(item => item.unsold_tickets),
+                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
+                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
+                        borderWidth: 1
+                    }],
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    suggestedMax: Math.max(...unsoldTicketsData.map(item => item.unsold_tickets)) * 1.2
+                                }
+                            }
+                        }
+                    }
+                };
+
+                // Data for Percentage of Unsold Tickets by Category
+                const percentageUnsoldConfig = {
+                    labels: unsoldTicketsData.map(item => item.category),
+                    datasets: [{
+                        label: '% Unsold Tickets',
+                        data: unsoldTicketsData.map(item => item.percentage_unsold),
+                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
+                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
+                        borderWidth: 1
+                    }],
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    suggestedMax: 100 // Cap percentage at 100%
+                                }
+                            }
+                        }
+                    }
+                };
+
+                // Data for Category-wise Percentage of overall Tickets Sold
+                const percentageUnsoldAllCategoriesConfig = {
+                    labels: unsoldTicketsData.map(item => item.category),
+                    datasets: [{
+                        label: '% Tickets Unsold',
+                        data: unsoldTicketsData.map(item => item.unsold_tickets / totalTicketsUnsoldPastEvents * 100),
+                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
+                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
+                        borderWidth: 1
+                    }]
+                };
+
+                // Render Charts
+                new Chart(document.getElementById('ticketsSoldChart'), {
+                    type: 'bar',
+                    data: ticketsSoldConfig,
+                    options: { responsive: true }
+                });
+        
+                new Chart(document.getElementById('percentageSoldChart'), {
+                    type: 'bar',
+                    data: percentageSoldConfig,
+                    options: { responsive: true }
+                });
+
+                new Chart(document.getElementById('percentageSoldPieChart'), {
+                    type: 'pie',
+                    data: percentageSoldAllCategoriesConfig,
+                    options: { responsive: true }
+                });
+        
+                new Chart(document.getElementById('unsoldTicketsChart'), {
+                    type: 'bar',
+                    data: unsoldTicketsConfig,
+                    options: { responsive: true }
+                });
+        
+                new Chart(document.getElementById('percentageUnsoldChart'), {
+                    type: 'bar',
+                    data: percentageUnsoldConfig,
+                    options: { responsive: true }
+                });
+
+                new Chart(document.getElementById('percentageUnsoldPieChart'), {
+                    type: 'pie',
+                    data: percentageUnsoldAllCategoriesConfig,
+                    options: { responsive: true }
+                });
+
+            </script>
+        </div>                
+        
+        <div id="event-wise" class="content-section" style="display: none;">
+            <h1>Event Wise</h1>
+            <p>This is a placeholder for additional content that will be added here.</p>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-        // Toggle dropdown menu (if using hamburger menu)
-        function toggleDropdown() {
-            const dropdown = document.getElementById('dropdownMenu');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+<script>
+    // Toggle dropdown menu (if using hamburger menu)
+    function toggleDropdown() {
+        const dropdown = document.getElementById('dropdownMenu');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+    
+    function showSection(sectionId) {
+        const sections = document.querySelectorAll('.content-section');
+        
+        // Hide all sections
+        sections.forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Show selected section
+        const selectedSection = document.getElementById(sectionId);
+        if (selectedSection) {
+            selectedSection.style.display = 'block';
         }
 
-        // Search and filter events
-        function filterEvents() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.card');
+        // Update active button style
+        const buttons = document.querySelectorAll('.sidebar ul li button');
+        buttons.forEach(button => button.classList.remove('active'));
+        
+        // Set the clicked button to active
+        const activeButton = document.querySelector(`button[onclick="showSection('${sectionId}')"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
 
-            cards.forEach(card => {
-                const eventName = card.querySelector('h3').innerText.toLowerCase();
-                const eventLocation = card.querySelector('p:nth-child(3)').innerText.toLowerCase();
-                const eventSpeakers = card.querySelector('p:nth-child(4)').innerText.toLowerCase();
-                const eventDescription = card.querySelector('p:nth-child(5)').innerText.toLowerCase();
+    // Search and filter events
+    function filterEvents() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            const eventName = card.querySelector('h3').innerText.toLowerCase();
+            const eventLocation = card.querySelector('p:nth-child(3)').innerText.toLowerCase();
+            const eventSpeakers = card.querySelector('p:nth-child(4)').innerText.toLowerCase();
+            const eventDescription = card.querySelector('p:nth-child(5)').innerText.toLowerCase();
 
                 if (
                     eventName.includes(input) ||
@@ -287,5 +633,5 @@
                 document.getElementById('dropdownMenu').style.display = 'none';
             }
         }
-    </script>
+</script>
 {% endblock %}
