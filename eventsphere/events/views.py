@@ -192,7 +192,7 @@ def creator_dashboard(request):
         creator_profile = CreatorProfile.objects.get(creator=request.user)
     except CreatorProfile.DoesNotExist:
         creator_profile = None
-    
+
     if creator_profile:
         events = Event.objects.filter(created_by=creator_profile)
         categories = events.values_list("category", flat=True).distinct()
