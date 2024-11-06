@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}My Tickets{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #333;
+        text-align: center;
+    }
+
+    /* Table styling for tickets */
+    .tickets-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .tickets-table th, .tickets-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .tickets-table th {
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+    }
+
+    .tickets-table td {
+        background-color: #f9f9f9;
+    }
+
+    .tickets-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* QR Code styling */
+    .qr-code-container {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .qr-code img {
+        width: 150px;
+        height: 150px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Show QR code button */
+    .btn-show-qr {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .btn-show-qr:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<div class="container">
+    <h2>My Tickets</h2>
+
+    {% if events_with_tickets %}
+    <table class="tickets-table">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Total Tickets</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events_with_tickets %}
+            <tr>
+                <td>{{ event.event__name }}</td>
+                <td>{{ event.total_tickets }}</td>
+                <td>
+                    <button class="btn-show-qr" onclick="toggleQRCode({{ event.event__id }})">Show QR Code</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div class="qr-code-container" id="qr-code-container-{{ event.event__id }}">
+                        <img id="qr-code-{{ event.event__id }}" src="" alt="QR Code">
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No tickets purchased yet.</p>
+    {% endif %}
+</div>
+
+<script>
+    function toggleQRCode(eventId) {
+        const qrContainer = document.getElementById(`qr-code-container-${eventId}`);
+        const qrImage = document.getElementById(`qr-code-${eventId}`);
+
+        if (qrContainer.style.display === "none" || qrContainer.style.display === "") {
+            fetch(`/generate_event_qr/${eventId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.qr_code) {
+                        qrImage.src = `data:image/png;base64,${data.qr_code}`;
+                        qrContainer.style.display = "block";
+                    } else {
+                        alert('Failed to generate QR code');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching QR code:', error);
+                });
+        } else {
+            qrContainer.style.display = "none";
+        }
+    }
+</script>
+
+{% endblock %}

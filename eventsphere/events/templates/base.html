@@ -50,6 +50,24 @@
             background-color: #575757;
         }
 
+        nav ul li form {
+            display: inline;
+        }
+
+        nav ul li form a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background-color: #333;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+
+        nav ul li form a:hover {
+            background-color: #575757;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -86,19 +104,23 @@
 <nav>
     <ul>
         {% if user.is_authenticated %}
-            {% if user.is_staff or user.is_superuser %}
+            {% if user.is_superuser %}
                 <li><a href="{% url 'event_list' %}">Admin Dashboard</a></li>
+                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+            {% elif  user.is_staff %}
+                <li><a href="{% url 'creator_profile' %}">Profile</a></li>
+                <li><a href="{% url 'creator_dashboard' %}">Your Dashboard</a></li>
                 <li><a href="{% url 'create_event' %}">Create Event</a></li>
             {% else %}
                 <li><a href="{% url 'user_home' %}">Home</a></li>
                 <li><a href="{% url 'user_event_list' %}">Events</a></li>
                 <li><a href="{% url 'user_profile' %}">Profile</a></li>
             {% endif %}
-            <li style="margin-left: auto;">
+            <li style="margin-left: auto; color: white;">
                 Welcome, {{ user.username }}
-                <form action="{% url 'logout' %}" method="POST" style="display:inline;">
+                <form action="{% url 'logout' %}" method="POST" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" style="background:none; border:none; color:white; cursor:pointer;">Logout</button>
+                    <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>
                 </form>
             </li>
         {% else %}
@@ -116,6 +138,11 @@
 <footer>
     <p>&copy; 2024 EventSphere. All rights reserved.</p>
 </footer>
+
+<!-- Include extra JavaScript if defined -->
+{% block extra_js %}
+
+{% endblock %}
 
 </body>
 </html>

@@ -1,31 +1,73 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <title>Signup | EventSphere</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         .container {
-            max-width: 500px;
-            margin: 100px auto;
-            background-color: white;
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            background-color: #212529;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .left-panel h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #FFC107;
+        }
+
+        .left-panel p {
+            font-size: 1.3em;
+            line-height: 1.7em;
+        }
+
+        .form-container {
+            flex: 1;
+            background-color: white;
+            padding: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 350px;
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             color: #333;
+            font-size: 1.8em;
         }
 
         form {
@@ -33,25 +75,34 @@
             flex-direction: column;
         }
 
-        form button {
-            margin-top: 20px;
+        form input {
+            margin-bottom: 20px;
             padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        form button {
+            padding: 14px;
             font-size: 18px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         form button:hover {
             background-color: #45a049;
+            transform: translateY(-2px);
         }
 
         .link-text {
             margin-top: 20px;
             text-align: center;
+            font-size: 14px;
         }
 
         .link-text a {
@@ -63,19 +114,103 @@
         .link-text a:hover {
             color: #45a049;
         }
+
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-panel, .form-container {
+                flex: unset;
+                width: 100%;
+            }
+
+            .left-panel {
+                padding: 20px;
+            }
+
+            .form-container {
+                padding: 30px;
+            }
+
+            .form-box {
+                max-width: 100%;
+            }
+        }
+        form select {
+            margin-bottom: 20px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>Signup</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Signup</button>
-    </form>
-    <div class="link-text">
-        <p>Already have an account? <a href="{% url 'login' %}">Login here</a>.</p>
+    <div class="left-panel">
+        <div>
+            <h1>EventSphere</h1>
+            <p>Discover tailored events. Sign up for personalized recommendations today!</p>
+        </div>
+    </div>
+    <div class="form-container">
+        <div class="form-box">
+            <h2>Create Account</h2>
+
+            <!-- Display error messages -->
+            {% if messages %}
+                <div class="error-messages">
+                    {% for message in messages %}
+                        <div class="error-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" id="signupForm">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Enter your username" required>
+                <input type="password" name="password" placeholder="Enter your password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+
+                <select name="user_type" required>
+                    <option value="user">Select account type</option>
+                    <option value="user">User</option>
+                    <option value="creator">Creator</option>
+                    <option value="admin">Admin</option>
+                </select>
+
+                <button type="submit">Create Account</button>
+            </form>
+
+            <div class="link-text">
+                <p>Already have an account? <a href="{% url 'login' %}">Log in here</a>.</p>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- JavaScript to hide error messages on input -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('signupForm');
+        const errorMessages = document.querySelector('.error-messages');
+
+        if (errorMessages) {
+            form.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    errorMessages.style.display = 'none';
+                });
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

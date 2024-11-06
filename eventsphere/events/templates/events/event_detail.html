@@ -5,138 +5,218 @@
     {{ event.name }} - EventSphere
 {% endblock %}
 
-{% block content %}
+{% block extra_head %}
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         /* Event Detail Specific Styles */
-        .container {
-            flex: 1;
+        .event-detail-container {
             width: 90%;
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 1000px;
+            margin: 50px auto;
             background-color: #ffffff;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
+        .back-to-events {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #f1f1f1;
+            text-decoration: none;
+            border-radius: 5px;
+            color: #555;
+        }
+
+        .back-to-events:hover {
+            background-color: #e1e1e1;
+        }
+
         .event-image {
             width: 100%;
-            height: 400px;
+            height: 350px;
             object-fit: cover;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
+            font-size: 36px;
+            margin-bottom: 20px;
             color: #333333;
-            text-align: center;
         }
 
         .event-info {
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
         }
 
-        .event-info p {
-            font-size: 16px;
-            color: #555555;
+        .event-info-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .event-info-left p {
             margin-bottom: 8px;
+            font-size: 16px;
+            color: #555;
         }
 
-        .event-info p strong {
-            color: #333333;
+        .event-info-left p strong {
+            color: #333;
+        }
+
+        .add-to-calendar {
+            display: inline-block;
+            margin-top: 5px;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .buy-tickets {
+            background-color: #4CAF50;
+            padding: 12px 30px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+        }
+
+        .buy-tickets:hover {
+            background-color: #45a049;
         }
 
         .event-description {
             font-size: 16px;
-            color: #555555;
+            color: #555;
             line-height: 1.6;
+            margin-top: 30px;
         }
 
-        .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s, transform 0.2s;
+        /* Leaflet Map Styling */
+        #map {
+            height: 300px;  /* Initial height */
+            width: 100%;
+            max-width: 600px;  /* Restrict width to fit design */
+            margin-bottom: 30px;
+            transition: height 0.5s ease;
+            display: block;
+            border-radius: 10px;
         }
 
-        .back-button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
+        #map.enlarged {
+            height: 500px; /* Enlarged height on click */
         }
 
         @media (max-width: 768px) {
-            .event-image {
-                height: 300px;
-            }
-
             h1 {
                 font-size: 28px;
             }
 
-            .event-info p {
-                font-size: 15px;
-            }
-
-            .back-button {
-                font-size: 16px;
-                padding: 8px 18px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
+            .event-info {
+                flex-direction: column;
             }
 
             .event-image {
-                height: 200px;
+                height: 300px;
             }
 
-            h1 {
-                font-size: 24px;
+            .buy-tickets {
+                font-size: 16px;
             }
 
-            .event-info p {
+            .back-to-events, .buy-tickets {
                 font-size: 14px;
             }
 
-            .back-button {
-                font-size: 14px;
-                padding: 6px 16px;
+            #map {
+                max-width: 100%;
             }
         }
     </style>
+{% endblock %}
 
-    <div class="container">
+{% block content %}
+    <div class="event-detail-container">
+        <!-- Back to Events Button -->
+        <a href="{% url 'user_event_list' %}" class="back-to-events">← Back to Events</a>
+
         <!-- Event Image -->
-        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
-             alt="{{ event.name }}" class="event-image">
+        {% if event.image_url %}
+            <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image">
+        {% else %}
+            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
+        {% endif %}
+
+        <!-- Buy Tickets Button -->
+        <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
 
         <!-- Event Name -->
         <h1>{{ event.name }}</h1>
 
         <!-- Event Information -->
         <div class="event-info">
-            <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
-            <p><strong>Location:</strong> {{ event.location }}</p>
-            <p><strong>Speakers:</strong> {{ event.speakers }}</p>
+            <div class="event-info-left">
+                <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
+                <p><strong>Location:</strong> {{ event.location }}</p>
+                <p><strong>Category:</strong> {{ event.category }}</p> <!-- Display Category -->
+            </div>
         </div>
+
+        <!-- Leaflet Map -->
+        <div id="map"></div>
 
         <!-- Event Description -->
         <div class="event-description">
+            <p><strong>Event Description:</strong></p>
             {{ event.schedule|linebreaks }}
         </div>
-
-        <!-- Buy Tickets Button -->
-        <a href="{% url 'buy_tickets' event.id %}" class="back-button">Buy Tickets</a>
-
-        <!-- Back Button -->
-        <a href="{% url 'user_event_list' %}" class="back-button">← Back to Events</a>
     </div>
+
+    <!-- Leaflet JS and OpenStreetMap Integration -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var mapElement = document.getElementById('map');
+            
+            // Retrieve latitude and longitude from the event object
+            var latitude = parseFloat('{{ event.latitude|default:"40.7128" }}');  // Default to New York if not provided
+            var longitude = parseFloat('{{ event.longitude|default:"-74.0060" }}');  // Default to New York if not provided
+
+            // Initialize the Leaflet map centered on the event location
+            var map = L.map('map').setView([latitude, longitude], 13);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add a marker at the event location with a popup
+            var marker = L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('{{ event.name|escapejs }}')
+                .openPopup();
+
+            // Click behavior for the map:
+            // 1. First click enlarges the map.
+            // 2. Subsequent clicks redirect to OpenStreetMap directions.
+            mapElement.onclick = function() {
+                if (!mapElement.classList.contains('enlarged')) {
+                    mapElement.classList.add('enlarged');  // Enlarge the map
+                    map.invalidateSize();  // Refresh the map view after resizing
+                } else {
+                    // Redirect to OpenStreetMap for directions
+                    var osmUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=Current_Location;${latitude},${longitude}`;
+                    window.open(osmUrl, '_blank');
+                }
+            };
+        });
+    </script>
 {% endblock %}

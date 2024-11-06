@@ -4,225 +4,398 @@
 
 {% block content %}
 <style>
-    /* Reset some default styles */
-    * {
-        box-sizing: border-box;
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f2f5;
         margin: 0;
         padding: 0;
     }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f0f2f5;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+    /* Navigation Bar */
+    nav {
+        background-color: #333;
+        padding: 10px 20px;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
     }
 
-    /* Container Styles */
-    .container {
-        flex: 1;
-        width: 90%;
-        max-width: 1200px;
-        margin: 30px auto;
+    nav ul {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0;
+    }
+
+    nav ul li {
+        margin: 0 20px;
+    }
+
+    nav ul li a {
+        color: white;
+        text-decoration: none;
+        padding: 8px 16px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+
+    nav ul li a:hover {
+        background-color: #575757;
+        border-radius: 5px;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        background-size: cover;
+        background-position: center;
+        height: 60vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .hero-section h1 {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+
+    .hero-section p {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    /* Categories Section */
+    .categories-section {
+        margin: 30px 0;
+        text-align: center;
+    }
+
+    .categories-section h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+
+    .category-grid {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+
+    .category-item {
+        width: 100px;
+        height: 100px;
         background-color: #ffffff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .category-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .category-item img {
+        max-width: 60px;
+        max-height: 60px;
+        border-radius: 50%;
     }
 
     /* Search Bar */
     .search-bar {
         margin-bottom: 20px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
     }
 
     .search-bar form {
         display: flex;
         width: 100%;
-        max-width: 400px;
+        max-width: 600px;
+        position: relative;
     }
 
     .search-bar input[type="text"] {
-        padding: 10px 15px;
+        padding: 15px 20px;
         width: 100%;
-        border: 1px solid #cccccc;
-        border-radius: 5px 0 0 5px;
+        border-radius: 30px;
+        border: none;
+        font-size: 18px;
         outline: none;
-        transition: border-color 0.3s;
-    }
-
-    .search-bar input[type="text"]:focus {
-        border-color: #4CAF50;
     }
 
     .search-bar button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
         padding: 10px 20px;
+        background-color: #28a745;
         border: none;
-        background-color: #4CAF50;
+        border-radius: 30px;
         color: white;
-        border-radius: 0 5px 5px 0;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.3s;
     }
 
     .search-bar button:hover {
-        background-color: #45a049;
+        background-color: #218838;
     }
 
-    /* Card Grid */
+    /* Event Cards */
     .card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
+        gap: 30px;
     }
 
-    /* Individual Card */
     .card {
         background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         display: flex;
         flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
     }
 
     .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
     }
 
-    .card a {
-        color: inherit;
-        text-decoration: none;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
+    .card-image-wrapper {
+        position: relative;
     }
 
     .card-image {
         width: 100%;
-        height: 180px;
+        height: 200px;
         object-fit: cover;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+
+    .overlay-text {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        color: white;
+        font-weight: bold;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 5px 10px;
+        border-radius: 8px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .overlay-text .event-date {
+        background-color: #28a745;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 12px;
+    }
+
+    .overlay-text .event-tag {
+        background-color: #f39c12;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 12px;
     }
 
     .card-content {
         padding: 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
     }
 
     .card-title {
-        font-size: 20px;
+        font-size: 22px;
+        color: #333333;
         margin-bottom: 10px;
-        color: #333333;
     }
 
-    .card-date,
-    .card-location {
+    .card-location,
+    .card-description {
         font-size: 14px;
-        color: #555555;
-        margin-bottom: 5px;
+        color: #777777;
+        margin-bottom: 10px;
     }
 
-    /* No Events Message */
-    .no-events {
-        text-align: center;
+    .see-more-button {
+        display: block;
+        margin: 40px auto;
+        padding: 12px 30px;
         font-size: 18px;
-        color: #555555;
-        margin-top: 50px;
-    }
-
-    /* Pagination */
-    .pagination {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
         text-align: center;
-        margin-top: 20px;
-    }
-
-    .pagination .page-links a,
-    .pagination .page-links span {
-        display: inline-block;
-        margin: 0 5px;
-        padding: 8px 12px;
         text-decoration: none;
-        color: #333333;
-        border: 1px solid #cccccc;
-        border-radius: 4px;
-        transition: background-color 0.3s, color 0.3s;
     }
 
-    .pagination .page-links a:hover {
-        background-color: #4CAF50;
-        color: white;
-        border-color: #4CAF50;
+    .see-more-button:hover {
+        background-color: #218838;
     }
 
-    .pagination .page-links .current {
-        background-color: #4CAF50;
-        color: white;
-        border-color: #4CAF50;
+   /* Categories Section */
+   .categories-section {
+        margin: 30px 0;
+        text-align: center;
     }
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .search-bar form {
-            flex-direction: column;
-        }
-
-        .search-bar input[type="text"],
-        .search-bar button {
-            width: 100%;
-            border-radius: 5px;
-        }
-
-        .search-bar button {
-            margin-top: 10px;
-        }
+    .categories-section h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
     }
 
-    @media (max-width: 480px) {
-        .container {
-            padding: 20px;
-        }
-
-        .card-title {
-            font-size: 18px;
-        }
-
-        .pagination .page-links a,
-        .pagination .page-links span {
-            padding: 6px 10px;
-            font-size: 12px;
-        }
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 20px;
+        justify-items: center;
+        max-width: 1000px;
+        margin: 0 auto; /* Center the grid */
     }
+
+    .category-item {
+        width: 100px;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        padding: 10px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .category-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .category-item img {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+    }
+
+    .category-item p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+    }
+
 </style>
-<div class="container">
-    <!-- Search Bar -->
-    <div class="search-bar">
-        <form method="get">
-            <input type="text" name="q" placeholder="Search events..."
-                   value="{{ query|default:'' }}">
-            <button type="submit">Search</button>
-        </form>
-    </div>
 
-    <!-- Event Cards -->
+<!-- Hero Section -->
+<div class="hero-section">
+    <div>
+        <h1>Don't miss out!</h1>
+        <p>Explore the vibrant events happening locally and globally.</p>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="container categories-section">
+    <h2>Explore Categories</h2>
+    <div class="category-grid">
+        <!-- All Events Button -->
+        <a href="{% url 'user_event_list' %}" class="category-item" title="All Events">
+            <img src="https://cdn-icons-png.flaticon.com/512/2620/2620573.png" alt="All Events">
+            <p>All Events</p>
+        </a>
+        <a href="?category=Entertainment" class="category-item" title="Entertainment">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046760.png" alt="Entertainment">
+            <p>Entertainment</p>
+        </a>
+        <a href="?category=Business" class="category-item" title="Business">
+            <img src="https://cdn-icons-png.flaticon.com/512/2302/2302848.png" alt="Business">
+            <p>Business</p>
+        </a>
+        <a href="?category=Sports" class="category-item" title="Sports">
+            <img src="https://cdn-icons-png.flaticon.com/512/681/681494.png" alt="Sports">
+            <p>Sports</p>
+        </a>
+        <a href="?category=Technology" class="category-item" title="Technology">
+            <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Technology">
+            <p>Technology</p>
+        </a>
+        <a href="?category=Travel" class="category-item" title="Travel">
+            <img src="https://cdn-icons-png.flaticon.com/512/2737/2737695.png" alt="Travel">
+            <p>Travel</p>
+        </a>
+        <a href="?category=Food" class="category-item" title="Food">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Food">
+            <p>Food</p>
+        </a>
+        <a href="?category=Health" class="category-item" title="Health">
+            <img src="https://cdn-icons-png.flaticon.com/512/1047/1047445.png" alt="Health">
+            <p>Health</p>
+        </a>
+        <a href="?category=Music" class="category-item" title="Music">
+            <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Music">
+            <p>Music</p>
+        </a>
+        <a href="?category=Art" class="category-item" title="Art">
+            <img src="https://cdn-icons-png.flaticon.com/512/1086/1086765.png" alt="Art">
+            <p>Art</p>
+        </a>
+    </div>
+</div>
+
+
+
+<!-- Search Bar -->
+<div class="search-bar">
+    <form method="get" action="{% url 'user_event_list' %}">
+        <input type="text" name="q" placeholder="Search events..." value="{{ query|default:'' }}">
+        <button type="submit">Search</button>
+    </form>
+</div>
+
+<!-- Events Section -->
+<div class="container events-section">
+    <h2>Popular Events</h2>
     <div class="card-grid">
         {% for event in events %}
             <div class="card">
                 <a href="{% url 'event_detail' event.pk %}">
-                    <!-- Stock Image -->
-                    <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY="
-                         alt="{{ event.name }}" class="card-image">
+                    <div class="card-image-wrapper">
+                        <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}" 
+     alt="{{ event.name }}" 
+     class="card-image">
+
+                        <div class="overlay-text">
+                            <span class="event-date">{{ event.date_time|date:"M d, Y" }}</span>
+                            <span class="event-tag">{{ event.category }}</span> <!-- Display the event category here -->
+                        </div>
+                    </div>
                     <div class="card-content">
-                        <h2 class="card-title">{{ event.name }}</h2>
-                        <p class="card-date"><strong>Date & Time:</strong>
-                            {{ event.date_time|date:"F d, Y H:i" }}</p>
-                        <p class="card-location">
-                            <strong>Location:</strong> {{ event.location }}</p>
+                        <h3 class="card-title">{{ event.name }}</h3>
+                        <p class="card-location"><strong>Location:</strong> {{ event.location }}</p>
+                        <p class="card-description">{{ event.schedule|truncatewords:20 }}</p> <!-- Event description limited to 20 words -->
                     </div>
                 </a>
             </div>
@@ -230,32 +403,9 @@
             <p class="no-events">No events found.</p>
         {% endfor %}
     </div>
-
-    <!-- Pagination Controls -->
-    {% if page_obj %}
-        <div class="pagination">
-            <span class="page-links">
-                {% if page_obj.has_previous %}
-                    <a href="?{% if query %}q={{ query }}&{% endif %}page=1">&laquo; First</a>
-                    <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-                {% endif %}
-
-                <span class="current">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                </span>
-
-                {% if page_obj.has_next %}
-                    <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-                    <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
-    {% endif %}
+    
+    <!-- See More Button -->
+    <!-- <a href="#" class="see-more-button">See More</a> -->
 </div>
-
-{% endblock %}
-
-{% block extra_styles %}
-
 
 {% endblock %}

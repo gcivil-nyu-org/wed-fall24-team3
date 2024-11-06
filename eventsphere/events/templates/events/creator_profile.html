@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Creator Profile{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f2f5;
+        padding-top: 60px;
+    }
+
+    .profile-container {
+        display: flex;
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #e0e0e0;
+    }
+
+    .profile-content {
+        width: 75%;
+        padding: 0 30px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .profile-header h2 {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .profile-form-wrapper {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #333;
+        display: block;
+    }
+
+    .form-group input, 
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus, 
+    .form-group textarea:focus {
+        border-color: #4CAF50;
+        background-color: #ffffff;
+    }
+
+    .form-group textarea {
+        height: 100px;
+        resize: vertical;
+    }
+
+    .button-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .btn-update {
+        padding: 12px 25px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.2s;
+    }
+
+    .btn-update:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-container {
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+
+        .profile-content {
+            width: 100%;
+            padding: 0;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Sidebar for Account Settings -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+        </ul>
+    </div>
+
+    <!-- Profile Form -->
+    <div class="profile-content">
+        <div class="profile-header">
+            <h2>Account Information</h2>
+        </div>
+
+        <div class="profile-form-wrapper">
+            {% if form %}
+                <form method="post" class="profile-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Age:</label>
+                        {{ form.age }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">Bio:</label>
+                        {{ form.bio }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organisation">Organisation:</label>
+                        {{ form.organisation }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location:</label>
+                        {{ form.location }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interests">Interests:</label>
+                        {{ form.interests }}
+                    </div>
+
+                    <div class="button-container">
+                        <button type="submit" class="btn-update">Update Profile</button>
+                    </div>
+                </form>
+            {% else %}
+                <p><strong>Name:</strong> {{ profile.name }}</p>
+                <p><strong>Age:</strong> {{ profile.age }}</p>
+                <p><strong>Bio:</strong> {{ profile.bio }}</p>
+                <p><strong>Organisation:</strong> {{ profile.organisation }}</p>
+                <p><strong>Location:</strong> {{ profile.location }}</p>
+                <p><strong>Interests:</strong> {{ profile.interests }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

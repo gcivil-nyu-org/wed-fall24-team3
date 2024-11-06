@@ -16,71 +16,117 @@
         padding-top: 60px;
     }
 
-    .container {
-        max-width: 800px;
+    .profile-container {
+        display: flex;
+        max-width: 1200px;
         margin: 50px auto;
         padding: 30px;
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
         text-align: center;
     }
 
-    h2 {
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #f0f2f5;
+    }
+
+    .profile-content {
+        width: 75%;
+        padding: 0 30px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .profile-header h2 {
         font-size: 28px;
         color: #333;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
 
     .profile-form-wrapper {
         margin-bottom: 30px;
-        max-width: 500px;
+        max-width: 600px;
         margin: 0 auto;
-        text-align: left;
     }
 
     .form-group {
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        margin-bottom: 20px;
     }
 
     .form-group label {
         font-weight: bold;
-        margin-right: 10px;
-        flex: 1;
-        text-align: right;
+        margin-bottom: 5px;
+        display: block;
+        color: #333;
     }
 
-    .form-group input, 
+    .form-group input,
     .form-group textarea {
-        flex: 2;
-        padding: 8px;
+        width: 100%;
+        padding: 12px;
         font-size: 16px;
         border: 1px solid #ccc;
         border-radius: 5px;
-        width: 100%;
+        transition: border-color 0.3s ease;
     }
 
-    .form-group textarea {
-        height: 100px;
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #4CAF50;
+        outline: none;
     }
 
     .button-container {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 30px;
     }
 
     .btn-update {
-        padding: 10px 20px;
+        padding: 12px 20px;
         background-color: #4CAF50;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        transition: background-color 0.3s, transform 0.2s;
         font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.2s;
     }
 
     .btn-update:hover {
@@ -88,174 +134,210 @@
         transform: translateY(-2px);
     }
 
-    /* Table styling */
-    .tickets-table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-        background-color: #f9f9f9;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    /* Custom dropdown styling */
+    .custom-dropdown {
+        position: absolute;
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .tickets-table th, .tickets-table td {
+    .custom-dropdown div {
         padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
     }
 
-    .tickets-table th {
-        background-color: #4CAF50;
-        color: white;
-        font-weight: bold;
+    .custom-dropdown div:last-child {
+        border-bottom: none;
     }
 
-    .tickets-table tr:hover {
-        background-color: #f1f1f1;
+    .custom-dropdown div:hover {
+        background-color: #f0f2f5;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
-        .container {
-            padding: 20px;
-        }
-
-        .form-group {
+        .profile-container {
             flex-direction: column;
-            align-items: flex-start;
         }
 
-        .form-group label {
-            text-align: left;
-            margin-bottom: 5px;
+        .sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .profile-content {
+            width: 100%;
+            padding: 0;
         }
     }
 </style>
 
-<div class="container">
-    <h2>User Profile</h2>
-
-    <div class="profile-form-wrapper">
-        {% if form %}
-            <form method="post" class="profile-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="name">Name:</label>
-                    {{ form.name }}
-                </div>
-
-                <div class="form-group">
-                    <label for="age">Age:</label>
-                    {{ form.age }}
-                </div>
-
-                <div class="form-group">
-                    <label for="bio">Bio:</label>
-                    {{ form.bio }}
-                </div>
-
-                <div class="form-group">
-                    <label for="location">Location:</label>
-                    {{ form.location }}
-                </div>
-
-                <div class="form-group">
-                    <label for="interests">Interests:</label>
-                    {{ form.interests }}
-                </div>
-
-                <div class="button-container">
-                    <button type="submit" class="btn-update">Update Profile</button>
-                </div>
-            </form>
-        {% else %}
-            <p><strong>Name:</strong> {{ profile.name }}</p>
-            <p><strong>Age:</strong> {{ profile.age }}</p>
-            <p><strong>Bio:</strong> {{ profile.bio }}</p>
-            <p><strong>Location:</strong> {{ profile.location }}</p>
-            <p><strong>Interests:</strong> {{ profile.interests }}</p>
-        {% endif %}
+<div class="profile-container">
+    <!-- Sidebar for Account Settings -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'profile_tickets' %}">My Tickets</a></li>
+        </ul>
     </div>
-    <div class="tickets">
-        <br><br>
-        <h3>My Tickets</h3>
-        {% if events_with_tickets %}
-            <table class="tickets-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Total Tickets</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in events_with_tickets %}
-                        <tr>
-                            <td>{{ event.event__name }}</td>
-                            <td>{{ event.total_tickets }} tickets</td>
-                            <td>
-                                <button onclick="fetchQRCode({{ event.event__id }})">Show QR Code</button>
-                            </td>
-                        </tr>
-                        <tr id="qr-{{ event.event__id }}" style="display: none;">
-                            <td colspan="3">
-                                <img id="qr-code-img-{{ event.event__id }}" src="" alt="QR Code">
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets purchased yet.</p>
-        {% endif %}
+
+    <!-- Profile Form -->
+    <div class="profile-content">
+        <div class="profile-header">
+            <h2>Account Information</h2>
+        </div>
+
+        <div class="profile-form-wrapper">
+            {% if form %}
+                <form method="post" class="profile-form">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="id_name">Name:</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_age">Age:</label>
+                        {{ form.age }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_bio">Bio:</label>
+                        {{ form.bio }}
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="id_email">Email:</label>
+                        {{ form.email }}
+                    </div>
+
+                    <!-- Location Field with Custom Dropdown -->
+                    <div class="form-group">
+                        <label for="id_location">Location:</label>
+                        <input type="text" id="id_location" name="location" placeholder="Enter location" autocomplete="off" required value="{{ form.location.value|default_if_none:'' }}">
+                        <!-- Custom dropdown container -->
+                        <div id="custom-dropdown" class="custom-dropdown"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_interests">Interests:</label>
+                        {{ form.interests }}
+                    </div>
+
+                    <input type="hidden" id="id_latitude" name="latitude" value="{{ form.latitude.value|default_if_none:'' }}">
+                    <input type="hidden" id="id_longitude" name="longitude" value="{{ form.longitude.value|default_if_none:'' }}">
+
+                    <div class="button-container">
+                        <button type="submit" class="btn-update">Update Profile</button>
+                    </div>
+                </form>
+            {% else %}
+                <p><strong>Name:</strong> {{ profile.name }}</p>
+                <p><strong>Age:</strong> {{ profile.age }}</p>
+                <p><strong>Bio:</strong> {{ profile.bio }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
+                <p><strong>Location:</strong> {{ profile.location }}</p>
+                <p><strong>Interests:</strong> {{ profile.interests }}</p>
+            {% endif %}
+        </div>
     </div>
-    
-    <script>
-        function fetchQRCode(eventId) {
-            // Make an AJAX request to get the QR code in base64 format
-            fetch(`/generate_event_qr/${eventId}/`)
+</div>
+
+<!-- Add JavaScript for custom dropdown -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationInput = document.getElementById('id_location');
+        const customDropdown = document.getElementById('custom-dropdown');
+        const container = document.querySelector('.profile-container');
+
+        // Ensure the parent is positioned
+        locationInput.parentNode.style.position = 'relative';
+
+        // Function to position the dropdown
+        function positionDropdown() {
+            const topPosition = locationInput.offsetTop + locationInput.offsetHeight;
+            const leftPosition = locationInput.offsetLeft;
+
+            customDropdown.style.width = `${locationInput.offsetWidth}px`;
+            customDropdown.style.top = `${topPosition}px`;
+            customDropdown.style.left = `${leftPosition}px`;
+        }
+
+        // Fetch suggestions as the user types in the location input
+        locationInput.addEventListener('input', function() {
+            const query = locationInput.value;
+
+            if (query.length < 3) {
+                customDropdown.style.display = 'none';  // Hide dropdown if input is too short
+                return;
+            }
+
+            positionDropdown();
+
+            // Fetch location suggestions using Nominatim (OpenStreetMap API)
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.qr_code) {
-                        // Find the img tag and set its src to the base64 QR code
-                        const imgTag = document.getElementById(`qr-code-img-${eventId}`);
-                        imgTag.src = `data:image/png;base64,${data.qr_code}`;
-                        
-                        // Show the row with the QR code
-                        document.getElementById(`qr-${eventId}`).style.display = 'table-row';
+                    // Clear previous suggestions
+                    customDropdown.innerHTML = '';
+
+                    // Populate the dropdown with new suggestions
+                    if (data.length > 0) {
+                        customDropdown.style.display = 'block';  // Show dropdown
+                        data.forEach(item => {
+                            const optionDiv = document.createElement('div');
+                            optionDiv.textContent = item.display_name;
+                            optionDiv.addEventListener('click', function() {
+                                locationInput.value = item.display_name;
+                                customDropdown.style.display = 'none';  // Hide dropdown
+
+                                // Optionally, store latitude and longitude if needed
+                                document.getElementById('id_latitude').value = item.lat;
+                                document.getElementById('id_longitude').value = item.lon;
+                            });
+                            customDropdown.appendChild(optionDiv);
+                        });
                     } else {
-                        alert('QR code could not be generated');
+                        customDropdown.style.display = 'none';  // Hide dropdown if no results
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching QR code:', error);
+                    console.error('Error fetching location suggestions:', error);
+                    customDropdown.style.display = 'none';  // Hide dropdown on error
                 });
-        }
-    </script>
-    
-    <!-- <div class="tickets">
-        <br><br>
-        <h3>My Tickets</h3>
-        {% if tickets %}
-            <table class="tickets-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                        <tr>
-                            <td>{{ ticket.event.name }}</td>
-                            <td>{{ ticket.quantity }} tickets </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets purchased yet.</p>
-        {% endif %}
-    </div>
-</div> -->
+        });
+
+        // Position the dropdown on focus
+        locationInput.addEventListener('focus', function() {
+            positionDropdown();
+        });
+
+        // Reposition dropdown on window resize
+        window.addEventListener('resize', function() {
+            if (customDropdown.style.display === 'block') {
+                positionDropdown();
+            }
+        });
+
+        // Hide dropdown if user clicks outside of it
+        document.addEventListener('click', function(e) {
+            if (!locationInput.contains(e.target) && !customDropdown.contains(e.target)) {
+                customDropdown.style.display = 'none';
+            }
+        });
+    });
+</script>
+
 {% endblock %}

@@ -1,32 +1,44 @@
-# from django import forms
-# from .models import Event
-# from django.contrib.auth.models import User
-# from django.contrib.auth.forms import UserCreationForm
-
-# class EventForm(forms.ModelForm):
-#     class Meta:
-#         model = Event
-#         fields = ['name', 'location', 'date_time', 'schedule', 'speakers']
-
-
-# class SignupForm(UserCreationForm):
-#     email = forms.EmailField(required=True)
-
-#     class Meta:
-#         model = User
-#         fields = ('username', 'email', 'password1', 'password2')
-
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Event, Ticket
+
+from .models import UserProfile, CreatorProfile, Event, Ticket
+
+EVENT_CATEGORIES = [
+    ("Entertainment", "Entertainment"),
+    ("Business", "Business"),
+    ("Sports", "Sports"),
+    ("Technology", "Technology"),
+    ("Travel", "Travel"),
+    ("Food", "Food"),
+    ("Health", "Health"),
+    ("Music", "Music"),
+    ("Art", "Art"),
+]
 
 
 class EventForm(forms.ModelForm):
+    image = forms.ImageField(required=False)
+    category = forms.ChoiceField(choices=EVENT_CATEGORIES)  # Dropdown for categories
+
     class Meta:
         model = Event
-        fields = ["name", "location", "date_time", "schedule", "speakers"]
+        fields = [
+            "name",
+            "location",
+            "date_time",
+            "schedule",
+            "speakers",
+            "category",
+            "latitude",
+            "longitude",
+            "image",
+            "numTickets",
+        ]
+        widgets = {
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
+        }
 
 
 class SignupForm(UserCreationForm):
@@ -40,10 +52,38 @@ class SignupForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ["name", "age", "bio", "location", "interests"]
+        fields = [
+            "name",
+            "age",
+            "bio",
+            "location",
+            "interests",
+            "email",
+        ]  # Include email field
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 3}),
             "interests": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if (
+            email
+            and UserProfile.objects.filter(email=email)
+            .exclude(pk=self.instance.pk)
+            .exists()
+        ):
+            raise forms.ValidationError("This email is already in use.")
+        return email
+
+
+class CreatorProfileForm(forms.ModelForm):
+    class Meta:
+        model = CreatorProfile
+        fields = ["name", "age", "bio", "organisation", "location", "interests"]
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 3}),
+            "interests": forms.Textarea(attrs={"rows": 2}),
         }
 
 

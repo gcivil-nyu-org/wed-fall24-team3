@@ -1,6 +1,7 @@
 .idea/
-.DS_Store
+**/.DS_Store
 db.sqlite3
+mydatabase
 proj
 .env
 .venv
@@ -12,3 +13,4 @@ __pycache__/
 /eventsphere/.coverage
 /suprateek_accessKeys.csv
 newenv/
+/eventsphere/.xml

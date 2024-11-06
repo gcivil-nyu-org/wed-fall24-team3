@@ -1,20 +1,93 @@
 {% extends 'base.html' %}
 
-{% block title %}EventSphere Home{% endblock %}
+{% block title %}Welcome to EventSphere{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Full-screen Hero Section -->
-    <div class="hero" style="position: relative; width: 100%; height: 70vh; overflow: hidden; border-radius: 10px;">
-        <img src="https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=" alt="EventSphere Hero Image" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(70%);">
-        <div class="hero-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #fff; background-color: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 8px;">
-            <h1 style="font-size: 48px; font-weight: 700; margin-bottom: 10px;">Welcome to EventSphere</h1>
-            <p style="font-size: 20px; margin-bottom: 20px;">Discover and explore events happening around you.</p>
-            <a href="{% url 'user_event_list' %}" class="cta-button" style="background-color: #4CAF50; color: white; padding: 15px 30px; font-size: 20px; border-radius: 5px; text-decoration: none; transition: background-color 0.3s, transform 0.2s;">Browse Events</a>
-        </div>
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://source.unsplash.com/1600x900/?event,concert') center/cover no-repeat;
+        color: white;
+    }
+
+    .center-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 80vh; /* Reduced to ensure the footer is visible */
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 64px;
+        font-weight: bold;
+        color: #FFC107; /* Bright golden text */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        margin-bottom: 20px;
+        animation: fadeIn 1.5s ease-in-out;
+    }
+
+    p {
+        font-size: 24px;
+        color: #f0f2f5;
+        margin-bottom: 40px;
+        animation: fadeIn 2s ease-in-out;
+    }
+
+    .button-container {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        animation: fadeIn 2.5s ease-in-out;
+    }
+
+    button {
+        padding: 15px 35px;
+        font-size: 20px;
+        font-weight: bold;
+        border: none;
+        border-radius: 50px;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+        background-color: #45a049;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 48px;
+        }
+        p {
+            font-size: 18px;
+        }
+        button {
+            padding: 12px 28px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="center-content">
+    <h1>Welcome to EventSphere</h1>
+    <p>Discover and explore events happening around you!</p>
+    <div class="button-container">
+        <a href="{% url 'user_event_list' %}"><button>Browse Events</button></a>
+        <a href="{% url 'user_profile' %}"><button>Profile</button></a>
     </div>
 </div>
-
-<!-- Add some spacing for the rest of the content -->
-<div style="margin-top: 40px;"></div>
 {% endblock %}
