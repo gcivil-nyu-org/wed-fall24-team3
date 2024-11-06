@@ -530,7 +530,7 @@ class SignupTest(TestCase):
 class SignupTests(TestCase):
     def setUp(self):
         self.user_signup_url = reverse("signup")
-        self.creator_signup_url = reverse("creator_signup")
+        self.creator_signup_url = reverse("signup")
 
     def test_user_signup_get_request(self):
         response = self.client.get(self.user_signup_url)
@@ -571,7 +571,7 @@ class SignupTests(TestCase):
     def test_creator_signup_get_request(self):
         response = self.client.get(self.creator_signup_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "events/creator_signup.html")
+        self.assertTemplateUsed(response, "events/signup.html")
         self.assertIsInstance(response.context["form"], UserCreationForm)
 
     def test_creator_signup_post_valid_data(self):
