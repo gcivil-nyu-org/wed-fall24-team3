@@ -362,11 +362,13 @@ def create_event(request):
 
 @login_required
 def update_event_view(request, event_id):
-    # Fetch the event by its ID and store initial location, latitude, and longitude
+    # Fetch the event by its ID and store initial values
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
     initial_latitude = event.latitude
     initial_longitude = event.longitude
+    initial_date_time = event.date_time
+    initial_numTickets = event.numTickets
 
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES, instance=event)
@@ -379,9 +381,12 @@ def update_event_view(request, event_id):
                 # If location is unchanged, retain the original latitude and longitude
                 event.latitude = initial_latitude
                 event.longitude = initial_longitude
-            else:
-                # Update latitude and longitude if location changed
-                pass  # Add location-to-coordinates logic if needed
+
+            # Check if date and numTickets are provided or retain initial values
+            if not form.cleaned_data.get("date_time"):
+                event.date_time = initial_date_time
+            if form.cleaned_data.get("numTickets") is None:
+                event.numTickets = initial_numTickets
 
             # Handle image upload if a new image is uploaded
             image = request.FILES.get("image")
@@ -412,6 +417,7 @@ def update_event_view(request, event_id):
                         },
                     )
 
+            # Save the event instance to the database
             event.save()
             if request.user.is_superuser:
                 return redirect("event_list")
@@ -426,6 +432,7 @@ def update_event_view(request, event_id):
             )
 
     else:
+        # Populate the form with initial values on GET request
         form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
