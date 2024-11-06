@@ -633,14 +633,14 @@
                 function updateFilterWiseChart(data) {
                     console.log(data)
                     const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
-                    const ctxUniqueUsers = document.getElementById('uniqueUsersChart').getContext('2d');
+                    const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
                     
                     const ticketSalesData = data.ticket_sales_data;
                     const uniqueTransactionsData = data.unique_users_data;
                     const totalUniqueUsers = data.total_unique_users;
                     
                     // Destroy existing chart if it exists
-                    if (eventWiseChart || uniqueUsersChart) {
+                    if (eventWiseChart || uniqueTransactionsChart) {
                         eventWiseChart.destroy();
                         uniqueTransactionsChart.destroy();
                     }

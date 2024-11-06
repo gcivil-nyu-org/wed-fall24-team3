@@ -1,9 +1,5 @@
 import base64
-from io import BytesIO
-
-import boto3
 import qrcode  # type: ignore
-from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -153,8 +149,7 @@ def fetch_filter_wise_data(request):
 
     # Filter tickets within the last 10 days
     tickets_sold_data = (
-        tickets
-        .filter(created_at__range=(start_date, end_date))
+        tickets.filter(created_at__range=(start_date, end_date))
         .annotate(day=TruncDate("created_at"))  # Group by day (created_at)
         .values("day")
         .annotate(total_sold=Coalesce(Sum("quantity"), 0))  # Sum quantity per day
@@ -167,27 +162,28 @@ def fetch_filter_wise_data(request):
     unique_users_data = {day: 0 for day in date_range}
     if event_id:
         user_counts_per_day = (
-        tickets.filter(event_id=event_id)
-        .filter(created_at__range=(start_date, end_date))
-        .values('created_at', 'user_id')
-        .distinct()
-        .annotate(day=TruncDate('created_at'))
-        .values('day')
-        .annotate(unique_users=Count('user_id'))
-        .order_by('day')
+            tickets.filter(event_id=event_id)
+            .filter(created_at__range=(start_date, end_date))
+            .values("created_at", "user_id")
+            .distinct()
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(unique_users=Count("user_id"))
+            .order_by("day")
         )
-        
+
         # unique_users_data = {entry["day"]: entry["unique_users"] for entry in user_counts_per_day}
         for entry in user_counts_per_day:
             unique_users_data[entry["day"]] = entry["unique_users"]
 
-
-    print(unique_users_data)
+    print(list(unique_users_data.values()))
     # Convert the queryset to a list of dictionaries for JSON response
-    return JsonResponse({
-      'ticket_sales_data': list(tickets_sold_per_day.values()),
-      'unique_users_data': list(unique_users_data.values()),
-    })
+    return JsonResponse(
+        {
+            "ticket_sales_data": list(tickets_sold_per_day.values()),
+            "unique_users_data": list(unique_users_data.values()),
+        }
+    )
 
 
 @login_required
@@ -196,7 +192,7 @@ def creator_dashboard(request):
         creator_profile = CreatorProfile.objects.get(creator=request.user)
     except CreatorProfile.DoesNotExist:
         creator_profile = None
-
+    
     if creator_profile:
         events = Event.objects.filter(created_by=creator_profile)
         categories = events.values_list("category", flat=True).distinct()
@@ -253,6 +249,7 @@ def creator_dashboard(request):
         )
 
     else:
+        categories = []
         events = Event.objects.none()
         category_wise_tickets_sold = []
         category_wise_percentage_sold = []
