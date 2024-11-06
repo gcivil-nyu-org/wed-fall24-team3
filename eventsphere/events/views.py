@@ -1,21 +1,22 @@
 import base64
+from io import BytesIO
+
+import boto3
 import qrcode  # type: ignore
+from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import UserProfile, CreatorProfile, Ticket, Event
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
 from django.db.models.functions import Coalesce
-from django.utils import timezone
 
 
 @login_required
@@ -94,7 +95,7 @@ def user_home(request):
 
 
 def home(request):
-    return render(request, "events/home.html")
+    return render(request, "events/homepage.html")
 
 
 def user_event_list(request):
@@ -211,34 +212,6 @@ def event_list(request):
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
     return render(request, "events/event_detail.html", {"event": event})
-
-
-# All signups
-def user_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("user_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/user_signup.html", {"form": form})
-
-
-def creator_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            creator = form.save(commit=False)
-            creator.is_staff = True
-            creator.is_superuser = False
-            creator.save()
-            login(request, creator)
-            return redirect("creator_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/creator_signup.html", {"form": form})
 
 
 def signup(request):
@@ -474,6 +447,7 @@ def buy_tickets(request, event_id):
             ticket = form.save(commit=False)
             ticket.user = request.user
             ticket.event = event
+            ticket.created_at = timezone.now().date()
 
             if ticket.quantity > event.tickets_left:
                 messages.error(request, "Not enough tickets available!")
