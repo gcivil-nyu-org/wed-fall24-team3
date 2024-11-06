@@ -472,6 +472,7 @@ class SignupTest(TestCase):
             "username": "newuser",
             "password": "password123",
             "confirm_password": "password456",  # Mismatched password
+            "user_type": "user",
         }
         response = self.client.post(self.url, data=form_data)
 
@@ -493,6 +494,7 @@ class SignupTest(TestCase):
             "username": "existinguser",  # Username already exists
             "password": "password123",
             "confirm_password": "password123",
+            "user_type": "user",
         }
         response = self.client.post(self.url, data=form_data)
 
@@ -511,6 +513,7 @@ class SignupTest(TestCase):
             "username": "newuser",
             "password": "password123",
             "confirm_password": "password123",
+            "user_type": "admin",
         }
         response = self.client.post(self.url, data=form_data)
 
@@ -529,25 +532,25 @@ class SignupTest(TestCase):
 
 class SignupTests(TestCase):
     def setUp(self):
-        self.user_signup_url = reverse("signup")
-        self.creator_signup_url = reverse("signup")
+        self.signup_url = reverse("signup")
 
     def test_user_signup_get_request(self):
-        response = self.client.get(self.user_signup_url)
+        response = self.client.get(self.signup_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/signup.html")
 
     def test_user_signup_post_valid_data(self):
         form_data = {
             "username": "testuser",
-            "password1": "testpassword123",
-            "password2": "testpassword123",
+            "password": "testpassword123",
+            "confirm_password": "testpassword123",
+            "user_type": "user",
         }
-        response = self.client.post(self.user_signup_url, data=form_data)
+        response = self.client.post(self.signup_url, data=form_data)
 
         # Check that user was created and logged in, and redirected to profile
         self.assertEqual(response.status_code, 302)
-        # self.assertRedirects(response, reverse("user_profile"))
+        self.assertRedirects(response, reverse("user_profile"))
         self.assertTrue(User.objects.filter(username="testuser").exists())
         self.assertEqual(
             int(self.client.session["_auth_user_id"]),
@@ -569,18 +572,19 @@ class SignupTests(TestCase):
     #     self.assertTrue(response.context["form"].errors)
 
     def test_creator_signup_get_request(self):
-        response = self.client.get(self.creator_signup_url)
+        response = self.client.get(self.signup_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/signup.html")
-        self.assertIsInstance(response.context["form"], UserCreationForm)
+        # self.assertIsInstance(response.context["form"], UserCreationForm)
 
     def test_creator_signup_post_valid_data(self):
         form_data = {
             "username": "creatoruser",
-            "password1": "creatorpassword123",
-            "password2": "creatorpassword123",
+            "password": "creatorpassword123",
+            "confirm_password": "creatorpassword123",
+            "user_type": "creator",
         }
-        response = self.client.post(self.creator_signup_url, data=form_data)
+        response = self.client.post(self.signup_url, data=form_data)
 
         # Check that creator was created with correct permissions, logged in, and redirected
         self.assertEqual(response.status_code, 302)
@@ -593,16 +597,20 @@ class SignupTests(TestCase):
     def test_creator_signup_post_invalid_data(self):
         form_data = {
             "username": "creatoruser",
-            "password1": "password123",
-            "password2": "differentpassword123",  # Passwords don't match
+            "password": "password123",
+            "confirm_password": "differentpassword123",  # Passwords don't match
+            "user_type": "creator",
         }
-        response = self.client.post(self.creator_signup_url, data=form_data)
+        response = self.client.post(self.signup_url, data=form_data)
 
         # Should return to the signup page with form errors
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "events/creator_signup.html")
+        self.assertTemplateUsed(response, "events/signup.html")
         self.assertFalse(User.objects.filter(username="creatoruser").exists())
-        self.assertTrue(response.context["form"].errors)
+        messages = list(response.context["messages"])
+        # for message in messages:
+        #     print(str(message))
+        self.assertTrue(any("Passwords do not match." in str(message) for message in messages))
 
 
 class UserHomeViewTest(TestCase):

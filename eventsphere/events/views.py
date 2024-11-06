@@ -8,7 +8,6 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
 from django.utils import timezone
@@ -153,34 +152,6 @@ def event_list(request):
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
     return render(request, "events/event_detail.html", {"event": event})
-
-
-# All signups
-def user_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("user_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/user_signup.html", {"form": form})
-
-
-def creator_signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            creator = form.save(commit=False)
-            creator.is_staff = True
-            creator.is_superuser = False
-            creator.save()
-            login(request, creator)
-            return redirect("creator_profile")
-    else:
-        form = UserCreationForm()
-    return render(request, "events/creator_signup.html", {"form": form})
 
 
 def signup(request):
