@@ -1,22 +1,22 @@
 import base64
-from io import BytesIO
-
-import boto3
 import qrcode  # type: ignore
-from botocore.exceptions import BotoCoreError, ClientError
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
-from django.db.models import Q, Sum, F, FloatField, Case, When
-from django.utils import timezone
+from django.db.models import Q, Sum, F, FloatField, Case, When, Count
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import UserProfile, CreatorProfile, Ticket, Event
-from django.db.models.functions import Coalesce
+from io import BytesIO
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
+from django.db.models.functions import Coalesce, TruncDate
+from django.utils import timezone
+from datetime import timedelta
 
 
 @login_required
@@ -125,6 +125,67 @@ def user_event_list(request):
     )
 
 
+def tickets_per_filter(request):
+    return JsonResponse()
+
+
+def fetch_filter_wise_data(request):
+    event_id = request.GET.get("event_id")
+    category = request.GET.get("category")
+
+    # Filter based on selected event and category
+    tickets = Ticket.objects.all()
+    if event_id:
+        tickets = tickets.filter(event_id=event_id)
+    if category:
+        tickets = tickets.filter(event__category=category)
+
+    end_date = timezone.now()
+    # start_date = end_date - timedelta(days=10)
+
+    date_range = [end_date - timedelta(days=i) for i in range(8)]
+    start_date = date_range[-1]
+    tickets_sold_per_day = {day: 0 for day in date_range}
+
+    # Filter tickets within the last 10 days
+    tickets_sold_data = (
+        tickets.filter(created_at__range=(start_date, end_date))
+        .annotate(day=TruncDate("created_at"))  # Group by day (created_at)
+        .values("day")
+        .annotate(total_sold=Coalesce(Sum("quantity"), 0))  # Sum quantity per day
+        .order_by("day")  # Order by date for chronological display
+    )
+
+    for entry in tickets_sold_data:
+        tickets_sold_per_day[entry["day"]] = entry["total_sold"]
+
+    unique_users_data = {day: 0 for day in date_range}
+    if event_id:
+        user_counts_per_day = (
+            tickets.filter(event_id=event_id)
+            .filter(created_at__range=(start_date, end_date))
+            .values("created_at", "user_id")
+            .distinct()
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(unique_users=Count("user_id"))
+            .order_by("day")
+        )
+
+        # unique_users_data = {entry["day"]: entry["unique_users"] for entry in user_counts_per_day}
+        for entry in user_counts_per_day:
+            unique_users_data[entry["day"]] = entry["unique_users"]
+
+    print(list(unique_users_data.values()))
+    # Convert the queryset to a list of dictionaries for JSON response
+    return JsonResponse(
+        {
+            "ticket_sales_data": list(tickets_sold_per_day.values()),
+            "unique_users_data": list(unique_users_data.values()),
+        }
+    )
+
+
 @login_required
 def creator_dashboard(request):
     try:
@@ -134,6 +195,7 @@ def creator_dashboard(request):
 
     if creator_profile:
         events = Event.objects.filter(created_by=creator_profile)
+        categories = events.values_list("category", flat=True).distinct()
 
         # Upcoming events data
         upcoming_events = events.filter(date_time__gt=timezone.now())
@@ -187,6 +249,7 @@ def creator_dashboard(request):
         )
 
     else:
+        categories = []
         events = Event.objects.none()
         category_wise_tickets_sold = []
         category_wise_percentage_sold = []
@@ -197,6 +260,7 @@ def creator_dashboard(request):
         "events/creator_dashboard.html",
         {
             "events": events,
+            "categories": categories,
             "category_wise_tickets_sold": category_wise_tickets_sold,
             "category_wise_percentage_sold": category_wise_percentage_sold,
             "unsold_tickets_data": unsold_tickets_data,

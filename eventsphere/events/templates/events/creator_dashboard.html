@@ -385,20 +385,20 @@
                 // const ticketsSoldData = JSON.parse(document.getElementById('tickets-sold-data').textContent);
                 const ticketsSoldData = JSON.parse(document.getElementById('percentage-sold-data').textContent);
                 const unsoldTicketsData = JSON.parse(document.getElementById('unsold-tickets-data').textContent);
-                console.log("ticketsSoldData", ticketsSoldData)
+                // console.log("ticketsSoldData", ticketsSoldData)
                 // console.log("percentageSoldData", percentageSoldData)
 
                 let totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((accumulator, currentValue) => {
                     return accumulator + currentValue.total_sold;
                 }, 0);
 
-                console.log("totalTicketsSoldUpcomingEvents", totalTicketsSoldUpcomingEvents)
+                // console.log("totalTicketsSoldUpcomingEvents", totalTicketsSoldUpcomingEvents)
 
                 let totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((accumulator, currentValue) => {
                     return accumulator + currentValue.unsold_tickets;
                 }, 0);
 
-                console.log("totalTicketsUnsoldUpcomingEvents", totalTicketsUnsoldPastEvents)
+                // console.log("totalTicketsUnsoldUpcomingEvents", totalTicketsUnsoldPastEvents)
 
                 // Define solid colors for each category
                 const solidColors = [
@@ -563,8 +563,216 @@
         </div>                
         
         <div id="event-wise" class="content-section" style="display: none;">
-            <h1>Event Wise</h1>
-            <p>This is a placeholder for additional content that will be added here.</p>
+            <!-- <h1>Event Wise</h1> -->
+            <!-- Event Filter Dropdown -->
+            <select id="eventFilter" onchange="clearOtherFilter('categoryFilter'); fetchFilterWiseData()">
+                <option value="">Select Event</option>
+                {% for event in events %}
+                    <option value="{{ event.id }}">{{ event.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <!-- Category Filter Dropdown -->
+            <select id="categoryFilter" onchange="clearOtherFilter('eventFilter'); fetchFilterWiseData()">
+                <option value="">Select Category</option>
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+            
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+            
+            <!-- Chart Container for Event Wise Tickets Sold -->
+            <div style="width: 100%; max-width: 600px; margin: auto;">
+                <canvas id="eventWiseChart"></canvas>
+            </div>
+
+            <div style="width: 100%; max-width: 600px; margin: auto;">
+                <canvas id="uniqueTransactionsChart"></canvas>
+            </div>
+
+            <input type="hidden" id="fetchFilterWiseDataUrl" value="{% url 'fetch_filter_wise_data' %}" />
+            <script>
+                let eventWiseChart; // Store the chart instance globally
+                let uniqueTransactionsChart;
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const dropdownMenu = document.getElementById('dropdownMenu');
+
+                    if (dropdownMenu) {
+                        // Access the dropdown element and its style properties
+                        dropdownMenu.style.display = 'none'; // Or any other style manipulation
+                    } else {
+                        console.error('Element with ID "dropdownMenu" not found.');
+                    }
+                });
+
+                function clearOtherFilter(otherFilterId) {
+                    // Set the other filter's value to an empty string (clearing selection)
+                    document.getElementById(otherFilterId).value = "";
+                }
+
+
+                function fetchFilterWiseData() {
+                    const eventFilter = document.getElementById("eventFilter").value;
+                    const categoryFilter = document.getElementById("categoryFilter").value;
+                    const url = document.getElementById("fetchFilterWiseDataUrl").value;
+
+                    // Construct the full URL with query parameters
+                    const fetchUrl = `${url}?event_id=${eventFilter}&category=${categoryFilter}`;
+                    fetch(fetchUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update chart with data
+                            updateFilterWiseChart(data);
+                        })
+                        .catch(error => console.error("Error fetching event-wise data:", error));
+                }
+                
+                function updateFilterWiseChart(data) {
+                    console.log(data)
+                    const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
+                    const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
+                    
+                    const ticketSalesData = data.ticket_sales_data;
+                    const uniqueTransactionsData = data.unique_users_data;
+                    const totalUniqueUsers = data.total_unique_users;
+                    
+                    // Destroy existing chart if it exists
+                    if (eventWiseChart || uniqueTransactionsChart) {
+                        eventWiseChart.destroy();
+                        uniqueTransactionsChart.destroy();
+                    }
+
+                    // Generate dates for the last 10 days
+                    const dates = [];
+                    const today = new Date();
+                    for (let i = 9; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() - i);
+                        dates.push(date.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+                    }
+
+                    uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
+                        type: 'line', // You can choose a suitable chart type
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Unique Transactions',
+                                data: uniqueTransactionsData,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Unique Transactions (Last 10 Days)',
+                                    font: {
+                                        size: 16
+                                    }
+                                },
+                                legend: {
+                                    position: 'top'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            return 'Date: ' + context[0].label;
+                                        },
+                                        label: function(context) {
+                                            return 'Unique transactions: ' + context.raw;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of times users booked event tickets'
+                                    },
+                                    ticks: {
+                                        stepSize: 5
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    eventWiseChart = new Chart(ctxTicketSales, {
+                        type: 'bar',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Tickets Sold',
+                                data: ticketSalesData,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Daily Ticket Sales (Last 10 Days)',
+                                    font: {
+                                        size: 16
+                                    }
+                                },
+                                legend: {
+                                    position: 'top'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            return 'Date: ' + context[0].label;
+                                        },
+                                        label: function(context) {
+                                            return 'Tickets Sold: ' + context.raw;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Tickets Sold'
+                                    },
+                                    ticks: {
+                                        stepSize: 5
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+
+            </script>
         </div>
     </div>
 </div>

@@ -35,6 +35,11 @@ urlpatterns = [
     path(
         "creator/", views.creator_dashboard, name="creator_dashboard"
     ),  # creator dashboard url
+    path(
+        "fetch_filter_wise_data/",
+        views.fetch_filter_wise_data,
+        name="fetch_filter_wise_data",
+    ),
     path("creatorprofile/", views.creator_profile, name="creator_profile"),
     # Authentication URLs
     # path(
