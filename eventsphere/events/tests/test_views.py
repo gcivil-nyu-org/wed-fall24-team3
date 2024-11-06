@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock, ANY
 
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -610,7 +610,9 @@ class SignupTests(TestCase):
         messages = list(response.context["messages"])
         # for message in messages:
         #     print(str(message))
-        self.assertTrue(any("Passwords do not match." in str(message) for message in messages))
+        self.assertTrue(
+            any("Passwords do not match." in str(message) for message in messages)
+        )
 
 
 class UserHomeViewTest(TestCase):
