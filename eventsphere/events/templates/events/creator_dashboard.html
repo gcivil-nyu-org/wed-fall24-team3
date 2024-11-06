@@ -563,7 +563,7 @@
         </div>                
         
         <div id="event-wise" class="content-section" style="display: none;">
-            <!-- <h1>Event Wise</h1> -->
+            <h1>Event Wise</h1>
             <!-- Event Filter Dropdown -->
             <select id="eventFilter" onchange="clearOtherFilter('categoryFilter'); fetchFilterWiseData()">
                 <option value="">Select Event</option>
@@ -584,11 +584,11 @@
             <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
             
             <!-- Chart Container for Event Wise Tickets Sold -->
-            <div style="width: 100%; max-width: 600px; margin: auto;">
+            <div style="width: 100%; max-width: 600px; height: 300px; margin: auto;">
                 <canvas id="eventWiseChart"></canvas>
             </div>
 
-            <div style="width: 100%; max-width: 600px; margin: auto;">
+        <div style="width: 100%; max-width: 600px; margin: auto; margin-top: 20px;">
                 <canvas id="uniqueTransactionsChart"></canvas>
             </div>
 
@@ -655,62 +655,108 @@
                     }
 
                     uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
-                        type: 'line', // You can choose a suitable chart type
-                        data: {
-                            labels: dates,
-                            datasets: [{
-                                label: 'Unique Transactions',
-                                data: uniqueTransactionsData,
-                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Unique Transactions (Last 10 Days)',
-                                    font: {
-                                        size: 16
-                                    }
-                                },
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        title: function(context) {
-                                            return 'Date: ' + context[0].label;
-                                        },
-                                        label: function(context) {
-                                            return 'Unique transactions: ' + context.raw;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date'
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of times users booked event tickets'
-                                    },
-                                    ticks: {
-                                        stepSize: 5
-                                    }
-                                }
-                            }
-                        }
-                    });
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [{
+            label: 'Unique Transactions',
+            data: uniqueTransactionsData,
+            backgroundColor: 'rgba(99, 132, 255, 0.2)',  // Light gradient fill
+            borderColor: 'rgba(54, 99, 255, 0.8)',  // Soft blue line for trend
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(54, 99, 255, 0.8)', // Color for points
+            pointBorderColor: 'white',
+            pointHoverRadius: 5,  // Slightly larger hover points
+            pointRadius: 4,  // Regular point size
+            tension: 0.3  // Smooth curve for trend line
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Unique Transactions (Last 10 Days)',
+                color: '#34495e', // Darker title color for contrast
+                font: {
+                    size: 18,
+                    weight: 'bold'
+                },
+                padding: {
+                    top: 20,
+                    bottom: 10
+                }
+            },
+            legend: {
+                display: false // Hide legend for simplicity if only one dataset
+            },
+            tooltip: {
+                backgroundColor: 'rgba(44, 62, 80, 0.9)', // Darker tooltip background
+                titleColor: '#ecf0f1',  // Light text on tooltips
+                bodyColor: '#ecf0f1',
+                padding: 10,
+                cornerRadius: 5,
+                callbacks: {
+                    title: function(context) {
+                        return 'Date: ' + context[0].label;
+                    },
+                    label: function(context) {
+                        return 'Unique transactions: ' + context.raw;
+                    }
+                }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date',
+                    color: '#34495e',
+                    font: {
+                        size: 14,
+                        weight: '500'
+                    }
+                },
+                grid: {
+                    display: false  // No x-axis grid for cleaner look
+                },
+                ticks: {
+                    color: '#7f8c8d'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Transactions',
+                    color: '#34495e',
+                    font: {
+                        size: 14,
+                        weight: '500'
+                    }
+                },
+                ticks: {
+                    stepSize: 5,
+                    color: '#7f8c8d'
+                },
+                grid: {
+                    color: 'rgba(149, 165, 166, 0.2)', // Light grey dashed grid for subtle background lines
+                    borderDash: [4, 4]  // Dotted lines for y-axis grid
+                }
+            }
+        }
+    }
+});
+
 
                     eventWiseChart = new Chart(ctxTicketSales, {
                         type: 'bar',
