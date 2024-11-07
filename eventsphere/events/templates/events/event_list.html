@@ -254,12 +254,23 @@
     </div>
 
     <!-- Right side of the navigation bar with logout button -->
-    <div class="nav-right">
+     <!-- Logout Button similar to base.html -->
+<div class="nav-right">
+    <li style="margin-left: auto; color: white;">
+        Welcome, {{ user.username }}
+        <form action="{% url 'logout' %}" method="POST" style="display: inline;">
+            {% csrf_token %}
+            <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>
+        </form>
+    </li>
+</div>
+
+    <!-- <div class="nav-right">
         <form action="{% url 'logout' %}" method="POST">
             {% csrf_token %}
             <button class="btn-logout" type="submit">Logout</button>
         </form>
-    </div>
+    </div> -->
 
     <!-- Hamburger Menu -->
     <div class="hamburger" onclick="toggleDropdown()">

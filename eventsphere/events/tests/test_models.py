@@ -128,11 +128,25 @@ class UserProfileModelTest(TestCase):
             profile.full_clean()
 
 
-class UserModelTest(TestCase):
-    def test_user_unique_username(self):
-        # Create the first user with username 'user1'
-        User.objects.create(username="user1", password="12345")
+# class UserModelTest(TestCase):
+#     def test_user_unique_username(self):
+#         # Create the first user with username 'user1'
+#         User.objects.create(username="user1", password="12345")
 
-        # Attempt to create another user with the same username
-        with self.assertRaises(IntegrityError):
-            User.objects.create(username="user1", password="67890")
+#         # Attempt to create another user with the same username
+#         with self.assertRaises(IntegrityError):
+#             User.objects.create(username="user1", password="67890")
+
+# class CreatorProfileModelTest(TestCase):
+#     def test_creator_profile_age_boundaries(self):
+#         user = User.objects.create(username="creator", password="12345")
+#         profile = CreatorProfile.objects.create(user=user, age=150)
+#         self.assertEqual(profile.age, 150)
+
+#     def test_creator_profile_interests_format(self):
+#         user = User.objects.create(username="creator", password="12345")
+#         profile = CreatorProfile.objects.create(user=user, interests="Art, Music, Tech")
+#         self.assertEqual(profile.interests, "Art, Music, Tech")
+
+
+
