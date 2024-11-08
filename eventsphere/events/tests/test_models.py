@@ -1,9 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.utils import timezone
-
 from events.models import Event, Ticket, UserProfile
 
 
@@ -147,6 +145,3 @@ class UserProfileModelTest(TestCase):
 #         user = User.objects.create(username="creator", password="12345")
 #         profile = CreatorProfile.objects.create(user=user, interests="Art, Music, Tech")
 #         self.assertEqual(profile.interests, "Art, Music, Tech")
-
-
-

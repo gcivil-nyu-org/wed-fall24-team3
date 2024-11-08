@@ -8,7 +8,7 @@ class CreatorProfile(models.Model):
     organization_name = models.CharField(max_length=255, null=True, blank=True)
     organization_email = models.EmailField(null=True, blank=True)
     organization_social_media = models.URLField(blank=True, null=True)  # Optional
-    contact_number = models.CharField(max_length=10,null=True, blank=True)
+    contact_number = models.CharField(max_length=10, null=True, blank=True)
     # creator_id = models.CharField(primary_key=True, max_length=10)
     # creator = models.OneToOneField(User, on_delete=models.CASCADE)
     # name = models.CharField(max_length=100, null=True, blank=True)

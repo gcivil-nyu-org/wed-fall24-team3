@@ -58,17 +58,19 @@ class UserProfileForm(forms.ModelForm):
             "email",
         ]  # Include email field
         widgets = {
-            'bio': forms.Textarea(attrs={"rows":3,'placeholder': 'Add a short bio'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Enter your location'}),
-            'name': forms.TextInput(attrs={'placeholder': 'Enter your name'}),
-            'age': forms.NumberInput(attrs={'placeholder': 'Enter your age'}),
-            'email': forms.EmailInput(attrs={'placeholder': 'Enter your email'}),
-            'interests': forms.TextInput(attrs={"rows":3,'placeholder': 'Enter your interests'}),
+            "bio": forms.Textarea(attrs={"rows": 3, "placeholder": "Add a short bio"}),
+            "location": forms.TextInput(attrs={"placeholder": "Enter your location"}),
+            "name": forms.TextInput(attrs={"placeholder": "Enter your name"}),
+            "age": forms.NumberInput(attrs={"placeholder": "Enter your age"}),
+            "email": forms.EmailInput(attrs={"placeholder": "Enter your email"}),
+            "interests": forms.TextInput(
+                attrs={"rows": 3, "placeholder": "Enter your interests"}
+            ),
         }
         interests = forms.CharField(required=False)
         bio = forms.CharField(required=False)
-            # "bio": forms.Textarea(attrs={"rows": 3}),
-            # "interests": forms.Textarea(attrs={"rows": 3}),
+        # "bio": forms.Textarea(attrs={"rows": 3}),
+        # "interests": forms.Textarea(attrs={"rows": 3}),
         # }
 
     def clean_email(self):
@@ -95,26 +97,40 @@ class UserProfileForm(forms.ModelForm):
 class CreatorProfileForm(forms.ModelForm):
     class Meta:
         model = CreatorProfile
-        fields = ['organization_name', 'organization_email', 'organization_social_media', 'contact_number']
+        fields = [
+            "organization_name",
+            "organization_email",
+            "organization_social_media",
+            "contact_number",
+        ]
         widgets = {
-            'organization_name': forms.TextInput(attrs={
-                'placeholder': 'Enter your organization name',
-                'class': 'form-control',
-            }),
-            'organization_email': forms.EmailInput(attrs={
-                'placeholder': 'Enter your organization email',
-                'class': 'form-control',
-            }),
-            'organization_social_media': forms.URLInput(attrs={
-                'placeholder': 'Enter your organization’s social media link',
-                'class': 'form-control',
-            }),
-            'contact_number': forms.TextInput(attrs={
-                'placeholder': 'Enter your contact number',
-                'class': 'form-control',
-                'maxlength': '10',  # Optional attribute for validation
-            }),
+            "organization_name": forms.TextInput(
+                attrs={
+                    "placeholder": "Enter your organization name",
+                    "class": "form-control",
+                }
+            ),
+            "organization_email": forms.EmailInput(
+                attrs={
+                    "placeholder": "Enter your organization email",
+                    "class": "form-control",
+                }
+            ),
+            "organization_social_media": forms.URLInput(
+                attrs={
+                    "placeholder": "Enter your organization’s social media link",
+                    "class": "form-control",
+                }
+            ),
+            "contact_number": forms.TextInput(
+                attrs={
+                    "placeholder": "Enter your contact number",
+                    "class": "form-control",
+                    "maxlength": "10",  # Optional attribute for validation
+                }
+            ),
         }
+
 
 class TicketPurchaseForm(forms.ModelForm):
     class Meta:

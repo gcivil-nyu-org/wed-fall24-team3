@@ -6,52 +6,52 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0011_ticket_created_at'),
+        ("events", "0011_ticket_created_at"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='age',
+            model_name="creatorprofile",
+            name="age",
         ),
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='bio',
+            model_name="creatorprofile",
+            name="bio",
         ),
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='interests',
+            model_name="creatorprofile",
+            name="interests",
         ),
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='location',
+            model_name="creatorprofile",
+            name="location",
         ),
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='name',
+            model_name="creatorprofile",
+            name="name",
         ),
         migrations.RemoveField(
-            model_name='creatorprofile',
-            name='organisation',
+            model_name="creatorprofile",
+            name="organisation",
         ),
         migrations.AddField(
-            model_name='creatorprofile',
-            name='contact_number',
-            field=models.CharField(default='N/A', max_length=20),
+            model_name="creatorprofile",
+            name="contact_number",
+            field=models.CharField(default="N/A", max_length=20),
         ),
         migrations.AddField(
-            model_name='creatorprofile',
-            name='organization_email',
-            field=models.EmailField(default='def@se.com', max_length=254),
+            model_name="creatorprofile",
+            name="organization_email",
+            field=models.EmailField(default="def@se.com", max_length=254),
         ),
         migrations.AddField(
-            model_name='creatorprofile',
-            name='organization_name',
-            field=models.CharField(default='NYU', max_length=255),
+            model_name="creatorprofile",
+            name="organization_name",
+            field=models.CharField(default="NYU", max_length=255),
         ),
         migrations.AddField(
-            model_name='creatorprofile',
-            name='organization_social_media',
+            model_name="creatorprofile",
+            name="organization_social_media",
             field=models.URLField(blank=True, null=True),
         ),
     ]
