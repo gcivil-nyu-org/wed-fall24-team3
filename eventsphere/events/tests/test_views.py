@@ -819,7 +819,7 @@ class CreatorProfileViewTest2(TestCase):
         self.assertEqual(profile.name, "Creator Name")
         self.assertEqual(profile.age, 40)
         self.assertEqual(profile.bio, "Creator bio")
-        self.assertEqual(profile.organization, "Org Name")
+        self.assertEqual(profile.organisation, "Org Name")
         self.assertEqual(profile.location, "Creator Location")
         self.assertEqual(profile.interests, "Events, Music")
 
