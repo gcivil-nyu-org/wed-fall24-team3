@@ -31,6 +31,31 @@
             position: relative;
         }
 
+        /* Style for the custom dropdown */
+        .custom-dropdown {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .custom-dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .custom-dropdown div:hover {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+
         h1 {
             text-align: center;
             margin-bottom: 30px;
@@ -114,6 +139,48 @@
         button:hover {
             background-color: #45a049;
         }
+        /* Style for the category dropdown */
+select {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #333333;
+    transition: border-color 0.3s, background-color 0.3s;
+    appearance: none; /* Removes the default dropdown arrow for a custom one */
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Style for dropdown focus */
+select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    background-color: #f0f2f5; /* Light background on focus */
+}
+
+/* Optional: Custom dropdown arrow */
+select::after {
+    content: '▼';
+    font-size: 12px;
+    color: #333333;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Adjusting for mobile responsiveness */
+@media (max-width: 600px) {
+    select {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
 
         /* Responsive Design */
         @media (max-width: 600px) {
@@ -148,12 +215,18 @@
             locationInput.addEventListener('input', function() {
                 const query = locationInput.value;
 
+                const inputRect = locationInput.getBoundingClientRect();
+                customDropdown.style.top = `${inputRect.bottom + window.scrollY}px`;
+                customDropdown.style.left = `${inputRect.left + window.scrollX}px`;
+                customDropdown.style.width = `${inputRect.width}px`;
+        
+
                 if (query.length < 3) {
                     customDropdown.style.display = 'none';
                     return;
                 }
 
-                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`)
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
                     .then(response => response.json())
                     .then(data => {
                         customDropdown.innerHTML = '';
