@@ -10,13 +10,105 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
-from .models import UserProfile, CreatorProfile, Ticket, Event
+from .models import UserProfile, CreatorProfile, Ticket, Event, ChatRoom, ChatMessage, RoomMember, Event
 from io import BytesIO
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 from datetime import timedelta
+
+
+@login_required
+def join_chat(request, event_id):
+    # Fetch the event and get or create the associated chat room
+    event = get_object_or_404(Event, id=event_id)
+    chat_room, created = ChatRoom.objects.get_or_create(event=event, creator=event.created_by)
+
+    # Check if user is already a member or add them
+    member, created = RoomMember.objects.get_or_create(room=chat_room, user=request.user)
+
+    # If the member was kicked, restrict access
+    if member.is_kicked:
+        return JsonResponse({"error": "You have been removed from this chat room."}, status=403)
+
+    return redirect("chat_room", room_id=chat_room.id)
+
+
+@login_required
+def chat_room(request, room_id):
+    # Load the chat room and its message history
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    messages = ChatMessage.objects.filter(room=chat_room).order_by("timestamp")
+    members = RoomMember.objects.filter(room=chat_room, is_kicked=False)
+    
+    # Check if the user is a member and redirect if they're not
+    if not members.filter(user=request.user).exists():
+        return redirect("join_chat", event_id=chat_room.event.id)
+
+    return render(request, "events/chat_room.html", {
+        "chat_room": chat_room,
+        "messages": messages,
+        "members": members,
+        "is_creator": chat_room.creator.creator == request.user
+    })
+
+
+@login_required
+def send_message(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    content = request.POST.get("content")
+    
+    # Check if user is a member and not kicked
+    member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    if member.is_kicked:
+        return JsonResponse({"error": "You are not allowed to send messages in this chat room."}, status=403)
+    
+    # Save and broadcast message if there's content
+    if content:
+        ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+    return JsonResponse({"status": "success"})
+
+
+@login_required
+def make_announcement(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    
+    # Only allow creator to make announcements
+    if request.user == chat_room.creator.creator:
+        content = request.POST.get("content")
+        if content:
+            ChatMessage.objects.create(
+                room=chat_room,
+                user=request.user,
+                content=f"[Announcement] {content}"
+            )
+            return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "You are not authorized to make announcements."}, status=403)
+
+
+@login_required
+def kick_member(request, room_id, user_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    
+    # Only allow creator to kick members
+    if request.user == chat_room.creator.creator:
+        member = get_object_or_404(RoomMember, room=chat_room, user_id=user_id)
+        member.is_kicked = True
+        member.save()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "You are not authorized to kick members."}, status=403)
+
+
+@login_required
+def leave_chat(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    
+    # Remove the user from the room members
+    member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    member.delete()
+    return redirect("user_home")
+
 
 
 @login_required

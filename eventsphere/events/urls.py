@@ -41,29 +41,10 @@ urlpatterns = [
         name="fetch_filter_wise_data",
     ),
     path("creatorprofile/", views.creator_profile, name="creator_profile"),
-    # Authentication URLs
-    # path(
-    #     "userlogin/",
-    #     auth_views.LoginView.as_view(template_name="events/user_login.html"),
-    #     name="user_login",
-    # ),
-    # path(
-    #     "creatorlogin/",
-    #     auth_views.LoginView.as_view(template_name="events/creator_login.html"),
-    #     name="creator_login",
-    # ),
-    # path(
-    #     "userlogout/",
-    #     auth_views.LogoutView.as_view(next_page="user_login"),
-    #     name="user_logout",
-    # ),
-    # path(
-    #     "creatorlogout/",
-    #     auth_views.LogoutView.as_view(next_page="creator_login"),
-    #     name="creator_logout",
-    # ),
-    # path(
-    #     "usersignup/", views.user_signup, name="user_signup"
-    # ),  # Define the success URL
-    # path("creatorsignup/", views.creator_signup, name="creator_signup"),
+    path("event/<int:event_id>/join_chat/", views.join_chat, name="join_chat"),
+    path("chat_room/<int:room_id>/", views.chat_room, name="chat_room"),
+    path("chat_room/<int:room_id>/send_message/", views.send_message, name="send_message"),
+    path("chat_room/<int:room_id>/make_announcement/", views.make_announcement, name="make_announcement"),
+    path("chat_room/<int:room_id>/kick_member/<int:user_id>/", views.kick_member, name="kick_member"),
+    path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
 ]

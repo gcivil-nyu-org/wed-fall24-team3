@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Chat Room - EventSphere{% endblock %}
+
+{% block content %}
+<div class="chat-room">
+    <h1>Chat Room for {{ chat_room.event.name }}</h1>
+    
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="chat-messages">
+        {% for message in messages %}
+            <div class="chat-message {% if message.user == chat_room.creator.creator %}creator-message{% endif %}">
+                <span class="username">{{ message.user.username }}:</span>
+                <span class="message-content">{{ message.content }}</span>
+                <span class="timestamp">{{ message.timestamp|date:"Y-m-d H:i" }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Message Form -->
+    <form id="message-form" class="message-form" method="POST" action="{% url 'send_message' chat_room.id %}">
+        {% csrf_token %}
+        <input type="text" name="content" id="message-content" placeholder="Type your message..." required>
+        <button type="submit">Send</button>
+    </form>
+    
+<!-- Members List -->
+<div class="members-list">
+    <h2>Members</h2>
+    <ul>
+        {% for member in chat_room.members.all %}
+            <li>
+                {{ member.user.username }}
+                {% if request.user == chat_room.creator.creator and member.user != request.user %}
+                    <button onclick="kickUser('{{ member.user.id }}')">Kick</button>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function kickUser(userId) {
+        fetch(`/kick-member/{{ chat_room.id }}/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("User has been kicked out.");
+                location.reload(); // Reload to update the member list
+            } else {
+                alert(data.error || "Failed to kick user.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    const roomId = "{{ chat_room.id }}";
+    const userName = "{{ request.user.username }}";  // Correctly fetch the username
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + roomId + '/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+        if (data.username === "{{ chat_room.creator.creator.username }}") {
+            messageElement.classList.add('creator-message');
+        }
+        messageElement.innerHTML = `<span class="username">${data.username}:</span> 
+                                    <span class="message-content">${data.message}</span> 
+                                    <span class="timestamp">${data.timestamp}</span>`;
+        document.getElementById('chat-messages').appendChild(messageElement);
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.getElementById('message-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById("message-content");
+        const message = messageInput.value;
+
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'username': userName  // Send the correct username
+        }));
+
+        messageInput.value = '';
+    };
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .chat-room {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f0f2f5;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-room h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .chat-messages {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding: 10px;
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .chat-message {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        background-color: #e9e9e9;
+    }
+
+    .creator-message {
+        background-color: #ffe0b2;
+        font-weight: bold;
+    }
+
+    .username {
+        font-weight: bold;
+        margin-right: 10px;
+        color: #333;
+    }
+
+    .message-content {
+        color: #555;
+    }
+
+    .timestamp {
+        font-size: 0.8em;
+        color: #777;
+        float: right;
+    }
+
+    .message-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .message-form input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+    }
+
+    .message-form button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .message-form button:hover {
+        background-color: #45a049;
+    }
+
+    .members-list h2 {
+        font-size: 20px;
+        margin-top: 20px;
+    }
+
+    .members-list ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .members-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 5px 0;
+        padding: 8px;
+        background-color: #e9e9e9;
+        border-radius: 5px;
+    }
+
+    .members-list button {
+        padding: 5px 10px;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .members-list button:hover {
+        background-color: #c9302c;
+    }
+</style>
+{% endblock %}
