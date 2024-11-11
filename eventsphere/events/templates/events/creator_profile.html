@@ -165,7 +165,7 @@
     <div class="sidebar">
         <h3>Account Settings</h3>
         <ul>
-            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'creator_profile' %}">Account Info</a></li>
         </ul>
     </div>
 
@@ -176,6 +176,44 @@
         </div>
 
         <div class="profile-form-wrapper">
+            {% if form %}
+                <form method="post" class="profile-form">
+                    {% csrf_token %}
+        
+                    <div class="form-group">
+                        <label for="organization_name">Organization Name:</label>
+                        {{ form.organization_name }}
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="organization_email">Organization Email:</label>
+                        {{ form.organization_email }}
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="organization_social_media">Organization Social Media:</label>
+                        {{ form.organization_social_media }}
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="contact_number">Contact Number:</label>
+                        {{ form.contact_number }}
+                    </div>
+        
+                    <div class="button-container">
+                        <button type="submit" class="btn-update">Update Profile</button>
+                    </div>
+                </form>
+            {% else %}
+                <p><strong>Organization Name:</strong> {{ profile.organization_name }}</p>
+                <p><strong>Organization Email:</strong> {{ profile.organization_email }}</p>
+                <p><strong>Organization Social Media:</strong> {{ profile.organization_social_media }}</p>
+                <p><strong>Contact Number:</strong> {{ profile.contact_number }}</p>
+            {% endif %}
+        </div>
+        
+
+        <!-- <div class="profile-form-wrapper">
             {% if form %}
                 <form method="post" class="profile-form">
                     {% csrf_token %}
@@ -222,7 +260,7 @@
                 <p><strong>Location:</strong> {{ profile.location }}</p>
                 <p><strong>Interests:</strong> {{ profile.interests }}</p>
             {% endif %}
-        </div>
+        </div> -->
     </div>
 </div>
 {% endblock %}
