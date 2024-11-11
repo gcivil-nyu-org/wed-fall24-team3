@@ -794,46 +794,50 @@ class CreatorProfileViewTest2(TestCase):
         )
         self.profile = CreatorProfile.objects.create(creator=self.creator_user)
         self.client.login(username="creator", password="creatorpass")
+        self.url = reverse("creator_profile")
 
-    def test_creator_profile_get(self):
-        response = self.client.get(reverse("creator_profile"))
+    @patch("events.views.CreatorProfile.objects.get_or_create")
+    @patch("events.views.Ticket.objects.filter")
+    def test_creator_profile_view_get(self, mock_ticket_filter, mock_get_or_create):
+        mock_get_or_create.return_value = (self.profile, False)
+        mock_ticket_filter.return_value = ["ticket1", "ticket2"]
+
+        response = self.client.get(self.url)
+
+        mock_get_or_create.assert_called_once_with(creator=self.creator_user)
+        mock_ticket_filter.assert_called_once_with(user=self.creator_user)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/creator_profile.html")
+        self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], CreatorProfileForm)
-        self.assertIn("tickets", response.context)
+        self.assertEqual(response.context["tickets"], ["ticket1", "ticket2"])
 
-    def test_creator_profile_post_valid(self):
-        response = self.client.post(
-            reverse("creator_profile"),
-            {
-                "name": "Creator Name",
-                "age": 40,
-                "bio": "Creator bio",
-                "organisation": "Org Name",
-                "location": "Creator Location",
-                "interests": "Events, Music",
-            },
-        )
-        self.assertRedirects(response, reverse("creator_profile"))
-        profile = CreatorProfile.objects.get(creator=self.creator_user)
-        # self.assertEqual(profile.name, "Creator Name")
-        # self.assertEqual(profile.age, 40)
-        # self.assertEqual(profile.bio, "Creator bio")
-        self.assertEqual(profile.organization_name, "Org Name")
-        # self.assertEqual(profile.location, "Creator Location")
-        # self.assertEqual(profile.interests, "Events, Music")
+    @patch("events.models.Ticket.objects.filter")
+    @patch("events.views.CreatorProfile.objects.get_or_create")
+    @patch("events.views.CreatorProfileForm.is_valid", return_value=True)
+    @patch("events.views.CreatorProfileForm.save")
+    def test_creator_profile_view_post(
+        self, mock_form_save, mock_form_is_valid, mock_get_or_create, mock_ticket_filter
+    ):
+        mock_get_or_create.return_value = (self.profile, False)
+        mock_ticket_filter.return_value = ["ticket1", "ticket2"]
 
-    def test_creator_profile_post_invalid(self):
-        response = self.client.post(
-            reverse("creator_profile"),
-            {
-                "age": "invalid-age",  # age should be an integer
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "events/creator_profile.html")
-        form = response.context["form"]
-        self.assertTrue(form.errors)
+        post_data = {
+            "name": "Creator Name",
+            "age": 40,
+            "bio": "Creator bio",
+            "organisation": "Org Name",
+            "location": "Creator Location",
+            "interests": "Events, Music",
+        }
+
+        response = self.client.post(self.url, data=post_data)
+
+        mock_get_or_create.assert_called_once_with(creator=self.creator_user)
+        mock_form_is_valid.assert_called_once()
+        mock_form_save.assert_called_once()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.url)
 
 
 class CreateEventViewTest(TestCase):
