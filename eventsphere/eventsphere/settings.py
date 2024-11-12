@@ -135,5 +135,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 
 # Use SQLite for testing
+# Enabling logging during tests
+# NOSE_ARGS = [
+#     "--nocapture",
+#     "--nologcapture",
+# ]
+
 if "test" in sys.argv:
     DATABASES["default"] = {"ENGINE": "django.db.backends.sqlite3"}

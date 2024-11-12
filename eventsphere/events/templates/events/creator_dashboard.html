@@ -4,6 +4,8 @@
 {% block title %}Creator Dashboard{% endblock %}
 
 {% block extra_head %}
+<!-- Load Chart.js once here to avoid duplicates -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     /* Creator Dashboard Specific Styles */
     .container {
@@ -103,14 +105,14 @@
         border-color: #28a745; /* Green border when focused */
     }
 
-        /* Card Grid Layout */
+    /* Card Grid Layout */
     .card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px;
     }
 
-        /* Individual Event Card */
+    /* Individual Event Card */
     .card {
         background-color: #ffffff;
         border-radius: 10px;
@@ -151,7 +153,7 @@
         margin-top: 10px;
     }
 
-        /* Action Buttons */
+    /* Action Buttons */
     .btn-edit, .btn-delete {
         padding: 10px 20px;
         border-radius: 5px;
@@ -161,7 +163,7 @@
         cursor: pointer;
         transition: background-color 0.3s, transform 0.2s;
         border: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .btn-edit {
@@ -197,6 +199,48 @@
     .btn-create-event:hover {
         background-color: rgb(96, 163, 221); /* Darker gray on hover */
         transform: translateY(-2px);
+    }
+
+    /* Additional Styles for Analytics Section */
+    .analytics-container {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        margin-top: 30px;
+    }
+
+    .analytics-section {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .analytics-section h2 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .chart-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 40px;
+    }
+
+    .chart-container {
+        flex: 1 1 300px;
+        max-width: 500px;
+    }
+
+    .chart-container h3 {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    /* Adjust pie charts to be centered */
+    .pie-chart {
+        margin: 0 auto;
     }
 
     /* Responsive Styles */
@@ -267,7 +311,6 @@
             width: 100%;
         }
     }
-
 </style>
 {% endblock %}
 
@@ -324,507 +367,576 @@
             </div>
         </div>
 
+        <!-- All Events Analytics Section -->
         <div id="all-events" class="content-section" style="display: none;">
-            <h1>All Events</h1>
-        
-            <!-- Load Chart.js -->
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        
+            <h1>All Events Analytics</h1>
+
+            <!-- Analytics Container -->
+            <div class="analytics-container">
+
+                <!-- Upcoming Events Analytics -->
+                <div class="analytics-section">
+                    <h2>Upcoming Events</h2>
+
+                    <!-- Charts Row -->
+                    <div class="chart-row">
+                        <!-- Chart 1: Category-wise Tickets Sold -->
+                        <div class="chart-container">
+                            <h3>Category-wise Tickets Sold</h3>
+                            <canvas id="ticketsSoldChart"></canvas>
+                        </div>
+
+                        <!-- Chart 2: Category-wise Percentage of Tickets Sold -->
+                        <div class="chart-container">
+                            <h3>Category-wise Percentage of Tickets Sold</h3>
+                            <canvas id="percentageSoldChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pie Chart -->
+                    <div class="chart-container pie-chart">
+                        <h3>Percentage of Tickets Sold Out of Total Tickets Sold</h3>
+                        <canvas id="percentageSoldPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Past Events Analytics -->
+                <div class="analytics-section">
+                    <h2>Past Events</h2>
+
+                    <!-- Charts Row -->
+                    <div class="chart-row">
+                        <!-- Chart 1: Unsold Tickets -->
+                        <div class="chart-container">
+                            <h3>Unsold Tickets</h3>
+                            <canvas id="unsoldTicketsChart"></canvas>
+                        </div>
+
+                        <!-- Chart 2: Category-wise Unsold Tickets Percentage -->
+                        <div class="chart-container">
+                            <h3>Category-wise Unsold Tickets Percentage</h3>
+                            <canvas id="percentageUnsoldChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pie Chart -->
+                    <div class="chart-container pie-chart">
+                        <h3>Percentage of Unsold Tickets Out of Total Unsold Tickets</h3>
+                        <canvas id="percentageUnsoldPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Store JSON data in script tags -->
-            {{ category_wise_tickets_sold|json_script:"tickets-sold-data" }}
-            {{ category_wise_percentage_sold|json_script:"percentage-sold-data" }}
-            {{ unsold_tickets_data|json_script:"unsold-tickets-data" }}
-        
-            <!-- Chart Containers -->
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-                
-                <!-- Upcoming Events Heading -->
-                <h2 style="text-align: center; font-size: 24px; margin-top: 20px;">Upcoming Events</h2>
+            {% if category_wise_tickets_sold and category_wise_percentage_sold and unsold_tickets_data %}
+                {{ category_wise_tickets_sold|json_script:"tickets-sold-data" }}
+                {{ category_wise_percentage_sold|json_script:"percentage-sold-data" }}
+                {{ unsold_tickets_data|json_script:"unsold-tickets-data" }}
+            {% else %}
+                <p style="color: red; text-align: center;">Analytics data is not available.</p>
+            {% endif %}
 
-                <!-- Row 1: Two Charts Side-by-Side -->
-                <div style="display: flex; width: 100%; justify-content: center; gap: 20px;">
-                    <div style="width: 30%; min-width: 250px;">
-                        <h3>Category-wise Tickets Sold</h3>
-                        <canvas id="ticketsSoldChart"></canvas>
-                    </div>
-                
-                    <div style="width: 30%; min-width: 250px;">
-                        <h3>Category-wise Percentage of Tickets Sold</h3>
-                        <canvas id="percentageSoldChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Row 2: Single Centered Chart -->
-                <div style="width: 30%; text-align: center;">
-                    <h3>Percentage of Tickets Sold Category-wise out of all tickets sold</h3>
-                    <canvas id="percentageSoldPieChart"></canvas>
-                </div>
-
-                <!-- Past Events Heading -->
-                <h2 style="text-align: center; font-size: 24px; margin-top: 40px;">Past Events</h2>
-
-                <!-- Row 3: Two Charts Side-by-Side -->
-                <div style="display: flex; width: 100%; justify-content: center; gap: 20px;">
-                    <div style="width: 30%; min-width: 250px;">
-                        <h3>Unsold Tickets</h3>
-                        <canvas id="unsoldTicketsChart"></canvas>
-                    </div>
-                
-                    <div style="width: 30%; min-width: 250px;">
-                        <h3>Category-wise Unsold Tickets Percentage</h3>
-                        <canvas id="percentageUnsoldChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Row 4: Single Centered Chart -->
-                <div style="width: 30%; min-width: 300px; text-align: center;">
-                    <h3>Percentage of Tickets Unsold Category-wise out of all tickets sold</h3>
-                    <canvas id="percentageUnsoldPieChart"></canvas>
-                </div>
-            </div>
-                        
-        
-            <!-- Chart Data and Script -->
+            <!-- Chart Data and Scripts -->
             <script>
-                // Parse JSON data
-                // const ticketsSoldData = JSON.parse(document.getElementById('tickets-sold-data').textContent);
-                const ticketsSoldData = JSON.parse(document.getElementById('percentage-sold-data').textContent);
-                const unsoldTicketsData = JSON.parse(document.getElementById('unsold-tickets-data').textContent);
-                // console.log("ticketsSoldData", ticketsSoldData)
-                // console.log("percentageSoldData", percentageSoldData)
-
-                let totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((accumulator, currentValue) => {
-                    return accumulator + currentValue.total_sold;
-                }, 0);
-
-                // console.log("totalTicketsSoldUpcomingEvents", totalTicketsSoldUpcomingEvents)
-
-                let totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((accumulator, currentValue) => {
-                    return accumulator + currentValue.unsold_tickets;
-                }, 0);
-
-                // console.log("totalTicketsUnsoldUpcomingEvents", totalTicketsUnsoldPastEvents)
-
-                // Define solid colors for each category
-                const solidColors = [
-                    'rgba(255, 99, 132)', 'rgba(54, 162, 235)', 'rgba(255, 206, 86)',
-                    'rgba(75, 192, 192)', 'rgba(153, 102, 255)', 'rgba(255, 159, 64)'
-                ];
-                const solidBorderColors = [
-                    'rgba(255, 99, 132)', 'rgba(54, 162, 235)', 'rgba(255, 206, 86)',
-                    'rgba(75, 192, 192)', 'rgba(153, 102, 255)', 'rgba(255, 159, 64)'
-                ];
-
-                // Data for Tickets Sold by Category (Upcoming Events)
-                const ticketsSoldConfig = {
-                    labels: ticketsSoldData.map(item => item.category),
-                    datasets: [{
-                        label: 'Tickets Sold',
-                        data: ticketsSoldData.map(item => item.total_sold),
-                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
-                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
-                        borderWidth: 1
-                    }],
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    suggestedMax: Math.max(...ticketsSoldData.map(item => item.total_sold)) * 1.2
-                                }
-                            }
-                        }
-                    }
-                };
-
-                // Data for Category-wise Percentage of Tickets Sold (Upcoming Events)
-                const percentageSoldConfig = {
-                    labels: ticketsSoldData.map(item => item.category),
-                    datasets: [{
-                        label: '% Tickets Sold',
-                        data: ticketsSoldData.map(item => item.percentage_sold),
-                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
-                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
-                        borderWidth: 1
-                    }],
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    suggestedMax: Math.max(...ticketsSoldData.map(item => item.percentage_sold)) * 1.2
-                                }
-                            }
-                        }
-                    }
-                };
-
-                // Data for Category-wise Percentage of overall Tickets Sold
-                const percentageSoldAllCategoriesConfig = {
-                    labels: ticketsSoldData.map(item => item.category),
-                    datasets: [{
-                        label: '% Tickets Sold',
-                        data: ticketsSoldData.map(item => item.total_sold / totalTicketsSoldUpcomingEvents * 100),
-                        backgroundColor: solidColors.slice(0, ticketsSoldData.length),
-                        borderColor: solidBorderColors.slice(0, ticketsSoldData.length),
-                        borderWidth: 1
-                    }]
-                };
-
-                // Data for Unsold Tickets by Category (Past Events)
-                const unsoldTicketsConfig = {
-                    labels: unsoldTicketsData.map(item => item.category),
-                    datasets: [{
-                        label: 'Unsold Tickets',
-                        data: unsoldTicketsData.map(item => item.unsold_tickets),
-                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
-                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
-                        borderWidth: 1
-                    }],
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    suggestedMax: Math.max(...unsoldTicketsData.map(item => item.unsold_tickets)) * 1.2
-                                }
-                            }
-                        }
-                    }
-                };
-
-                // Data for Percentage of Unsold Tickets by Category
-                const percentageUnsoldConfig = {
-                    labels: unsoldTicketsData.map(item => item.category),
-                    datasets: [{
-                        label: '% Unsold Tickets',
-                        data: unsoldTicketsData.map(item => item.percentage_unsold),
-                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
-                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
-                        borderWidth: 1
-                    }],
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    suggestedMax: 100 // Cap percentage at 100%
-                                }
-                            }
-                        }
-                    }
-                };
-
-                // Data for Category-wise Percentage of overall Tickets Sold
-                const percentageUnsoldAllCategoriesConfig = {
-                    labels: unsoldTicketsData.map(item => item.category),
-                    datasets: [{
-                        label: '% Tickets Unsold',
-                        data: unsoldTicketsData.map(item => item.unsold_tickets / totalTicketsUnsoldPastEvents * 100),
-                        backgroundColor: solidColors.slice(0, unsoldTicketsData.length),
-                        borderColor: solidBorderColors.slice(0, unsoldTicketsData.length),
-                        borderWidth: 1
-                    }]
-                };
-
-                // Render Charts
-                new Chart(document.getElementById('ticketsSoldChart'), {
-                    type: 'bar',
-                    data: ticketsSoldConfig,
-                    options: { responsive: true }
-                });
-        
-                new Chart(document.getElementById('percentageSoldChart'), {
-                    type: 'bar',
-                    data: percentageSoldConfig,
-                    options: { responsive: true }
-                });
-
-                new Chart(document.getElementById('percentageSoldPieChart'), {
-                    type: 'pie',
-                    data: percentageSoldAllCategoriesConfig,
-                    options: { responsive: true }
-                });
-        
-                new Chart(document.getElementById('unsoldTicketsChart'), {
-                    type: 'bar',
-                    data: unsoldTicketsConfig,
-                    options: { responsive: true }
-                });
-        
-                new Chart(document.getElementById('percentageUnsoldChart'), {
-                    type: 'bar',
-                    data: percentageUnsoldConfig,
-                    options: { responsive: true }
-                });
-
-                new Chart(document.getElementById('percentageUnsoldPieChart'), {
-                    type: 'pie',
-                    data: percentageUnsoldAllCategoriesConfig,
-                    options: { responsive: true }
-                });
-
-            </script>
-        </div>                
-        
-        <div id="event-wise" class="content-section" style="display: none;">
-            <h1>Event Wise</h1>
-            <!-- Event Filter Dropdown -->
-            <select id="eventFilter" onchange="clearOtherFilter('categoryFilter'); fetchFilterWiseData()">
-                <option value="">Select Event</option>
-                {% for event in events %}
-                    <option value="{{ event.id }}">{{ event.name }}</option>
-                {% endfor %}
-            </select>
-            
-            <!-- Category Filter Dropdown -->
-            <select id="categoryFilter" onchange="clearOtherFilter('eventFilter'); fetchFilterWiseData()">
-                <option value="">Select Category</option>
-                {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
-                {% endfor %}
-            </select>
-            
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-            
-            <!-- Chart Container for Event Wise Tickets Sold -->
-            <div style="width: 100%; max-width: 600px; height: 300px; margin: auto;">
-                <canvas id="eventWiseChart"></canvas>
-            </div>
-
-        <div style="width: 100%; max-width: 600px; margin: auto; margin-top: 20px;">
-                <canvas id="uniqueTransactionsChart"></canvas>
-            </div>
-
-            <input type="hidden" id="fetchFilterWiseDataUrl" value="{% url 'fetch_filter_wise_data' %}" />
-            <script>
-                let eventWiseChart; // Store the chart instance globally
-                let uniqueTransactionsChart;
-
                 document.addEventListener('DOMContentLoaded', () => {
-                    const dropdownMenu = document.getElementById('dropdownMenu');
+                    // Parse JSON data
+                    const ticketsSoldData = JSON.parse(document.getElementById('tickets-sold-data').textContent);
+                    const percentageSoldData = JSON.parse(document.getElementById('percentage-sold-data').textContent);
+                    const unsoldTicketsData = JSON.parse(document.getElementById('unsold-tickets-data').textContent);
 
-                    if (dropdownMenu) {
-                        // Access the dropdown element and its style properties
-                        dropdownMenu.style.display = 'none'; // Or any other style manipulation
-                    } else {
-                        console.error('Element with ID "dropdownMenu" not found.');
-                    }
-                });
+                    // Calculate totals for percentages
+                    const totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((acc, curr) => acc + curr.total_sold, 0);
+                    const totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((acc, curr) => acc + curr.unsold_tickets, 0);
 
-                function clearOtherFilter(otherFilterId) {
-                    // Set the other filter's value to an empty string (clearing selection)
-                    document.getElementById(otherFilterId).value = "";
-                }
+                    // Define colors for charts
+                    const colors = [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#E7E9ED', '#71B37C'
+                    ];
 
-
-                function fetchFilterWiseData() {
-                    const eventFilter = document.getElementById("eventFilter").value;
-                    const categoryFilter = document.getElementById("categoryFilter").value;
-                    const url = document.getElementById("fetchFilterWiseDataUrl").value;
-
-                    // Construct the full URL with query parameters
-                    const fetchUrl = `${url}?event_id=${eventFilter}&category=${categoryFilter}`;
-                    fetch(fetchUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Update chart with data
-                            updateFilterWiseChart(data);
-                        })
-                        .catch(error => console.error("Error fetching event-wise data:", error));
-                }
-                
-                function updateFilterWiseChart(data) {
-                    console.log(data)
-                    const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
-                    const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
-                    
-                    const ticketSalesData = data.ticket_sales_data;
-                    const uniqueTransactionsData = data.unique_users_data;
-                    const totalUniqueUsers = data.total_unique_users;
-                    
-                    // Destroy existing chart if it exists
-                    if (eventWiseChart || uniqueTransactionsChart) {
-                        eventWiseChart.destroy();
-                        uniqueTransactionsChart.destroy();
-                    }
-
-                    // Generate dates for the last 10 days
-                    const dates = [];
-                    const today = new Date();
-                    for (let i = 9; i >= 0; i--) {
-                        const date = new Date(today);
-                        date.setDate(today.getDate() - i);
-                        dates.push(date.toISOString().split('T')[0]); // Format as YYYY-MM-DD
-                    }
-
-                    uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
-    type: 'line',
-    data: {
-        labels: dates,
-        datasets: [{
-            label: 'Unique Transactions',
-            data: uniqueTransactionsData,
-            backgroundColor: 'rgba(99, 132, 255, 0.2)',  // Light gradient fill
-            borderColor: 'rgba(54, 99, 255, 0.8)',  // Soft blue line for trend
-            borderWidth: 2,
-            pointBackgroundColor: 'rgba(54, 99, 255, 0.8)', // Color for points
-            pointBorderColor: 'white',
-            pointHoverRadius: 5,  // Slightly larger hover points
-            pointRadius: 4,  // Regular point size
-            tension: 0.3  // Smooth curve for trend line
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Unique Transactions (Last 10 Days)',
-                color: '#34495e', // Darker title color for contrast
-                font: {
-                    size: 18,
-                    weight: 'bold'
-                },
-                padding: {
-                    top: 20,
-                    bottom: 10
-                }
-            },
-            legend: {
-                display: false // Hide legend for simplicity if only one dataset
-            },
-            tooltip: {
-                backgroundColor: 'rgba(44, 62, 80, 0.9)', // Darker tooltip background
-                titleColor: '#ecf0f1',  // Light text on tooltips
-                bodyColor: '#ecf0f1',
-                padding: 10,
-                cornerRadius: 5,
-                callbacks: {
-                    title: function(context) {
-                        return 'Date: ' + context[0].label;
-                    },
-                    label: function(context) {
-                        return 'Unique transactions: ' + context.raw;
-                    }
-                }
-            }
-        },
-        layout: {
-            padding: {
-                left: 10,
-                right: 10,
-                top: 10,
-                bottom: 10
-            }
-        },
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: 'Date',
-                    color: '#34495e',
-                    font: {
-                        size: 14,
-                        weight: '500'
-                    }
-                },
-                grid: {
-                    display: false  // No x-axis grid for cleaner look
-                },
-                ticks: {
-                    color: '#7f8c8d'
-                }
-            },
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Transactions',
-                    color: '#34495e',
-                    font: {
-                        size: 14,
-                        weight: '500'
-                    }
-                },
-                ticks: {
-                    stepSize: 5,
-                    color: '#7f8c8d'
-                },
-                grid: {
-                    color: 'rgba(149, 165, 166, 0.2)', // Light grey dashed grid for subtle background lines
-                    borderDash: [4, 4]  // Dotted lines for y-axis grid
-                }
-            }
-        }
-    }
-});
-
-
-                    eventWiseChart = new Chart(ctxTicketSales, {
+                    // Tickets Sold Chart Config
+                    const ticketsSoldConfig = {
                         type: 'bar',
                         data: {
-                            labels: dates,
+                            labels: ticketsSoldData.map(item => item.category),
                             datasets: [{
                                 label: 'Tickets Sold',
-                                data: ticketSalesData,
-                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
+                                data: ticketsSoldData.map(item => item.total_sold),
+                                backgroundColor: colors.slice(0, ticketsSoldData.length),
+                                borderColor: '#fff',
                                 borderWidth: 1
                             }]
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false,
                             plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Daily Ticket Sales (Last 10 Days)',
-                                    font: {
-                                        size: 16
-                                    }
-                                },
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        title: function(context) {
-                                            return 'Date: ' + context[0].label;
-                                        },
-                                        label: function(context) {
-                                            return 'Tickets Sold: ' + context.raw;
-                                        }
-                                    }
-                                }
+                                legend: { display: false },
+                                title: { display: true, text: 'Tickets Sold by Category' }
                             },
                             scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date'
-                                    }
-                                },
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    };
+
+                    // Percentage Sold Chart Config
+                    const percentageSoldConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: percentageSoldData.map(item => item.category),
+                            datasets: [{
+                                label: '% Tickets Sold',
+                                data: percentageSoldData.map(item => item.percentage_sold),
+                                backgroundColor: colors.slice(0, percentageSoldData.length),
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: true, text: 'Percentage of Tickets Sold by Category' }
+                            },
+                            scales: {
                                 y: {
                                     beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Tickets Sold'
-                                    },
-                                    ticks: {
-                                        stepSize: 5
-                                    }
+                                    max: 100
                                 }
                             }
                         }
-                    });
-                }
-                
+                    };
 
+                    // Percentage Sold Pie Chart Config
+                    const percentageSoldPieConfig = {
+                        type: 'pie',
+                        data: {
+                            labels: ticketsSoldData.map(item => item.category),
+                            datasets: [{
+                                data: ticketsSoldData.map(item => (item.total_sold / totalTicketsSoldUpcomingEvents) * 100),
+                                backgroundColor: colors.slice(0, ticketsSoldData.length),
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'right' },
+                                title: { display: true, text: 'Tickets Sold Distribution' }
+                            }
+                        }
+                    };
+
+                    // Unsold Tickets Chart Config
+                    const unsoldTicketsConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: unsoldTicketsData.map(item => item.category),
+                            datasets: [{
+                                label: 'Unsold Tickets',
+                                data: unsoldTicketsData.map(item => item.unsold_tickets),
+                                backgroundColor: colors.slice(0, unsoldTicketsData.length),
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: true, text: 'Unsold Tickets by Category' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    };
+
+                    // Percentage Unsold Chart Config
+                    const percentageUnsoldConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: unsoldTicketsData.map(item => item.category),
+                            datasets: [{
+                                label: '% Unsold Tickets',
+                                data: unsoldTicketsData.map(item => item.percentage_unsold),
+                                backgroundColor: colors.slice(0, unsoldTicketsData.length),
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: true, text: 'Percentage of Unsold Tickets by Category' }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    };
+
+                    // Percentage Unsold Pie Chart Config
+                    const percentageUnsoldPieConfig = {
+                        type: 'pie',
+                        data: {
+                            labels: unsoldTicketsData.map(item => item.category),
+                            datasets: [{
+                                data: unsoldTicketsData.map(item => (item.unsold_tickets / totalTicketsUnsoldPastEvents) * 100),
+                                backgroundColor: colors.slice(0, unsoldTicketsData.length),
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'right' },
+                                title: { display: true, text: 'Unsold Tickets Distribution' }
+                            }
+                        }
+                    };
+
+                    // Render Charts
+                    new Chart(document.getElementById('ticketsSoldChart'), ticketsSoldConfig);
+                    new Chart(document.getElementById('percentageSoldChart'), percentageSoldConfig);
+                    new Chart(document.getElementById('percentageSoldPieChart'), percentageSoldPieConfig);
+                    new Chart(document.getElementById('unsoldTicketsChart'), unsoldTicketsConfig);
+                    new Chart(document.getElementById('percentageUnsoldChart'), percentageUnsoldConfig);
+                    new Chart(document.getElementById('percentageUnsoldPieChart'), percentageUnsoldPieConfig);
+                });
             </script>
         </div>
+
+<!-- Event Wise Analytics Section -->
+<div id="event-wise" class="content-section" style="display: none;">
+    <h1 class="section-title">Event Wise Analytics</h1>
+
+    <!-- Event Filter Dropdown -->
+    <div class="filter-container">
+        <label for="eventFilter" class="filter-label">Select Event</label>
+        <select id="eventFilter" class="filter-select" onchange="fetchEventWiseData()">
+            <option value="">-- Select Event --</option>
+            {% for event in events %}
+                <option value="{{ event.id }}">{{ event.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Event-Specific Charts -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <canvas id="eventWiseChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <canvas id="uniqueTransactionsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- URL for AJAX Data Fetching -->
+    <input type="hidden" id="fetchEventWiseDataUrl" value="{% url 'fetch_filter_wise_data' %}" />
+
+    <!-- Styles -->
+    <style>
+        .section-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            color: #333;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .filter-select {
+            width: 200px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .filter-select:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .chart-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Loading Spinner Styles */
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007BFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .charts-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .chart-card {
+                max-width: 90%;
+            }
+        }
+    </style>
+
+    <!-- JavaScript for Event Dropdown and Charts -->
+    <script>
+        let eventWiseChart, uniqueTransactionsChart;
+
+        function fetchEventWiseData() {
+            const eventFilter = document.getElementById("eventFilter").value;
+            const url = document.getElementById("fetchEventWiseDataUrl").value;
+            const loadingIndicator = document.getElementById("loadingIndicator");
+
+            if (!eventFilter) {
+                clearCharts();
+                return;
+            }
+
+            const fetchUrl = `${url}?event_id=${eventFilter}`;
+
+            // Show loading indicator
+            loadingIndicator.style.display = 'flex';
+
+            fetch(fetchUrl)
+                .then(response => response.json())
+                .then(data => {
+                    updateEventWiseCharts(data);
+                    loadingIndicator.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error("Error fetching event-wise data:", error);
+                    loadingIndicator.style.display = 'none';
+                    alert("An error occurred while fetching data. Please try again.");
+                });
+        }
+
+        function clearCharts() {
+            if (eventWiseChart) eventWiseChart.destroy();
+            if (uniqueTransactionsChart) uniqueTransactionsChart.destroy();
+        }
+
+        function updateEventWiseCharts(data) {
+            const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
+            const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
+
+            // Clear previous charts if they exist
+            clearCharts();
+
+            // Generate dates for the last 10 days
+            const dates = [...Array(10).keys()].map(i => {
+                const date = new Date();
+                date.setDate(date.getDate() - (9 - i));
+                return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            });
+
+            // Tickets Sold Chart
+            eventWiseChart = new Chart(ctxTicketSales, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Tickets Sold',
+                        data: data.ticket_sales_data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        hoverBorderColor: 'rgba(75, 192, 192, 1)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#333',
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#555',
+                                font: { size: 12 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#eee'
+                            },
+                            ticks: {
+                                color: '#555',
+                                font: { size: 12 },
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+            // Unique Transactions Chart
+            uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Unique Transactions',
+                        data: data.unique_users_data,
+                        backgroundColor: 'rgba(54, 99, 255, 0.2)',
+                        borderColor: 'rgba(54, 99, 255, 0.8)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(54, 99, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(54, 99, 255, 1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#333',
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#555',
+                                font: { size: 12 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#eee'
+                            },
+                            ticks: {
+                                color: '#555',
+                                font: { size: 12 },
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+    </script>
+</div>
+
     </div>
 </div>
 {% endblock %}
@@ -834,7 +946,9 @@
     // Toggle dropdown menu (if using hamburger menu)
     function toggleDropdown() {
         const dropdown = document.getElementById('dropdownMenu');
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
     }
     
     function showSection(sectionId) {
@@ -856,7 +970,7 @@
         buttons.forEach(button => button.classList.remove('active'));
         
         // Set the clicked button to active
-        const activeButton = document.querySelector(`button[onclick="showSection('${sectionId}')"]`);
+        const activeButton = document.querySelector(`.sidebar ul li button[onclick="showSection('${sectionId}')"]`);
         if (activeButton) {
             activeButton.classList.add('active');
         }
@@ -873,24 +987,25 @@
             const eventSpeakers = card.querySelector('p:nth-child(4)').innerText.toLowerCase();
             const eventDescription = card.querySelector('p:nth-child(5)').innerText.toLowerCase();
 
-                if (
-                    eventName.includes(input) ||
-                    eventLocation.includes(input) ||
-                    eventSpeakers.includes(input) ||
-                    eventDescription.includes(input)
-                ) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-
-        // Close dropdown when clicked outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.hamburger') && !event.target.closest('.dropdown-menu')) {
-                document.getElementById('dropdownMenu').style.display = 'none';
+            if (
+                eventName.includes(input) ||
+                eventLocation.includes(input) ||
+                eventSpeakers.includes(input) ||
+                eventDescription.includes(input)
+            ) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
             }
+        });
+    }
+
+    // Close dropdown when clicked outside
+    window.onclick = function(event) {
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown && !event.target.matches('.hamburger') && !event.target.closest('.dropdown-menu')) {
+            dropdown.style.display = 'none';
         }
+    }
 </script>
 {% endblock %}
