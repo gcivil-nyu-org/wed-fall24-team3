@@ -140,8 +140,9 @@
     const currentUserId = "{{ request.user.id }}";
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const chatSocket = new WebSocket(
-        `${protocol}://${window.location.host}/ws/chat/${roomId}/`
+        'wss://' + window.location.host + '/ws/chat/' + roomId + '/'
     );
+
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
