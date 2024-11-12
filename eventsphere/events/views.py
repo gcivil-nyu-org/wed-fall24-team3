@@ -459,6 +459,7 @@ def signup(request):
         if user_type == "admin":
             user.is_superuser = True
             user.save()
+            CreatorProfile.objects.create(creator=user)
             login(request, user)
             return redirect("event_list")
 
