@@ -43,8 +43,18 @@ urlpatterns = [
     path("creatorprofile/", views.creator_profile, name="creator_profile"),
     path("event/<int:event_id>/join_chat/", views.join_chat, name="join_chat"),
     path("chat_room/<int:room_id>/", views.chat_room, name="chat_room"),
-    path("chat_room/<int:room_id>/send_message/", views.send_message, name="send_message"),
-    path("chat_room/<int:room_id>/make_announcement/", views.make_announcement, name="make_announcement"),
-    path("chat_room/<int:room_id>/kick_member/<int:user_id>/", views.kick_member, name="kick_member"),
+    path(
+        "chat_room/<int:room_id>/send_message/", views.send_message, name="send_message"
+    ),
+    path(
+        "chat_room/<int:room_id>/make_announcement/",
+        views.make_announcement,
+        name="make_announcement",
+    ),
+    path(
+        "chat_room/<int:room_id>/kick_member/<int:user_id>/",
+        views.kick_member,
+        name="kick_member",
+    ),
     path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
 ]

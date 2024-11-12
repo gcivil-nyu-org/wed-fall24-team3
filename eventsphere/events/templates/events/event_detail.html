@@ -10,6 +10,22 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         /* Event Detail Specific Styles */
+        .alert-container {
+        margin-bottom: 20px;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f44336; /* Red */
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .alert.success { background-color: #4CAF50; } /* Green */
+        .alert.info { background-color: #2196F3; } /* Blue */
+        .alert.warning { background-color: #ff9800; } /* Orange */
+
+
         .event-detail-container {
             width: 90%;
             max-width: 1000px;
@@ -155,6 +171,14 @@
             <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
         {% endif %}
 
+        {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Buy Tickets Button -->
         <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
@@ -218,6 +242,16 @@
                     window.open(osmUrl, '_blank');
                 }
             };
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 10000);  // Hides the alert after 3 seconds
+            });
         });
     </script>
 {% endblock %}

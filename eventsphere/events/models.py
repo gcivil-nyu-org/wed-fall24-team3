@@ -80,7 +80,9 @@ class Ticket(models.Model):
 
 
 class ChatRoom(models.Model):
-    event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name='chat_room')
+    event = models.OneToOneField(
+        Event, on_delete=models.CASCADE, related_name="chat_room"
+    )
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -89,7 +91,9 @@ class ChatRoom(models.Model):
 
 
 class ChatMessage(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    room = models.ForeignKey(
+        ChatRoom, on_delete=models.CASCADE, related_name="messages"
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -99,7 +103,7 @@ class ChatMessage(models.Model):
 
 
 class RoomMember(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='members')
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="members")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     is_kicked = models.BooleanField(default=False)
