@@ -140,7 +140,7 @@
     const currentUserId = "{{ request.user.id }}";
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const chatSocket = new WebSocket(
-        'wss://' + window.location.host + '/ws/chat/' + roomId + '/'
+        protocol + '://' + window.location.host + '/ws/chat/' + roomId + '/'
     );
 
 
