@@ -485,6 +485,8 @@ def create_event(request):
         if form.is_valid():
             event = form.save(commit=False)
             image = request.FILES.get("image")
+            if not hasattr(request.user, 'creatorprofile'):
+                CreatorProfile.objects.create(creator=request.user)
             event.created_by = request.user.creatorprofile
 
             if image:
