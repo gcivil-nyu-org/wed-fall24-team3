@@ -49,17 +49,19 @@
         }
 
         .custom-dropdown {
-            display: none;
-            position: absolute;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 100%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            z-index: 10;
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+        width: calc(100% - 2px); /* Match width of input field */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 10;
         }
+
+
 
         .input-group {
             display: flex;
@@ -146,47 +148,61 @@
     
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const locationInput = document.getElementById('id_location');
-                const customDropdown = document.getElementById('custom-dropdown');
-                const latitudeInput = document.getElementById('id_latitude');
-                const longitudeInput = document.getElementById('id_longitude');
-    
-                locationInput.addEventListener('input', function() {
-                    const query = locationInput.value;
-    
-                    if (query.length < 3) {
-                        customDropdown.style.display = 'none';
-                        return;
-                    }
-    
-                    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
-                        .then(response => response.json())
-                        .then(data => {
-                            customDropdown.innerHTML = '';
-    
-                            if (data.length > 0) {
-                                customDropdown.style.display = 'block';
-                                data.forEach(item => {
-                                    const optionDiv = document.createElement('div');
-                                    optionDiv.textContent = item.display_name;
-                                    optionDiv.addEventListener('click', function() {
-                                        locationInput.value = item.display_name;
-                                        latitudeInput.value = item.lat;
-                                        longitudeInput.value = item.lon;
-                                        customDropdown.style.display = 'none';
-                                    });
-                                    customDropdown.appendChild(optionDiv);
+            const locationInput = document.getElementById('id_location');
+            const customDropdown = document.getElementById('custom-dropdown');
+            const latitudeInput = document.getElementById('id_latitude');
+            const longitudeInput = document.getElementById('id_longitude');
+
+            locationInput.addEventListener('input', function() {
+                const query = locationInput.value;
+
+                if (query.length < 3) {
+                    customDropdown.style.display = 'none';
+                    return;
+                }
+
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
+                    .then(response => response.json())
+                    .then(data => {
+                        customDropdown.innerHTML = '';
+
+                        if (data.length > 0) {
+                            customDropdown.style.display = 'block';
+
+                            // Get the input field's position and dimensions
+                            const rect = locationInput.getBoundingClientRect();
+                            customDropdown.style.top = `${rect.bottom + window.scrollY}px`;
+                            customDropdown.style.left = `${rect.left + window.scrollX}px`;
+                            customDropdown.style.width = `${rect.width}px`;
+
+                            data.forEach(item => {
+                                const optionDiv = document.createElement('div');
+                                optionDiv.textContent = item.display_name;
+                                optionDiv.addEventListener('click', function() {
+                                    locationInput.value = item.display_name;
+                                    latitudeInput.value = item.lat;
+                                    longitudeInput.value = item.lon;
+                                    customDropdown.style.display = 'none';
                                 });
-                            } else {
-                                customDropdown.style.display = 'none';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching location suggestions:', error);
+                                customDropdown.appendChild(optionDiv);
+                            });
+                        } else {
                             customDropdown.style.display = 'none';
-                        });
-                });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching location suggestions:', error);
+                        customDropdown.style.display = 'none';
+                    });
             });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!locationInput.contains(event.target) && !customDropdown.contains(event.target)) {
+                    customDropdown.style.display = 'none';
+                }
+            });
+        });
 
         </script>
     
