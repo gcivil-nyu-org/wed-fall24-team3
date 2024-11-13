@@ -666,6 +666,13 @@ def my_tickets(request):
 @login_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user) 
+    # user_profile = getattr(request.user, "profile", None)  # Assumes a one-to-one relation as request.user.profile
+
+    initial_data = {}
+    if user_profile and user_profile.email:  # Check if the profile and email exist
+        initial_data["email"] = user_profile.email  # Pre-fill with user's email if available
+
 
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
@@ -687,11 +694,15 @@ def buy_tickets(request, event_id):
             # Update the event's ticketsSold
             event.ticketsSold += ticket.quantity
             event.save(update_fields=["ticketsSold"])
+            if ticket.quantity == 1:
+                messages.success(request, "Ticket purchased successfully!")
+            else:
+                messages.success(request, f"{ticket.quantity} tickets purchased successfully!")
 
-            messages.success(request, "Ticket purchased successfully!")
-            return redirect("profile_tickets")
+            # messages.success(request, "Ticket purchased successfully!")
+            return redirect("event_detail", pk=event.id)
 
     else:
-        form = TicketPurchaseForm()
+        form = TicketPurchaseForm(initial=initial_data)
 
     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
