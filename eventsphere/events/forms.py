@@ -1,7 +1,6 @@
-from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
+from django import forms
 from .models import UserProfile, CreatorProfile, Event, Ticket
 
 EVENT_CATEGORIES = [
@@ -146,8 +145,6 @@ class CreatorProfileForm(forms.ModelForm):
 #             raise forms.ValidationError("You cannot purchase more than 5 tickets.")
 #         return quantity
 
-from django import forms
-from .models import Ticket
 
 class TicketPurchaseForm(forms.ModelForm):
     class Meta:

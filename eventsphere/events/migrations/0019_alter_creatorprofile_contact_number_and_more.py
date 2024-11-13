@@ -7,23 +7,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0018_alter_ticket_phone_number'),
+        ("events", "0018_alter_ticket_phone_number"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='creatorprofile',
-            name='contact_number',
-            field=models.CharField(blank=True, max_length=10, null=True, validators=[django.core.validators.RegexValidator(message='Contact number must be exactly 10 digits.', regex='^\\d{10}$')]),
+            model_name="creatorprofile",
+            name="contact_number",
+            field=models.CharField(
+                blank=True,
+                max_length=10,
+                null=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="Contact number must be exactly 10 digits.",
+                        regex="^\\d{10}$",
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='ticket',
-            name='email',
+            model_name="ticket",
+            name="email",
             field=models.EmailField(blank=True, max_length=255, null=True),
         ),
         migrations.AlterField(
-            model_name='ticket',
-            name='phone_number',
-            field=models.CharField(blank=True, max_length=10, null=True, validators=[django.core.validators.RegexValidator(message='Phone number must be exactly 10 digits.', regex='^\\d{10}$')]),
+            model_name="ticket",
+            name="phone_number",
+            field=models.CharField(
+                blank=True,
+                max_length=10,
+                null=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="Phone number must be exactly 10 digits.",
+                        regex="^\\d{10}$",
+                    )
+                ],
+            ),
         ),
     ]

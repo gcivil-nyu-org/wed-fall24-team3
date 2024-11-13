@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0014_chatroom_chatmessage_roommember'),
+        ("events", "0014_chatroom_chatmessage_roommember"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ticket',
-            name='email',
+            model_name="ticket",
+            name="email",
             field=models.EmailField(blank=True, max_length=255, unique=True),
         ),
         migrations.AlterField(
-            model_name='ticket',
-            name='phone_number',
+            model_name="ticket",
+            name="phone_number",
             field=models.CharField(blank=True, max_length=12, unique=True),
         ),
     ]
