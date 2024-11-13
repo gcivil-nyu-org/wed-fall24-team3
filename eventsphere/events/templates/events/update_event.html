@@ -119,54 +119,51 @@
 
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-
+    
         <label for="id_name">Event Name</label>
         <input type="text" id="id_name" name="name" placeholder="Enter event name"
                value="{{ form.name.value|default_if_none:'' }}" required>
-
+    
         <label for="id_category">Category</label>
         <select id="id_category" name="category" required>
             {% for code, name in form.category.field.choices %}
                 <option value="{{ code }}" {% if form.category.value == code %}selected{% endif %}>{{ name }}</option>
             {% endfor %}
         </select>
-
+    
         <label for="id_date_time">Date and Time</label>
         <input type="datetime-local" id="id_date_time" name="date_time"
-       value="{{ form.date_time.value|date:'Y-m-d\\TH:i' }}" required>
-<!-- 
-        <input type="datetime-local" id="id_date_time" name="date_time"
-               value="{{ form.date_time.value|default_if_none:'' }}" required> -->
-
+               value="{{ form.date_time.value|date:'Y-m-d\\TH:i' }}" required>
+    
         <label for="id_location">Location</label>
         <input type="text" id="id_location" name="location" placeholder="Enter location"
                value="{{ form.location.value|default_if_none:'' }}" required>
         <div id="custom-dropdown" class="custom-dropdown"></div>
-
+    
+        <!-- Hidden fields for latitude and longitude -->
+        <input type="hidden" id="id_latitude" name="latitude" value="{{ form.latitude.value }}">
+        <input type="hidden" id="id_longitude" name="longitude" value="{{ form.longitude.value }}">
+    
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const locationInput = document.getElementById('id_location');
                 const customDropdown = document.getElementById('custom-dropdown');
-                const containerRect = document.querySelector('.container').getBoundingClientRect();
-        
+                const latitudeInput = document.getElementById('id_latitude');
+                const longitudeInput = document.getElementById('id_longitude');
+    
                 locationInput.addEventListener('input', function() {
                     const query = locationInput.value;
-        
-                    const inputRect = locationInput.getBoundingClientRect();
-                    customDropdown.style.top = `${inputRect.bottom - containerRect.top}px`;
-                    customDropdown.style.left = `${inputRect.left - containerRect.left}px`;
-                    customDropdown.style.width = `${inputRect.width}px`;
-        
+    
                     if (query.length < 3) {
                         customDropdown.style.display = 'none';
                         return;
                     }
-        
+    
                     fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
                         .then(response => response.json())
                         .then(data => {
                             customDropdown.innerHTML = '';
-        
+    
                             if (data.length > 0) {
                                 customDropdown.style.display = 'block';
                                 data.forEach(item => {
@@ -174,6 +171,8 @@
                                     optionDiv.textContent = item.display_name;
                                     optionDiv.addEventListener('click', function() {
                                         locationInput.value = item.display_name;
+                                        latitudeInput.value = item.lat;
+                                        longitudeInput.value = item.lon;
                                         customDropdown.style.display = 'none';
                                     });
                                     customDropdown.appendChild(optionDiv);
@@ -188,72 +187,31 @@
                         });
                 });
             });
+
         </script>
-<!--         
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const locationInput = document.getElementById('id_location');
-                const customDropdown = document.getElementById('custom-dropdown');
-
-                locationInput.addEventListener('input', function() {
-                    const query = locationInput.value;
-
-                    if (query.length < 3) {
-                        customDropdown.style.display = 'none';
-                        return;
-                    }
-
-                    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
-                        .then(response => response.json())
-                        .then(data => {
-                            customDropdown.innerHTML = '';
-
-                            if (data.length > 0) {
-                                customDropdown.style.display = 'block';
-                                data.forEach(item => {
-                                    const optionDiv = document.createElement('div');
-                                    optionDiv.textContent = item.display_name;
-                                    optionDiv.addEventListener('click', function() {
-                                        locationInput.value = item.display_name;
-                                        customDropdown.style.display = 'none';
-                                    });
-                                    customDropdown.appendChild(optionDiv);
-                                });
-                            } else {
-                                customDropdown.style.display = 'none';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching location suggestions:', error);
-                            customDropdown.style.display = 'none';
-                        });
-                });
-            });
-        </script> -->
-
+    
         <label for="id_speakers">Speakers</label>
         <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
                value="{{ form.speakers.value|default_if_none:'' }}" required>
-
+    
         <label for="id_schedule">Description/Schedule</label>
         <textarea id="id_schedule" name="schedule" placeholder="Enter event description or schedule"
                   required>{{ form.schedule.value|default_if_none:'' }}</textarea>
-
+    
         <label for="id_numTickets">Number of Tickets</label>
         <input type="number" id="id_numTickets" name="numTickets" placeholder="Enter number of tickets" required min="1"
                value="{{ form.numTickets.value|default_if_none:'' }}">
-
-               <div class="input-group">
-                <div>
-                    <label for="id_image">Event Image</label>
-                    <input type="file" id="id_image" name="image" accept="image/*">
-                </div>
-                <!-- <label for="id_image">Upload Image</label>
-        <input type="file" id="id_image" name="image"> -->
-
+    
+        <div class="input-group">
+            <div>
+                <label for="id_image">Event Image</label>
+                <input type="file" id="id_image" name="image" accept="image/*">
+            </div>
+        </div>
+    
         <button type="submit">Update Event</button>
     </form>
+    
 </div>
 </body>
 </html>
