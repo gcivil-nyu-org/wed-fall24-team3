@@ -22,6 +22,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 800px;
+            position: relative;
         }
 
         h1 { text-align: center; margin-bottom: 30px; color: #333333; font-size: 28px; }
@@ -48,6 +49,7 @@
         }
 
         .custom-dropdown {
+            display: none;
             position: absolute;
             background-color: #fff;
             border: 1px solid #ccc;
@@ -145,6 +147,54 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const locationInput = document.getElementById('id_location');
                 const customDropdown = document.getElementById('custom-dropdown');
+                const containerRect = document.querySelector('.container').getBoundingClientRect();
+        
+                locationInput.addEventListener('input', function() {
+                    const query = locationInput.value;
+        
+                    const inputRect = locationInput.getBoundingClientRect();
+                    customDropdown.style.top = `${inputRect.bottom - containerRect.top}px`;
+                    customDropdown.style.left = `${inputRect.left - containerRect.left}px`;
+                    customDropdown.style.width = `${inputRect.width}px`;
+        
+                    if (query.length < 3) {
+                        customDropdown.style.display = 'none';
+                        return;
+                    }
+        
+                    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=us`)
+                        .then(response => response.json())
+                        .then(data => {
+                            customDropdown.innerHTML = '';
+        
+                            if (data.length > 0) {
+                                customDropdown.style.display = 'block';
+                                data.forEach(item => {
+                                    const optionDiv = document.createElement('div');
+                                    optionDiv.textContent = item.display_name;
+                                    optionDiv.addEventListener('click', function() {
+                                        locationInput.value = item.display_name;
+                                        customDropdown.style.display = 'none';
+                                    });
+                                    customDropdown.appendChild(optionDiv);
+                                });
+                            } else {
+                                customDropdown.style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching location suggestions:', error);
+                            customDropdown.style.display = 'none';
+                        });
+                });
+            });
+        </script>
+<!--         
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const locationInput = document.getElementById('id_location');
+                const customDropdown = document.getElementById('custom-dropdown');
 
                 locationInput.addEventListener('input', function() {
                     const query = locationInput.value;
@@ -180,7 +230,7 @@
                         });
                 });
             });
-        </script>
+        </script> -->
 
         <label for="id_speakers">Speakers</label>
         <input type="text" id="id_speakers" name="speakers" placeholder="Enter speakers"
