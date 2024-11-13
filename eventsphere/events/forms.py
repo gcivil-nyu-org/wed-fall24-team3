@@ -1,7 +1,6 @@
-from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
+from django import forms
 from .models import UserProfile, CreatorProfile, Event, Ticket
 
 EVENT_CATEGORIES = [
@@ -132,6 +131,21 @@ class CreatorProfileForm(forms.ModelForm):
         }
 
 
+# class TicketPurchaseForm(forms.ModelForm):
+#     class Meta:
+#         model = Ticket
+#         fields = ["email", "phone_number", "quantity"]
+#         widgets = {
+#             "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
+#         }
+
+#     def clean_quantity(self):
+#         quantity = self.cleaned_data.get("quantity")
+#         if quantity > 5:
+#             raise forms.ValidationError("You cannot purchase more than 5 tickets.")
+#         return quantity
+
+
 class TicketPurchaseForm(forms.ModelForm):
     class Meta:
         model = Ticket
@@ -140,8 +154,17 @@ class TicketPurchaseForm(forms.ModelForm):
             "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
         }
 
+    email = forms.EmailField(required=True, max_length=255)
+    phone_number = forms.CharField(required=True, max_length=12)
+
     def clean_quantity(self):
         quantity = self.cleaned_data.get("quantity")
         if quantity > 5:
             raise forms.ValidationError("You cannot purchase more than 5 tickets.")
         return quantity
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get("phone_number")
+        if not phone_number.isdigit():
+            raise forms.ValidationError("Please enter a valid phone number.")
+        return phone_number

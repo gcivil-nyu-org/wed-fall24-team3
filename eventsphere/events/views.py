@@ -519,7 +519,6 @@ def create_event(request):
 
 @login_required
 def update_event_view(request, event_id):
-    # Fetch the event by its ID and store initial values
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
     initial_latitude = event.latitude
@@ -534,12 +533,16 @@ def update_event_view(request, event_id):
             event = form.save(commit=False)
 
             # Check if location has changed
-            if form.cleaned_data.get("location") == initial_location:
-                # If location is unchanged, retain the original latitude and longitude
+            if form.cleaned_data.get("location") != initial_location:
+                # Update latitude and longitude if a new location is provided
+                event.latitude = form.cleaned_data.get("latitude")
+                event.longitude = form.cleaned_data.get("longitude")
+            else:
+                # Retain existing latitude and longitude
                 event.latitude = initial_latitude
                 event.longitude = initial_longitude
 
-            # Check if date and numTickets are provided or retain initial values
+            # Retain date and numTickets if not provided in form
             if not form.cleaned_data.get("date_time"):
                 event.date_time = initial_date_time
             if form.cleaned_data.get("numTickets") is None:
@@ -574,7 +577,6 @@ def update_event_view(request, event_id):
                         },
                     )
 
-            # Save the event instance to the database
             event.save()
             if request.user.is_superuser:
                 return redirect("event_list")
@@ -589,7 +591,6 @@ def update_event_view(request, event_id):
             )
 
     else:
-        # Populate the form with initial values on GET request
         form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
@@ -668,6 +669,14 @@ def my_tickets(request):
 @login_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    # user_profile = getattr(request.user, "profile", None)  # Assumes a one-to-one relation as request.user.profile
+
+    initial_data = {}
+    if user_profile and user_profile.email:  # Check if the profile and email exist
+        initial_data["email"] = (
+            user_profile.email
+        )  # Pre-fill with user's email if available
 
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
@@ -689,11 +698,17 @@ def buy_tickets(request, event_id):
             # Update the event's ticketsSold
             event.ticketsSold += ticket.quantity
             event.save(update_fields=["ticketsSold"])
+            if ticket.quantity == 1:
+                messages.success(request, "Ticket purchased successfully!")
+            else:
+                messages.success(
+                    request, f"{ticket.quantity} tickets purchased successfully!"
+                )
 
-            messages.success(request, "Ticket purchased successfully!")
-            return redirect("profile_tickets")
+            # messages.success(request, "Ticket purchased successfully!")
+            return redirect("event_detail", pk=event.id)
 
     else:
-        form = TicketPurchaseForm()
+        form = TicketPurchaseForm(initial=initial_data)
 
     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
