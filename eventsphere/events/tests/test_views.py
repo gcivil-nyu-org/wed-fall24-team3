@@ -45,8 +45,7 @@ class DeleteEventViewTest(TestCase):
         )  # Event ID is mocked
 
         mock_event.delete.assert_called_once()
-
-        self.assertRedirects(response, reverse("creator_dashboard"))
+        self.assertRedirects(response, reverse("creator_dashboard"), target_status_code=302)
 
     @patch("events.views.get_object_or_404")
     def test_delete_event_as_superuser_post(self, mock_get_object):
@@ -276,7 +275,7 @@ class UpdateEventViewTest(TestCase):
 
         # Ensure form.save() was called and redirection to creator_dashboard
         mock_form.save.assert_called_once()
-        self.assertRedirects(response, reverse("creator_dashboard"))
+        self.assertRedirects(response, reverse("creator_dashboard"), target_status_code=302)
 
     @patch("events.views.get_object_or_404")
     @patch("events.views.boto3.client")
@@ -1171,7 +1170,7 @@ class CreatorDashboardViewTest(TestCase):
         self.creator_profile.delete()
         self.client.login(username="creator", password="creatorpass")
         response = self.client.get(reverse("creator_dashboard"))
-        self.assertEqual(len(response.context["events"]), 0)
+        self.assertRedirects(response, reverse("not_authorized"), target_status_code=403)
 
     def test_creator_dashboard_unauthenticated(self):
         response = self.client.get(reverse("creator_dashboard"))
