@@ -4,6 +4,21 @@
 
 {% block content %}
     <style>
+        .alert-container {
+        margin-bottom: 20px;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f44336; /* Red */
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .alert.success { background-color: #4CAF50; } /* Green */
+        .alert.info { background-color: #2196F3; } /* Blue */
+        .alert.warning { background-color: #ff9800; } /* Orange */
+
         .container {
             flex: 1;
             width: 90%;
@@ -127,6 +142,20 @@
             transform: translateY(-3px);
         }
 
+        .back-to-event {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #f1f1f1;
+            text-decoration: none;
+            border-radius: 5px;
+            color: #555;
+        }
+
+        .back-to-event:hover {
+            background-color: #e1e1e1;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 30px;
@@ -145,6 +174,16 @@
 
     <div class="container">
         <h2>Buy Tickets for {{ event.name }}</h2>
+    
+        <a href="{% url 'event_detail' pk=event.id %}" class="back-to-event">← Back to Event</a>
+
+        {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <form method="post">
             {% csrf_token %}
@@ -156,20 +195,23 @@
                 <input type="text" name="name" value="{{ request.user.userprofile.name }}" class="icon-input" disabled>
             </div>
             
-            <!-- Email Field -->
-            <div class="form-group">
-                <label for="email">Email:</label>
-                {{ form.email }}
-            </div>
-
-            <!-- Phone Number Field -->
-            <div class="form-group">
-                <label for="phone_number">Phone Number:</label>
-                {{ form.phone_number }}
-            </div>
+            <!-- Email and Phone Fields -->
+            {% for field in form %}
+                {% if field.name in "email,phone_number" %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
 
             <!-- Quantity Selector -->
             <div class="form-group">
+                <p>Remaining Tickets for the event: {{ event.tickets_left }}</p>
+                <br>
                 <label for="quantity">Quantity (max 5):</label>
                 <div class="quantity-container">
                     <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">-</button>

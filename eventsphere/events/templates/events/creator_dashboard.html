@@ -613,329 +613,353 @@
             </script>
         </div>
 
-<!-- Event Wise Analytics Section -->
-<div id="event-wise" class="content-section" style="display: none;">
-    <h1 class="section-title">Event Wise Analytics</h1>
+        <!-- Event Wise Analytics Section -->
+        <div id="event-wise" class="content-section" style="display: none;">
+            <h1 class="section-title">Event Wise Analytics</h1>
 
-    <!-- Event Filter Dropdown -->
-    <div class="filter-container">
-        <label for="eventFilter" class="filter-label">Select Event</label>
-        <select id="eventFilter" class="filter-select" onchange="fetchEventWiseData()">
-            <option value="">-- Select Event --</option>
-            {% for event in events %}
-                <option value="{{ event.id }}">{{ event.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
+            <!-- Event Filter Dropdown -->
+            <div class="filter-container">
+                <label for="eventFilter" class="filter-label">Select Event</label>
+                <select id="eventFilter" class="filter-select" onchange="fetchEventWiseData()">
+                    <option value="">-- Select Event --</option>
+                    {% for event in events %}
+                        <option value="{{ event.id }}" data-tickets-left="{{ event.tickets_left }}">{{ event.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
-    </div>
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+            </div>
 
-    <!-- Event-Specific Charts -->
-    <div class="charts-container">
-        <div class="chart-card">
-            <canvas id="eventWiseChart"></canvas>
-        </div>
-        <div class="chart-card">
-            <canvas id="uniqueTransactionsChart"></canvas>
-        </div>
-    </div>
+            <div id="remainingTicketsContainer" class="remaining-tickets-container">
+                <p>Remaining Tickets: <span id="remainingTickets">Select an event to view tickets</span></p>
+            </div>
 
-    <!-- URL for AJAX Data Fetching -->
-    <input type="hidden" id="fetchEventWiseDataUrl" value="{% url 'fetch_filter_wise_data' %}" />
+            <!-- Event-Specific Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <canvas id="eventWiseChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <canvas id="uniqueTransactionsChart"></canvas>
+                </div>
+            </div>
 
-    <!-- Styles -->
-    <style>
-        .section-title {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2em;
-            color: #333;
-        }
+            <!-- URL for AJAX Data Fetching -->
+            <input type="hidden" id="fetchEventWiseDataUrl" value="{% url 'fetch_filter_wise_data' %}" />
 
-        .filter-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+            <!-- Styles -->
+            <style>
+                .section-title {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    font-size: 2em;
+                    color: #333;
+                }
 
-        .filter-label {
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
+                .filter-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
 
-        .filter-select {
-            width: 200px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
+                .filter-label {
+                    margin-bottom: 8px;
+                    font-weight: bold;
+                    color: #555;
+                }
 
-        .filter-select:focus {
-            border-color: #007BFF;
-            outline: none;
-        }
+                .filter-select {
+                    width: 200px;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    border: 1px solid #ccc;
+                    font-size: 1em;
+                    transition: border-color 0.3s;
+                }
 
-        .charts-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-        }
+                .filter-select:focus {
+                    border-color: #007BFF;
+                    outline: none;
+                }
 
-        .chart-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-        }
+                .charts-container {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 30px;
+                    margin-top: 20px;
+                }
 
-        /* Loading Spinner Styles */
-        .loading-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+                .chart-card {
+                    background: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    width: 100%;
+                    max-width: 600px;
+                }
 
-        .spinner {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #007BFF;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
+                /* Loading Spinner Styles */
+                .loading-indicator {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+                .spinner {
+                    border: 6px solid #f3f3f3;
+                    border-top: 6px solid #007BFF;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .charts-container {
-                flex-direction: column;
-                align-items: center;
-            }
+                .remaining-tickets-container {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    font-size: 1.2em;
+                    color: #015bbb;
+                    font-weight: bold;
+                }
 
-            .chart-card {
-                max-width: 90%;
-            }
-        }
-    </style>
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
 
-    <!-- JavaScript for Event Dropdown and Charts -->
-    <script>
-        let eventWiseChart, uniqueTransactionsChart;
+                /* Responsive Design */
+                @media (max-width: 768px) {
+                    .charts-container {
+                        flex-direction: column;
+                        align-items: center;
+                    }
 
-        function fetchEventWiseData() {
-            const eventFilter = document.getElementById("eventFilter").value;
-            const url = document.getElementById("fetchEventWiseDataUrl").value;
-            const loadingIndicator = document.getElementById("loadingIndicator");
+                    .chart-card {
+                        max-width: 90%;
+                    }
+                }
+            </style>
 
-            if (!eventFilter) {
-                clearCharts();
-                return;
-            }
+            <!-- JavaScript for Event Dropdown and Charts -->
+            <script>
+                let eventWiseChart, uniqueTransactionsChart;
 
-            const fetchUrl = `${url}?event_id=${eventFilter}`;
-
-            // Show loading indicator
-            loadingIndicator.style.display = 'flex';
-
-            fetch(fetchUrl)
-                .then(response => response.json())
-                .then(data => {
-                    updateEventWiseCharts(data);
-                    loadingIndicator.style.display = 'none';
-                })
-                .catch(error => {
-                    console.error("Error fetching event-wise data:", error);
-                    loadingIndicator.style.display = 'none';
-                    alert("An error occurred while fetching data. Please try again.");
+                document.getElementById('eventFilter').addEventListener('change', function () {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const ticketsLeft = selectedOption.getAttribute('data-tickets-left');
+                    const remainingTicketsElement = document.getElementById('remainingTickets');
+                    // console.log(ticketsLeft);
+                    if (ticketsLeft) {
+                        remainingTicketsElement.textContent = ticketsLeft;
+                    } else {
+                        remainingTicketsElement.textContent = 'Select an event to view tickets';
+                    }
                 });
-        }
 
-        function clearCharts() {
-            if (eventWiseChart) eventWiseChart.destroy();
-            if (uniqueTransactionsChart) uniqueTransactionsChart.destroy();
-        }
+                function fetchEventWiseData() {
+                    const eventFilter = document.getElementById("eventFilter").value;
+                    const url = document.getElementById("fetchEventWiseDataUrl").value;
+                    const loadingIndicator = document.getElementById("loadingIndicator");
 
-        function updateEventWiseCharts(data) {
-            const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
-            const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
-
-            // Clear previous charts if they exist
-            clearCharts();
-
-            // Generate dates for the last 10 days
-            const dates = [...Array(10).keys()].map(i => {
-                const date = new Date();
-                date.setDate(date.getDate() - (9 - i));
-                return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            });
-
-            // Tickets Sold Chart
-            eventWiseChart = new Chart(ctxTicketSales, {
-                type: 'bar',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Tickets Sold',
-                        data: data.ticket_sales_data,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
-                        hoverBorderColor: 'rgba(75, 192, 192, 1)',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#333',
-                                font: { size: 14 }
-                            }
-                        },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#fff',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#555',
-                                font: { size: 12 }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#eee'
-                            },
-                            ticks: {
-                                color: '#555',
-                                font: { size: 12 },
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
+                    if (!eventFilter) {
+                        clearCharts();
+                        return;
                     }
-                }
-            });
 
-            // Unique Transactions Chart
-            uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Unique Transactions',
-                        data: data.unique_users_data,
-                        backgroundColor: 'rgba(54, 99, 255, 0.2)',
-                        borderColor: 'rgba(54, 99, 255, 0.8)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(54, 99, 255, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(54, 99, 255, 1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#333',
-                                font: { size: 14 }
-                            }
-                        },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#fff',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#555',
-                                font: { size: 12 }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#eee'
-                            },
-                            ticks: {
-                                color: '#555',
-                                font: { size: 12 },
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
+                    const fetchUrl = `${url}?event_id=${eventFilter}`;
+
+                    // Show loading indicator
+                    loadingIndicator.style.display = 'flex';
+
+                    fetch(fetchUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            updateEventWiseCharts(data);
+                            loadingIndicator.style.display = 'none';
+                        })
+                        .catch(error => {
+                            console.error("Error fetching event-wise data:", error);
+                            loadingIndicator.style.display = 'none';
+                            alert("An error occurred while fetching data. Please try again.");
+                        });
                 }
-            });
-        }
-    </script>
-</div>
+
+                function clearCharts() {
+                    if (eventWiseChart) eventWiseChart.destroy();
+                    if (uniqueTransactionsChart) uniqueTransactionsChart.destroy();
+                }
+
+                function updateEventWiseCharts(data) {
+                    const ctxTicketSales = document.getElementById('eventWiseChart').getContext('2d');
+                    const ctxUniqueUsers = document.getElementById('uniqueTransactionsChart').getContext('2d');
+
+                    // Clear previous charts if they exist
+                    clearCharts();
+
+                    // Generate dates for the last 10 days
+                    const dates = [...Array(10).keys()].map(i => {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (9 - i));
+                        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    });
+
+                    // Tickets Sold Chart
+                    eventWiseChart = new Chart(ctxTicketSales, {
+                        type: 'bar',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Tickets Sold',
+                                data: data.ticket_sales_data,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
+                                hoverBorderColor: 'rgba(75, 192, 192, 1)',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#333',
+                                        font: { size: 14 }
+                                    }
+                                },
+                                tooltip: {
+                                    enabled: true,
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    borderColor: '#fff',
+                                    borderWidth: 1,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${context.parsed.y}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#555',
+                                        font: { size: 12 }
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: '#eee'
+                                    },
+                                    ticks: {
+                                        color: '#555',
+                                        font: { size: 12 },
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            interaction: {
+                                mode: 'nearest',
+                                axis: 'x',
+                                intersect: false
+                            }
+                        }
+                    });
+
+                    // Unique Transactions Chart
+                    uniqueTransactionsChart = new Chart(ctxUniqueUsers, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Unique Transactions',
+                                data: data.unique_users_data,
+                                backgroundColor: 'rgba(54, 99, 255, 0.2)',
+                                borderColor: 'rgba(54, 99, 255, 0.8)',
+                                borderWidth: 2,
+                                pointBackgroundColor: 'rgba(54, 99, 255, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(54, 99, 255, 1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#333',
+                                        font: { size: 14 }
+                                    }
+                                },
+                                tooltip: {
+                                    enabled: true,
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    borderColor: '#fff',
+                                    borderWidth: 1,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${context.parsed.y}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#555',
+                                        font: { size: 12 }
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: '#eee'
+                                    },
+                                    ticks: {
+                                        color: '#555',
+                                        font: { size: 12 },
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            interaction: {
+                                mode: 'nearest',
+                                axis: 'x',
+                                intersect: false
+                            }
+                        }
+                    });
+                }
+            </script>
+        </div>
 
     </div>
 </div>

@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
@@ -678,23 +679,30 @@ def buy_tickets(request, event_id):
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
         if form.is_valid():
-            ticket = form.save(commit=False)
-            ticket.user = request.user
-            ticket.event = event
-            ticket.created_at = timezone.now().date()
-
-            if ticket.quantity > event.tickets_left:
-                messages.error(request, "Not enough tickets available!")
+            quantity = form.cleaned_data["quantity"]
+            # Check ticket availability early
+            if quantity > event.tickets_left:
+                messages.error(
+                    request,
+                    f"Only {event.tickets_left} tickets are available! Please adjust your quantity.",
+                )
                 return render(
                     request, "events/buy_tickets.html", {"event": event, "form": form}
                 )
 
-            # Save the ticket
-            ticket.save()
+            with transaction.atomic():
+                ticket = form.save(commit=False)
+                ticket.user = request.user
+                ticket.event = event
+                ticket.created_at = timezone.now().date()
 
-            # Update the event's ticketsSold
-            event.ticketsSold += ticket.quantity
-            event.save(update_fields=["ticketsSold"])
+                # Save the ticket
+                ticket.save()
+
+                # Update the event's ticketsSold
+                event.ticketsSold += ticket.quantity
+                event.save(update_fields=["ticketsSold"])
+
             if ticket.quantity == 1:
                 messages.success(request, "Ticket purchased successfully!")
             else:
