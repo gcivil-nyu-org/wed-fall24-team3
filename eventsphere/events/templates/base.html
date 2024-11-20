@@ -61,7 +61,7 @@
         }
 
         nav ul li a.notification-indicator.has-unread::after {
-            display: block; /* Show if there are unread notifications */
+            display: block;
         }
 
         .container {
@@ -150,7 +150,6 @@
             const data = JSON.parse(e.data);
             const notificationLink = document.getElementById('notification-link');
             notificationLink.classList.add('has-unread');
-            console.log("WebSocket message received:", data);
 
             const event = new CustomEvent('notificationReceived', {detail: data});
             document.dispatchEvent(event);
@@ -163,7 +162,7 @@
         function fetchUnreadNotifications() {
             fetch('/notifications/get_unread_notif', {
                 method: 'GET',
-                credentials: 'same-origin', // Ensures cookies are sent with the request
+                credentials: 'same-origin',
             })
                 .then(response => response.json())
                 .then(data => {

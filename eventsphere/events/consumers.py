@@ -1,9 +1,11 @@
 # events/consumers.py
 
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils import timezone
+
 from .models import ChatRoom, ChatMessage, RoomMember, Notification
 
 
@@ -46,7 +48,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
             )
-        
 
     async def chat_message(self, event):
         await self.send(
@@ -65,11 +66,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Notify the user that they are kicked and redirect them
             await self.send(text_data=json.dumps({"type": "user_kicked"}))
             await self.close()
-    
+
     async def notify_group_members(self, room, sender, message):
         members = await self.get_all_members_except_sender(room, sender)
         event_name = await self.get_event_name(room)
-        
+
         for member in members:
             notif_message = f"New message in {event_name} chat: {message}"
             notif_id = await self.save_notification(room, member, notif_message)
@@ -80,7 +81,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "data": {
                         "message": notif_message,
                         "timestamp": timezone.now().isoformat(),
-                        "id": notif_id
+                        "id": notif_id,
                     },
                 },
             )
@@ -88,7 +89,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_chat_room(self, room_id):
         return ChatRoom.objects.filter(id=room_id).first()
-    
+
     @database_sync_to_async
     def get_event_name(self, room):
         return room.event.name
@@ -101,18 +102,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, content, user):
         chat_room = ChatRoom.objects.get(id=self.room_id)
         ChatMessage.objects.create(room=chat_room, user=user, content=content)
-    
+
     @database_sync_to_async
     def get_all_members_except_sender(self, chat_room, sender):
         return list(RoomMember.objects.filter(room=chat_room).exclude(user=sender))
-    
-    
+
     @database_sync_to_async
     def save_notification(self, room, member, message):
         notif = Notification.objects.create(
-                user=member.user,
-                message=f"New message in {room.event.name} chat: {message}",
-            )
+            user=member.user,
+            message=f"New message in {room.event.name} chat: {message}",
+        )
         return notif.id
 
 
@@ -140,4 +140,3 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def send_notification(self, event):
         await self.send(text_data=json.dumps(event["data"]))
-

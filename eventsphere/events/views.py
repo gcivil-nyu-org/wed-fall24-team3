@@ -1,14 +1,24 @@
 import base64
-import qrcode  # type: ignore
 import json
+from datetime import timedelta
+from io import BytesIO
+
+import boto3
+import qrcode  # type: ignore
+from asgiref.sync import async_to_sync
+from botocore.exceptions import BotoCoreError, ClientError
+from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
+from django.db.models.functions import Coalesce, TruncDate
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -20,14 +30,6 @@ from .models import (
     RoomMember,
     Notification,
 )
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-from django.db.models.functions import Coalesce, TruncDate
-from django.utils import timezone
-from datetime import timedelta
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
 
 @login_required
@@ -90,10 +92,8 @@ def chat_room(request, room_id):
 
 @login_required
 def send_message(request, room_id):
-    print("Reached send_message = ", request)
     chat_room = get_object_or_404(ChatRoom, id=room_id)
     content = request.POST.get("content")
-    print("Chat content = ", content)
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
@@ -104,11 +104,9 @@ def send_message(request, room_id):
             status=403,
         )
 
-    # print("Chat content = ", content)
-    # Save and broadcast message if there's content
     if content:
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
-        
+
     return JsonResponse({"status": "success"})
 
 
@@ -181,40 +179,59 @@ def leave_chat(request, room_id):
 
 @login_required
 def view_notifications(request):
-    unread_notifications =fetch_unread_notif_db(request.user).values('id', 'message', 'created_at')
-    return render(request, "events/notifications.html", {"notifications": list(unread_notifications)})
+    unread_notifications = fetch_unread_notif_db(request.user).values(
+        "id", "message", "created_at"
+    )
+    return render(
+        request,
+        "events/notifications.html",
+        {"notifications": list(unread_notifications)},
+    )
 
 
 @login_required
 def get_user_unread_notifications(request):
     unread_notifs = fetch_unread_notif_db(request.user)
-    return JsonResponse(list(unread_notifs.values('id', 'message', 'created_at')), safe=False)
+    return JsonResponse(
+        list(unread_notifs.values("id", "message", "created_at")), safe=False
+    )
 
 
 def fetch_unread_notif_db(user):
-    return Notification.objects.filter(user=user, is_read=False).order_by(
-        "-created_at")
+    return Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
 
 
 @login_required
 def mark_as_read(request, notification_id):
     if request.method == "POST":
         try:
-            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user
+            )
             notification.is_read = True
             notification.save()
-            return JsonResponse({"success": True, "message": "Notification marked as read."})
+            return JsonResponse(
+                {"success": True, "message": "Notification marked as read."}
+            )
         except Notification.DoesNotExist:
-            return JsonResponse({"success": False, "message": "Notification not found."}, status=404)
-    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+            return JsonResponse(
+                {"success": False, "message": "Notification not found."}, status=404
+            )
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
 
 
 @login_required
 def mark_all_as_read(request):
     if request.method == "POST":
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        Notification.objects.filter(user=request.user, is_read=False).update(
+            is_read=True
+        )
         return JsonResponse({"success": True})
-    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
 
 
 @login_required
@@ -699,6 +716,7 @@ def creator_profile(request):
     return render(
         request, "events/creator_profile.html", {"form": form, "tickets": tickets}
     )
+
 
 @login_required
 def my_tickets(request):

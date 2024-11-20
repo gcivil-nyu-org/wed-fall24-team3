@@ -42,15 +42,12 @@
     {{ block.super }}
     <script>
         const unreadNotifications = JSON.parse(document.getElementById('unreadNotifications').textContent);
-        console.log("Unread Notifications:", unreadNotifications);
 
         document.addEventListener('notificationReceived', function (e) {
             {#notificationSocket.onmessage = function (e) {#}
-            console.log("event = ", e)
             const data = e.detail;
             const notificationList = document.getElementById("notification-list");
 
-            // Create a new notification card
             const newNotification = document.createElement("div");
             newNotification.classList.add("notification-card", "unread");
             newNotification.setAttribute("id", `notification-${data.id}`);
@@ -64,15 +61,10 @@
             </div>
         `;
 
-            // Prepend the new notification to the list
             notificationList.prepend(newNotification);
             unreadNotifications.push(newNotification);
-
-            // Optionally, display an alert for the notification
-            {#alert(data.message);#}
         });
 
-        // Function to mark a notification as read
         function markAsRead(notificationId) {
             fetch(`/notifications/mark_as_read/${notificationId}/`, {
                 method: 'POST',
@@ -83,7 +75,6 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        // Update the UI to reflect the notification as read
                         const notificationCard = document.getElementById(`notification-${notificationId}`);
                         if (notificationCard) {
                             notificationCard.classList.remove("unread");
@@ -93,7 +84,6 @@
                         }
                         const index = unreadNotifications.findIndex(e => e.id === notificationId);
                         unreadNotifications.splice(index, 1);
-                        console.log("unreadNotifications.length = ", unreadNotifications.length)
                         if(unreadNotifications.length === 0){
                             document.getElementById('notification-link').classList.remove('has-unread');
                         }
