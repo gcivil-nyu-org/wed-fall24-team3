@@ -16,3 +16,4 @@ __pycache__/
 newenv/
 /eventsphere/.xml
 /dump.rdb
+.coverage*

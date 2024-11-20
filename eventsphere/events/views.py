@@ -1,6 +1,13 @@
 import base64
-import qrcode  # type: ignore
 import json
+from datetime import timedelta
+from io import BytesIO
+
+import boto3
+import qrcode  # type: ignore
+from asgiref.sync import async_to_sync, sync_to_async
+from botocore.exceptions import BotoCoreError, ClientError
+from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -8,8 +15,11 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
 from django.db import transaction
+from django.db.models.functions import Coalesce, TruncDate
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -19,15 +29,9 @@ from .models import (
     ChatRoom,
     ChatMessage,
     RoomMember,
+    Notification,
 )
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-from django.db.models.functions import Coalesce, TruncDate
-from django.utils import timezone
-from datetime import timedelta
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from .consumers import notify_group_members
 
 
 @login_required
@@ -95,24 +99,28 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
             status=403,
         )
 
-    # Save and broadcast message if there's content
     if content:
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+
     return JsonResponse({"status": "success"})
 
 
 @login_required
-def make_announcement(request, room_id):
-    chat_room = get_object_or_404(ChatRoom, id=room_id)
+async def make_announcement(request, room_id):
+    chat_room = await sync_to_async(get_object_or_404)(ChatRoom, id=room_id)
+    is_creator = await sync_to_async(
+        lambda: request.user == chat_room.creator.creator
+    )()
 
     # Check if the user is the creator of the chat room
-    if request.user == chat_room.creator.creator:
+    if is_creator:
         # Parse JSON data from request body
         try:
             data = json.loads(request.body)  # Retrieve the JSON body
@@ -124,8 +132,14 @@ def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            ChatMessage.objects.create(
-                room=chat_room, user=request.user, content=f"[Announcement] {content}"
+            print("Creating announcement")
+            message = f"[Announcement] {content}"
+            await sync_to_async(ChatMessage.objects.create)(
+                room=chat_room, user=request.user, content=message
+            )
+            print("Created Announce Chat Message")
+            await notify_group_members(
+                chat_room, request.user, message, "chat_announcement"
             )
             return JsonResponse({"status": "success"})
         else:
@@ -172,6 +186,68 @@ def leave_chat(request, room_id):
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
     member.delete()
     return redirect("user_home")
+
+
+@login_required
+def view_notifications(request):
+    unread_notifications = fetch_unread_notif_db(request.user).values(
+        "id", "message", "created_at", "type", "title", "sub_title"
+    )
+    return render(
+        request,
+        "events/notifications.html",
+        {"notifications": list(unread_notifications)},
+    )
+
+
+@login_required
+def get_user_unread_notifications(request):
+    unread_notifs = fetch_unread_notif_db(request.user)
+    return JsonResponse(
+        list(
+            unread_notifs.values(
+                "id", "message", "created_at", "type", "title", "sub_title"
+            )
+        ),
+        safe=False,
+    )
+
+
+def fetch_unread_notif_db(user):
+    return Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
+
+
+@login_required
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        try:
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return JsonResponse(
+                {"success": True, "message": "Notification marked as read."}
+            )
+        except Notification.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Notification not found."}, status=404
+            )
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+
+@login_required
+def mark_all_as_read(request):
+    if request.method == "POST":
+        Notification.objects.filter(user=request.user, is_read=False).update(
+            is_read=True
+        )
+        return JsonResponse({"success": True})
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
 
 
 @login_required
