@@ -4,6 +4,21 @@
 
 {% block content %}
     <style>
+        .alert-container {
+        margin-bottom: 20px;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f44336; /* Red */
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .alert.success { background-color: #4CAF50; } /* Green */
+        .alert.info { background-color: #2196F3; } /* Blue */
+        .alert.warning { background-color: #ff9800; } /* Orange */
+
         .container {
             flex: 1;
             width: 90%;
@@ -127,6 +142,20 @@
             transform: translateY(-3px);
         }
 
+        .back-to-event {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #f1f1f1;
+            text-decoration: none;
+            border-radius: 5px;
+            color: #555;
+        }
+
+        .back-to-event:hover {
+            background-color: #e1e1e1;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 30px;
@@ -146,44 +175,61 @@
     <div class="container">
         <h2>Buy Tickets for {{ event.name }}</h2>
 
-        <form method="post">
-            {% csrf_token %}
+        <a href="{% url 'event_detail' pk=event.id %}" class="back-to-event">← Back to Event</a>
 
-            <!-- Auto-populate user's name -->
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <input type="text" name="name" value="{{ request.user.userprofile.name }}" class="icon-input" disabled>
+        {% if event.date_time > now %}
+            {% if messages %}
+            <div class="alert-container">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
+                {% endfor %}
             </div>
-            
-            <!-- Email Field -->
-            <div class="form-group">
-                <label for="email">Email:</label>
-                {{ form.email }}
-            </div>
+            {% endif %}
 
-            <!-- Phone Number Field -->
-            <div class="form-group">
-                <label for="phone_number">Phone Number:</label>
-                {{ form.phone_number }}
-            </div>
+            <form method="post">
+                {% csrf_token %}
 
-            <!-- Quantity Selector -->
-            <div class="form-group">
-                <label for="quantity">Quantity (max 5):</label>
-                <div class="quantity-container">
-                    <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">-</button>
-                    <span id="quantity-display" class="quantity-display">1</span>
-                    <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                <!-- Auto-populate user's name -->
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <input type="text" name="name" value="{{ request.user.userprofile.name }}" class="icon-input" disabled>
                 </div>
-                <input type="hidden" name="quantity" id="quantity" value="1">
-            </div>
+                
+                <!-- Email and Phone Fields -->
+                {% for field in form %}
+                    {% if field.name in "email,phone_number" %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
 
-            <!-- Button Container to center the button -->
-            <div class="button-container">
-                <button type="submit" class="btn-buy">Buy Tickets</button>
-            </div>
-        </form>
+                <!-- Quantity Selector -->
+                <div class="form-group">
+                    <p>Remaining Tickets for the event: {{ event.tickets_left }}</p>
+                    <br>
+                    <label for="quantity">Quantity (max 5):</label>
+                    <div class="quantity-container">
+                        <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+                        <span id="quantity-display" class="quantity-display">1</span>
+                        <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                    </div>
+                    <input type="hidden" name="quantity" id="quantity" value="1">
+                </div>
+
+                <!-- Button Container to center the button -->
+                <div class="button-container">
+                    <button type="submit" class="btn-buy">Buy Tickets</button>
+                </div>
+            </form>
+        {% else %}
+            <p class="text-muted">This event has already taken place. Ticket purchase is unavailable.</p>
+        {% endif %}
     </div>
 
     <script>

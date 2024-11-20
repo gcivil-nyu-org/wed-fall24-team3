@@ -133,6 +133,14 @@
     {% block content %}{% endblock %}
 </div>
 
+<script>
+    var message_ele = document.getElementById("message_container");
+    if(message_ele){
+        setTimeout(function(){ 
+            message_ele.style.display = "none"; 
+        }, 3000);
+    }
+</script>
 <!-- Footer -->
 <footer>
     <p>&copy; 2024 EventSphere. All rights reserved.</p>
