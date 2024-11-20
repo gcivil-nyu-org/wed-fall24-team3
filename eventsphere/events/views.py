@@ -430,7 +430,9 @@ def event_list(request):
 
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    return render(request, "events/event_detail.html", {"event": event})
+    return render(
+        request, "events/event_detail.html", {"event": event, "now": timezone.now()}
+    )
 
 
 def signup(request):
