@@ -32,6 +32,7 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
+from .utils import admin_required, creator_required
 
 
 @login_required
@@ -418,6 +419,7 @@ def fetch_filter_wise_data(request):
 
 
 @login_required
+@creator_required
 def creator_dashboard(request):
     try:
         creator_profile = CreatorProfile.objects.get(creator=request.user)
@@ -499,6 +501,8 @@ def creator_dashboard(request):
     )
 
 
+@login_required
+@admin_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -750,9 +754,9 @@ def buy_tickets(request, event_id):
 
     initial_data = {}
     if user_profile and user_profile.email:  # Check if the profile and email exist
-        initial_data["email"] = (
-            user_profile.email
-        )  # Pre-fill with user's email if available
+        initial_data[
+            "email"
+        ] = user_profile.email  # Pre-fill with user's email if available
 
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
@@ -795,3 +799,19 @@ def buy_tickets(request, event_id):
         form = TicketPurchaseForm(initial=initial_data)
 
     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+
+
+def not_authorized(request):
+    # Determine the user's homepage based on their role
+    if request.user.is_superuser:
+        redirect_url = "event_list"  # Admin dashboard
+    elif CreatorProfile.objects.filter(creator=request.user).exists():
+        redirect_url = "creator_dashboard"  # Creator dashboard
+    else:
+        redirect_url = "user_home"  # User homepage
+
+    context = {
+        "redirect_url": redirect_url,
+    }
+
+    return render(request, "events/not_authorized.html", context, status=403)
