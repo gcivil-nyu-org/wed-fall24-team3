@@ -5,7 +5,7 @@ from io import BytesIO
 
 import boto3
 import qrcode  # type: ignore
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
 from botocore.exceptions import BotoCoreError, ClientError
 from channels.layers import get_channel_layer
 from django.contrib import messages
@@ -30,6 +30,7 @@ from .models import (
     RoomMember,
     Notification,
 )
+from .consumers import notify_group_members
 
 
 @login_required
@@ -111,11 +112,12 @@ def send_message(request, room_id):
 
 
 @login_required
-def make_announcement(request, room_id):
-    chat_room = get_object_or_404(ChatRoom, id=room_id)
+async def make_announcement(request, room_id):
+    chat_room = await sync_to_async(get_object_or_404)(ChatRoom, id=room_id)
+    is_creator = await sync_to_async(lambda: request.user == chat_room.creator.creator)()
 
     # Check if the user is the creator of the chat room
-    if request.user == chat_room.creator.creator:
+    if is_creator:
         # Parse JSON data from request body
         try:
             data = json.loads(request.body)  # Retrieve the JSON body
@@ -127,9 +129,13 @@ def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            ChatMessage.objects.create(
-                room=chat_room, user=request.user, content=f"[Announcement] {content}"
+            print("Creating announcement")
+            message = f"[Announcement] {content}"
+            await sync_to_async(ChatMessage.objects.create)(
+                room=chat_room, user=request.user, content=message
             )
+            print("Created Announce Chat Message")
+            await notify_group_members(chat_room, request.user, message, "chat_announcement")
             return JsonResponse({"status": "success"})
         else:
             return JsonResponse(
@@ -180,7 +186,7 @@ def leave_chat(request, room_id):
 @login_required
 def view_notifications(request):
     unread_notifications = fetch_unread_notif_db(request.user).values(
-        "id", "message", "created_at"
+        "id", "message", "created_at", "type", "title", "sub_title"
     )
     return render(
         request,
@@ -193,7 +199,7 @@ def view_notifications(request):
 def get_user_unread_notifications(request):
     unread_notifs = fetch_unread_notif_db(request.user)
     return JsonResponse(
-        list(unread_notifs.values("id", "message", "created_at")), safe=False
+        list(unread_notifs.values("id", "message", "created_at", "type", "title", "sub_title")), safe=False
     )
 
 

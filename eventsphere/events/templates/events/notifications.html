@@ -17,23 +17,30 @@
             {% for notification in notifications %}
                 <div class="notification-card {% if not notification.is_read %}unread{% endif %}"
                      id="notification-{{ notification.id }}">
-                    <div class="notification-content">
-                        <div class="notification-message">{{ notification.message }}</div>
-                        <div class="notification-timestamp">
-                            {{ notification.created_at|date:"Y-m-d H:i" }}
-                        </div>
+                    <div class="notification-header">
+                        <h3 class="notification-title">{{ notification.title }}</h3>
+                        <p class="notification-subtitle">{{ notification.sub_title }}</p>
                     </div>
-                    <div class="notification-actions">
+
+                    <div class="notification-body">
+                        <p class="notification-message">{{ notification.message }}</p>
+                    </div>
+
+                    <div class="notification-footer">
+                <span class="notification-timestamp">
+                    {{ notification.created_at|date:"Y-m-d H:i" }}
+                </span>
                         {% if not notification.is_read %}
                             <button class="mark-as-read"
-                                    onclick="markAsRead({{ notification.id }})">Mark as
-                                Read
+                                    onclick="markAsRead({{ notification.id }})">
+                                Mark as Read
                             </button>
                         {% endif %}
                     </div>
                 </div>
             {% endfor %}
         </div>
+
     </div>
 {% endblock %}
 
@@ -52,14 +59,18 @@
             newNotification.classList.add("notification-card", "unread");
             newNotification.setAttribute("id", `notification-${data.id}`);
             newNotification.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-message">${data.message}</div>
-                <div class="notification-timestamp">${new Date(data.timestamp).toLocaleString()}</div>
-            </div>
-            <div class="notification-actions">
-                <button class="mark-as-read" onclick="markAsRead(${data.id})">Mark as Read</button>
-            </div>
-        `;
+                <div class="notification-header">
+                    <h3 class="notification-title">${data.title}</h3>
+                    <p class="notification-subtitle">${data.sub_title}</p>
+                </div>
+                <div class="notification-body">
+                    <p class="notification-message">${data.message}</p>
+                </div>
+                <div class="notification-footer">
+                    <span class="notification-timestamp">${new Date(data.timestamp).toISOString().slice(0, 16).replace('T', ' ')}</span>
+                    <button class="mark-as-read" onclick="markAsRead(${data.id})">Mark as Read</button>
+                </div>
+            `;
 
             notificationList.prepend(newNotification);
             unreadNotifications.push(newNotification);
@@ -84,7 +95,7 @@
                         }
                         const index = unreadNotifications.findIndex(e => e.id === notificationId);
                         unreadNotifications.splice(index, 1);
-                        if(unreadNotifications.length === 0){
+                        if (unreadNotifications.length === 0) {
                             document.getElementById('notification-link').classList.remove('has-unread');
                         }
 
@@ -153,13 +164,22 @@
         }
 
         .notifications-container {
-            max-width: 800px;
+            max-width: 1200px;
+            width: 500px;
             margin: 20px auto;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
+        @media (max-width: 768px) {
+            .notifications-container {
+                max-width: 95%;
+                padding: 15px;
+            }
+        }
+
 
         .notifications-container h2 {
             font-size: 28px;
@@ -180,8 +200,9 @@
             padding: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
 
         .notification-card.unread {
@@ -197,19 +218,44 @@
             flex: 1;
         }
 
+        .notification-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 5px; /* Add spacing below the title */
+        }
+
+        .notification-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 5px; /* Add spacing below the subtitle */
+        }
+
         .notification-message {
             font-size: 16px;
             color: #333;
+            margin: 0 0 10px; /* Add spacing below the message */
+        }
+
+        .notification-actions {
+            margin-left: auto;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .notification-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .notification-timestamp {
             font-size: 0.85em;
             color: #777;
-            margin-top: 5px;
-        }
-
-        .notification-actions {
-            margin-left: 15px;
+            flex: 1;
         }
 
         .mark-as-read {
@@ -221,10 +267,12 @@
             font-size: 14px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-left: auto;
         }
 
         .mark-as-read:hover {
             background-color: #218838;
         }
+
     </style>
 {% endblock %}
