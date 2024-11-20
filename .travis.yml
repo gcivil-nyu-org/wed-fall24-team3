@@ -16,7 +16,7 @@ script:
   - black --check .
   - flake8 .
   - coverage run manage.py test
-  - coverage combine && coverage report
+  - coverage report
 after_success:
   - coveralls --verbose
 #before_deploy:
