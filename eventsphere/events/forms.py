@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MaxLengthValidator
+from django.core.exceptions import ValidationError
 from django import forms
 from .models import UserProfile, CreatorProfile, Event, Ticket
 
@@ -56,6 +57,19 @@ class EventForm(forms.ModelForm):
 
 
 class SignupForm(UserCreationForm):
+    username = forms.CharField(
+        max_length=255,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter your username"}
+        ),
+        validators=[MaxLengthValidator(255)],
+        error_messages={
+            "required": "Username is required.",
+            "max_length": "Username cannot exceed 255 characters.",
+        },
+    )
+
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(
@@ -98,6 +112,14 @@ class UserProfileForm(forms.ModelForm):
         if email:
             email_uniqueness_validator(email, UserProfile, self.instance)
         return email
+
+    def clean_age(self):
+        age = self.cleaned_data.get("age")
+        if age is not None and age <= 0:  # Validate positive age
+            raise ValidationError("Age must be a positive number.")
+        if age is not None and age >= 150:
+            raise ValidationError("Come on, nobody's THAT old!")
+        return age
 
 
 class CreatorProfileForm(forms.ModelForm):

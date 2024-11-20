@@ -263,11 +263,9 @@ select::after {
     <div class="container">
         <h1>Create a New Event</h1>
 
-        {% if user.is_authenticated and user.is_staff and not user.is_superuser %}
         <form action="{% url 'creator_dashboard' %}" method="GET" style="margin-bottom: 20px;">
             <button type="submit" class="btn-back">Back to Dashboard</button>
         </form>
-        {% endif %}
 
         <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
