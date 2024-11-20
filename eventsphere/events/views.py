@@ -27,6 +27,7 @@ from django.utils import timezone
 from datetime import timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from .utils import admin_required, creator_required, user_required
 
 
 @login_required
@@ -341,6 +342,7 @@ def fetch_filter_wise_data(request):
 
 
 @login_required
+@creator_required
 def creator_dashboard(request):
     try:
         creator_profile = CreatorProfile.objects.get(creator=request.user)
@@ -422,6 +424,8 @@ def creator_dashboard(request):
     )
 
 
+@login_required
+@admin_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -709,3 +713,18 @@ def buy_tickets(request, event_id):
         form = TicketPurchaseForm(initial=initial_data)
 
     return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+
+def not_authorized(request):
+    # Determine the user's homepage based on their role
+    if request.user.is_superuser:
+        redirect_url = "event_list"  # Admin dashboard
+    elif CreatorProfile.objects.filter(creator=request.user).exists():
+        redirect_url = "creator_dashboard"  # Creator dashboard
+    else:
+        redirect_url = "user_home"  # User homepage
+
+    context = {
+        "redirect_url": redirect_url,
+    }
+
+    return render(request, 'events/not_authorized.html', context, status=403)
