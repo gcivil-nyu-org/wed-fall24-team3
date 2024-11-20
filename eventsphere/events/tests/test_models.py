@@ -6,7 +6,6 @@ from events.models import Event, Ticket, UserProfile
 
 
 class EventModelTest(TestCase):
-
     def setUp(self):
         self.event = Event.objects.create(
             name="Tech Conference 2024",
@@ -88,7 +87,6 @@ class TicketModelTest(TestCase):
 
 
 class UserProfileModelTest(TestCase):
-
     def setUp(self):
         self.user = User.objects.create(username="user_2", password="12345")
         self.profile = UserProfile.objects.create(
