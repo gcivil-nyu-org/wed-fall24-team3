@@ -15,8 +15,8 @@ install:
 script:
   - black --check .
   - flake8 .
-  - coverage run --parallel-mode --concurrency=multiprocessing manage.py test --parallel
-  - coverage combine && coverage report
+  - coverage run manage.py test
+  - coverage report
 after_success:
   - coveralls --verbose
 #before_deploy:
