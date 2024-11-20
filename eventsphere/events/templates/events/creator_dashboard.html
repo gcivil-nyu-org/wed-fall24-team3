@@ -438,21 +438,41 @@
 
             <!-- Chart Data and Scripts -->
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    // Parse JSON data
-                    const ticketsSoldData = JSON.parse(document.getElementById('tickets-sold-data').textContent);
-                    const percentageSoldData = JSON.parse(document.getElementById('percentage-sold-data').textContent);
-                    const unsoldTicketsData = JSON.parse(document.getElementById('unsold-tickets-data').textContent);
+                    document.addEventListener('DOMContentLoaded', () => {
+                    // Safely parse JSON data if elements exist
+                    const parseJsonSafely = (id) => {
+                        const element = document.getElementById(id);
+                        return element ? JSON.parse(element.textContent) : null;
+                    };
 
-                    // Calculate totals for percentages
-                    const totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((acc, curr) => acc + curr.total_sold, 0);
-                    const totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((acc, curr) => acc + curr.unsold_tickets, 0);
+                    const ticketsSoldData = parseJsonSafely('tickets-sold-data');
+                    const percentageSoldData = parseJsonSafely('percentage-sold-data');
+                    const unsoldTicketsData = parseJsonSafely('unsold-tickets-data');
+
+                    if (!ticketsSoldData || !percentageSoldData || !unsoldTicketsData) {
+                        console.warn('Some required data elements are missing in the DOM.');
+                        return; // Exit early if any critical data is missing
+                    }
+
+                    // Calculate totals safely
+                    const totalTicketsSoldUpcomingEvents = ticketsSoldData.reduce((acc, curr) => acc + (curr.total_sold || 0), 0);
+                    const totalTicketsUnsoldPastEvents = unsoldTicketsData.reduce((acc, curr) => acc + (curr.unsold_tickets || 0), 0);
 
                     // Define colors for charts
                     const colors = [
                         '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
                         '#9966FF', '#FF9F40', '#E7E9ED', '#71B37C'
                     ];
+
+                    // Function to create and render charts if elements exist
+                    const renderChartSafely = (id, config) => {
+                        const chartElement = document.getElementById(id);
+                        if (chartElement) {
+                            new Chart(chartElement, config);
+                        } else {
+                            console.warn(`Chart element with id "${id}" not found.`);
+                        }
+                    };
 
                     // Tickets Sold Chart Config
                     const ticketsSoldConfig = {
@@ -602,13 +622,13 @@
                         }
                     };
 
-                    // Render Charts
-                    new Chart(document.getElementById('ticketsSoldChart'), ticketsSoldConfig);
-                    new Chart(document.getElementById('percentageSoldChart'), percentageSoldConfig);
-                    new Chart(document.getElementById('percentageSoldPieChart'), percentageSoldPieConfig);
-                    new Chart(document.getElementById('unsoldTicketsChart'), unsoldTicketsConfig);
-                    new Chart(document.getElementById('percentageUnsoldChart'), percentageUnsoldConfig);
-                    new Chart(document.getElementById('percentageUnsoldPieChart'), percentageUnsoldPieConfig);
+                    // Safely render all charts
+                    renderChartSafely('ticketsSoldChart', ticketsSoldConfig);
+                    renderChartSafely('percentageSoldChart', percentageSoldConfig);
+                    renderChartSafely('percentageSoldPieChart', percentageSoldPieConfig);
+                    renderChartSafely('unsoldTicketsChart', unsoldTicketsConfig);
+                    renderChartSafely('percentageUnsoldChart', percentageUnsoldConfig);
+                    renderChartSafely('percentageUnsoldPieChart', percentageUnsoldPieConfig);
                 });
             </script>
         </div>
