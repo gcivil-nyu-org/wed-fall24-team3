@@ -181,8 +181,29 @@ def leave_chat(request, room_id):
 
 @login_required
 def view_notifications(request):
-    tickets = Ticket.objects.filter(user=request.user)
-    return render(request, "events/notifications.html")
+    unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by("-created_at")
+    return render(request, "events/notifications.html", {"notifications": unread_notifications})
+
+
+@login_required
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        try:
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({"success": True, "message": "Notification marked as read."})
+        except Notification.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Notification not found."}, status=404)
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+
+
+@login_required
+def mark_all_as_read(request):
+    if request.method == "POST":
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
 
 
 @login_required

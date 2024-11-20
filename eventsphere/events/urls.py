@@ -58,5 +58,6 @@ urlpatterns = [
     ),
     path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
     path("notifications", views.view_notifications, name="notifications"),
-
+    path('notifications/mark_as_read/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
+path('notifications/mark_all_as_read', views.mark_all_as_read, name='mark_all_as_read'),
 ]

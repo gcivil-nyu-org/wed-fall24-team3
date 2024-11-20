@@ -67,18 +67,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
     
     async def notify_group_members(self, room, sender, message):
-        # Get all members of the room except the sender
         members = await self.get_all_members_except_sender(room, sender)
-
+        event_name = await self.get_event_name(room)
+        
         for member in members:
-            await self.save_notification(room, member, message)
+            notif_message = f"New message in {event_name} chat: {message}"
+            notif_id = await self.save_notification(room, member, notif_message)
             await self.channel_layer.group_send(
                 f"notifications_{member.user.id}",
                 {
                     "type": "send_notification",
                     "data": {
-                        "message": f"New message in {room.event.name} chat: {message}",
+                        "message": notif_message,
                         "timestamp": timezone.now().isoformat(),
+                        "id": notif_id
                     },
                 },
             )
@@ -86,6 +88,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_chat_room(self, room_id):
         return ChatRoom.objects.filter(id=room_id).first()
+    
+    @database_sync_to_async
+    def get_event_name(self, room):
+        return room.event.name
 
     @database_sync_to_async
     def get_room_member(self, chat_room, user_id):
@@ -103,10 +109,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def save_notification(self, room, member, message):
-        Notification.objects.create(
+        notif = Notification.objects.create(
                 user=member.user,
                 message=f"New message in {room.event.name} chat: {message}",
             )
+        return notif.id
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
