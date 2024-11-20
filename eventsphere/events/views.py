@@ -798,7 +798,11 @@ def buy_tickets(request, event_id):
     else:
         form = TicketPurchaseForm(initial=initial_data)
 
-    return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+    return render(
+        request,
+        "events/buy_tickets.html",
+        {"event": event, "form": form, "now": timezone.now()},
+    )
 
 
 def not_authorized(request):
