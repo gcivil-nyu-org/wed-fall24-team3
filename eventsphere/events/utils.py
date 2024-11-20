@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import reverse
-from .models import CreatorProfile, UserProfile
+from .models import CreatorProfile
 
 
 def admin_required(view_func):
