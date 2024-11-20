@@ -26,3 +26,6 @@ urllib3==2.2.3
 qrcode==8.0
 pillow==11.0.0
 boto3
+daphne
+channels
+channels_redis

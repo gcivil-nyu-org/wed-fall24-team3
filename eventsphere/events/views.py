@@ -1,5 +1,6 @@
 import base64
 import qrcode  # type: ignore
+import json
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -8,15 +9,168 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
-from .models import UserProfile, CreatorProfile, Ticket, Event
+from .models import (
+    UserProfile,
+    CreatorProfile,
+    Ticket,
+    Event,
+    ChatRoom,
+    ChatMessage,
+    RoomMember,
+)
 from io import BytesIO
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 from datetime import timedelta
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+
+@login_required
+def join_chat(request, event_id):
+    # Fetch the event and get or create the associated chat room
+    event = get_object_or_404(Event, id=event_id)
+    chat_room, created = ChatRoom.objects.get_or_create(
+        event=event, creator=event.created_by
+    )
+
+    # Auto-add the creator to the chat room if they are not already a member
+    if request.user == event.created_by.creator:
+        RoomMember.objects.get_or_create(room=chat_room, user=request.user)
+        return redirect("chat_room", room_id=chat_room.id)
+
+    # For other users, check if they have purchased a ticket for the event
+    if not Ticket.objects.filter(user=request.user, event=event).exists():
+        # Redirect to the event detail page with an alert message if no ticket is found
+        messages.error(
+            request, "Please purchase a ticket before joining the chat room."
+        )
+        return redirect("event_detail", pk=event_id)
+
+    # Check if the user is already a member or add them
+    member, created = RoomMember.objects.get_or_create(
+        room=chat_room, user=request.user
+    )
+
+    # If the member was kicked, restrict access
+    if member.is_kicked:
+        messages.error(request, "You have been removed from this chat room.")
+        return redirect("event_detail", pk=event_id)
+
+    # Redirect to the chat room
+    return redirect("chat_room", room_id=chat_room.id)
+
+
+@login_required
+def chat_room(request, room_id):
+    # Load the chat room and its message history
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    messages = ChatMessage.objects.filter(room=chat_room).order_by("timestamp")
+    members = RoomMember.objects.filter(room=chat_room, is_kicked=False)
+
+    # Check if the user is a member and redirect if they're not
+    if not members.filter(user=request.user).exists():
+        return redirect("join_chat", event_id=chat_room.event.id)
+
+    return render(
+        request,
+        "events/chat_room.html",
+        {
+            "chat_room": chat_room,
+            "messages": messages,
+            "members": members,
+            "is_creator": chat_room.creator.creator == request.user,
+        },
+    )
+
+
+@login_required
+def send_message(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+    content = request.POST.get("content")
+
+    # Check if user is a member and not kicked
+    member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    if member.is_kicked:
+        return JsonResponse(
+            {"error": "You are not allowed to send messages in this chat room."},
+            status=403,
+        )
+
+    # Save and broadcast message if there's content
+    if content:
+        ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+    return JsonResponse({"status": "success"})
+
+
+@login_required
+def make_announcement(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+
+    # Check if the user is the creator of the chat room
+    if request.user == chat_room.creator.creator:
+        # Parse JSON data from request body
+        try:
+            data = json.loads(request.body)  # Retrieve the JSON body
+            content = data.get("content")
+        except (ValueError, KeyError):
+            return JsonResponse(
+                {"error": "Invalid data format or missing content."}, status=400
+            )
+
+        if content:
+            # Create the announcement message
+            ChatMessage.objects.create(
+                room=chat_room, user=request.user, content=f"[Announcement] {content}"
+            )
+            return JsonResponse({"status": "success"})
+        else:
+            return JsonResponse(
+                {"error": "No content provided for the announcement."}, status=400
+            )
+    else:
+        return JsonResponse(
+            {"error": "You are not authorized to make announcements."}, status=403
+        )
+
+
+@login_required
+def kick_member(request, room_id, user_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+
+    # Only allow creator to kick members
+    if request.user == chat_room.creator.creator:
+        member = get_object_or_404(RoomMember, room=chat_room, user_id=user_id)
+        member.is_kicked = True
+        member.save()
+
+        # Notify the chat room via WebSocket that a user has been kicked
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{room_id}",
+            {
+                "type": "user_kicked",
+                "user_id": user_id,
+            },
+        )
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse(
+        {"error": "You are not authorized to kick members."}, status=403
+    )
+
+
+@login_required
+def leave_chat(request, room_id):
+    chat_room = get_object_or_404(ChatRoom, id=room_id)
+
+    # Remove the user from the room members
+    member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    member.delete()
+    return redirect("user_home")
 
 
 @login_required
@@ -176,7 +330,7 @@ def fetch_filter_wise_data(request):
         for entry in user_counts_per_day:
             unique_users_data[entry["day"]] = entry["unique_users"]
 
-    print(list(unique_users_data.values()))
+    # print(list(unique_users_data.values()))
     # Convert the queryset to a list of dictionaries for JSON response
     return JsonResponse(
         {
@@ -362,7 +516,6 @@ def create_event(request):
 
 @login_required
 def update_event_view(request, event_id):
-    # Fetch the event by its ID and store initial values
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
     initial_latitude = event.latitude
@@ -377,12 +530,16 @@ def update_event_view(request, event_id):
             event = form.save(commit=False)
 
             # Check if location has changed
-            if form.cleaned_data.get("location") == initial_location:
-                # If location is unchanged, retain the original latitude and longitude
+            if form.cleaned_data.get("location") != initial_location:
+                # Update latitude and longitude if a new location is provided
+                event.latitude = form.cleaned_data.get("latitude")
+                event.longitude = form.cleaned_data.get("longitude")
+            else:
+                # Retain existing latitude and longitude
                 event.latitude = initial_latitude
                 event.longitude = initial_longitude
 
-            # Check if date and numTickets are provided or retain initial values
+            # Retain date and numTickets if not provided in form
             if not form.cleaned_data.get("date_time"):
                 event.date_time = initial_date_time
             if form.cleaned_data.get("numTickets") is None:
@@ -417,7 +574,6 @@ def update_event_view(request, event_id):
                         },
                     )
 
-            # Save the event instance to the database
             event.save()
             if request.user.is_superuser:
                 return redirect("event_list")
@@ -432,7 +588,6 @@ def update_event_view(request, event_id):
             )
 
     else:
-        # Populate the form with initial values on GET request
         form = EventForm(instance=event)
 
     return render(request, "events/update_event.html", {"form": form})
@@ -511,6 +666,14 @@ def my_tickets(request):
 @login_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    # user_profile = getattr(request.user, "profile", None)  # Assumes a one-to-one relation as request.user.profile
+
+    initial_data = {}
+    if user_profile and user_profile.email:  # Check if the profile and email exist
+        initial_data["email"] = (
+            user_profile.email
+        )  # Pre-fill with user's email if available
 
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
@@ -532,11 +695,17 @@ def buy_tickets(request, event_id):
             # Update the event's ticketsSold
             event.ticketsSold += ticket.quantity
             event.save(update_fields=["ticketsSold"])
+            if ticket.quantity == 1:
+                messages.success(request, "Ticket purchased successfully!")
+            else:
+                messages.success(
+                    request, f"{ticket.quantity} tickets purchased successfully!"
+                )
 
-            messages.success(request, "Ticket purchased successfully!")
-            return redirect("profile_tickets")
+            # messages.success(request, "Ticket purchased successfully!")
+            return redirect("event_detail", pk=event.id)
 
     else:
-        form = TicketPurchaseForm()
+        form = TicketPurchaseForm(initial=initial_data)
 
     return render(request, "events/buy_tickets.html", {"event": event, "form": form})

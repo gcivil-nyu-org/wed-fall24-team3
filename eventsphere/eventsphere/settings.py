@@ -19,15 +19,9 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_DIR = Path(__file__).resolve().parent.parent.parent
-# print(ENV_DIR)print(ENV_DIR)
-# Load the .env file
 load_dotenv(os.path.join(ENV_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = os.getenv('SECRET_KEY')
 SECRET_KEY = "django-insecure-tchc0rh*i4e3k%22dy@ub(9(n3&^0-9+)8qf-8t5c6%j6^8xf5"
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -37,17 +31,21 @@ ALLOWED_HOSTS = [
     "eventsphere-env2.eba-garccznv.us-west-2.elasticbeanstalk.com",
     "prod-env.eba-qff7pamz.us-west-2.elasticbeanstalk.com",
     "127.0.0.1",
+    "172.31.2.7",  # Internal IP for the instance
+    "localhost",
     "prod-env.eba-qff7pamz.us-west-2.elasticbeanstalk.com",
 ]
 
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "channels",
+    "daphne",
     "django.contrib.staticfiles",
     "events",
 ]
@@ -80,11 +78,29 @@ TEMPLATES = [
     },
 ]
 
+# Channels ASGI settings
+ASGI_APPLICATION = "eventsphere.asgi.application"  # Set the ASGI application path
+
+# Channel Layer Configuration
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     }
+# }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis://35.95.70.66:6379")],
+        },
+    },
+}
+
+# WSGI Application
 WSGI_APPLICATION = "eventsphere.wsgi.application"
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Database configuration
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -95,18 +111,8 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT"),
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'mydatabase', # This is where you put the name of the db file.
-#                  # If one doesn't exist, it will be created at migration time.
-#     }
-# }
-
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -126,22 +132,16 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
-# settings.py
+# Login and logout settings
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "user_home"
+LOGOUT_REDIRECT_URL = "login"
 
-LOGIN_URL = "login"  # Named URL pattern for login
-LOGIN_REDIRECT_URL = "user_home"  # Redirect to create_event after login
-LOGOUT_REDIRECT_URL = "login"  # Redirect to login page after logout
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# Static files
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
@@ -152,6 +152,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 
+# Use SQLite for testing
 # Enabling logging during tests
 # NOSE_ARGS = [
 #     "--nocapture",

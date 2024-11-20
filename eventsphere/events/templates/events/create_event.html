@@ -33,6 +33,7 @@
 
         /* Style for the custom dropdown */
         .custom-dropdown {
+            display: none;
             position: absolute;
             background-color: #fff;
             border: 1px solid #ccc;
@@ -210,14 +211,16 @@ select::after {
             const customDropdown = document.getElementById('custom-dropdown');
             const latitudeField = document.getElementById('id_latitude');
             const longitudeField = document.getElementById('id_longitude');
+            const containerRect = document.querySelector('.container').getBoundingClientRect();
+
 
             // Fetch suggestions as the user types in the location input
             locationInput.addEventListener('input', function() {
                 const query = locationInput.value;
 
                 const inputRect = locationInput.getBoundingClientRect();
-                customDropdown.style.top = `${inputRect.bottom + window.scrollY}px`;
-                customDropdown.style.left = `${inputRect.left + window.scrollX}px`;
+                customDropdown.style.top = `${inputRect.bottom - containerRect.top}px`;
+                customDropdown.style.left = `${inputRect.left - containerRect.left}px`;
                 customDropdown.style.width = `${inputRect.width}px`;
         
 
@@ -261,7 +264,6 @@ select::after {
         <h1>Create a New Event</h1>
         <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-
             <label for="id_name">Event Name</label>
             <input type="text" id="id_name" name="name" placeholder="Enter event name" required>
 

@@ -14,7 +14,7 @@
 
         /* Navigation styles */
         nav {
-            background-color: #444444; /* Gray background for the nav */
+            background-color: #333; /* Gray background for the nav */
             padding: 10px 20px;
             position: fixed;
             width: 100%;
@@ -40,7 +40,7 @@
             color: white;
             text-decoration: none;
             padding: 10px 20px; /* Increased padding for better visibility */
-            background-color: #444444;
+            background-color: #333;
             border: none;
             cursor: pointer;
             border-radius: 5px;
@@ -54,7 +54,7 @@
 
         /* Create Event Button */
         .btn-create-event {
-            background-color: #444444; /* Green for Create Event button */
+            background-color: #333; /* Green for Create Event button */
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
@@ -86,7 +86,7 @@
             position: absolute;
             top: 40px;
             right: 20px;
-            background-color: #444444;
+            background-color: #333;
             border-radius: 5px;
             overflow: hidden;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
@@ -250,14 +250,14 @@
     <div class="nav-left">
         <!-- <a href="{% url 'home' %}">Home</a> -->
         <a href="{% url 'event_list' %}">View All Events</a>
-        <a href="{% url 'create_event' %}" class="btn-create-event">Create Event</a> <!-- Create Event Button -->
+        <!-- <a href="{% url 'create_event' %}" class="btn-create-event">Create Event</a> Create Event Button -->
     </div>
 
     <!-- Right side of the navigation bar with logout button -->
      <!-- Logout Button similar to base.html -->
 <div class="nav-right">
-    <li style="margin-left: auto; color: white;">
-        Welcome, {{ user.username }}
+    <!-- <li style="margin-left: auto; color: white;"> -->
+        <!-- Welcome, {{ user.username }} -->
         <form action="{% url 'logout' %}" method="POST" style="display: inline;">
             {% csrf_token %}
             <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>
@@ -265,12 +265,6 @@
     </li>
 </div>
 
-    <!-- <div class="nav-right">
-        <form action="{% url 'logout' %}" method="POST">
-            {% csrf_token %}
-            <button class="btn-logout" type="submit">Logout</button>
-        </form>
-    </div> -->
 
     <!-- Hamburger Menu -->
     <div class="hamburger" onclick="toggleDropdown()">

@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Chat Room - EventSphere{% endblock %}
+
+{% block content %}
+<div class="chat-room-container">
+    <div class="chat-room-header">
+        <h1>Chat Room for <span>{{ chat_room.event.name }}</span></h1>
+    </div>
+
+    <div class="chat-room-main">
+        <!-- Members List -->
+        <div class="members-list">
+            <h2>Members</h2>
+            <ul>
+                {% for member in chat_room.members.all %}
+                <li data-user-id="{{ member.user.id }}" class="{% if member.is_kicked %}kicked-member{% endif %}">
+                    {{ member.user.username }}
+                    {% if member.is_kicked %}
+                        <span class="kicked-label">(Kicked)</span>
+                    {% elif request.user == chat_room.creator.creator and member.user != request.user %}
+                        <button onclick="kickUser('{{ member.user.id }}')" class="btn-kick">Kick</button>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="chat-room-content">
+            <!-- Announcements Section -->
+            <div id="announcements" class="announcements">
+                <h2>Announcements</h2>
+                {% for message in messages %}
+                    {% if "[Announcement]" in message.content %}
+                    <div class="announcement-message">
+                        <span class="message-content">{{ message.content|cut:"[Announcement]" }}</span>
+                        <span class="timestamp">{{ message.timestamp|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="chat-messages">
+                {% for message in messages %}
+                    {% if "[Announcement]" not in message.content %}
+                    <div class="chat-message {% if message.user == chat_room.creator.creator %}creator-message{% endif %}">
+                        <span class="username">{{ message.user.username }}:</span>
+                        <span class="message-content">{{ message.content }}</span>
+                        <span class="timestamp">{{ message.timestamp|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Message Form -->
+            <form id="message-form" class="message-form" method="POST" action="{% url 'send_message' chat_room.id %}">
+                {% csrf_token %}
+                <input type="text" name="content" id="message-content" placeholder="Type your message..." required>
+                <button type="submit" class="btn-send">Send</button>
+                {% if request.user == chat_room.creator.creator %}
+                    <button type="button" onclick="makeAnnouncement()" class="btn-announce">Make Announcement</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+            <!-- Back Button -->
+    <div class="back-to-event">
+        {% if request.user == chat_room.creator.creator %}
+            <a href="{% url 'creator_dashboard' %}" class="back-button">Back to Dashboard</a>
+        {% else %}
+            <a href="{% url 'event_detail' chat_room.event.id %}" class="back-button">Back to Event</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    function makeAnnouncement() {
+        const content = document.getElementById("message-content").value.trim();
+        if (content) {
+            fetch(`/chat_room/{{ chat_room.id }}/make_announcement/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert("Announcement made successfully.");
+                    document.getElementById("message-content").value = "";
+                    location.reload(); // Reload to update the announcement section
+                } else {
+                    alert(data.error || "Failed to make an announcement.");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        } else {
+            alert("Please enter an announcement message before submitting.");
+        }
+    }
+
+    function kickUser(userId) {
+        fetch(`/chat_room/{{ chat_room.id }}/kick_member/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("User has been kicked out.");
+                location.reload(); // Optionally reload to update the members list
+            } else {
+                alert(data.error || "Failed to kick user.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    function scrollToBottom() {
+        const chatMessages = document.getElementById("chat-messages");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    const roomId = "{{ chat_room.id }}";
+    const userName = "{{ request.user.username }}";  
+    const currentUserId = "{{ request.user.id }}";
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const chatSocket = new WebSocket(
+        protocol + '://' + window.location.host + '/ws/chat/' + roomId + '/'
+    );
+
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        if (data.type === "user_kicked" && data.user_id == currentUserId) {
+            alert("You have been removed from this chat room.");
+            window.location.href = "{% url 'event_detail' chat_room.event.id %}";
+        } else if (data.type === "user_kicked") {
+            const kickedUserElement = document.querySelector(`.members-list li[data-user-id="${data.user_id}"]`);
+            if (kickedUserElement) {
+                kickedUserElement.remove();  // Remove the kicked user element from the list
+            }
+        } else {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            if (data.username === "{{ chat_room.creator.creator.username }}") {
+                messageElement.classList.add('creator-message');
+            }
+            messageElement.innerHTML = `<span class="username">${data.username}:</span> 
+                                        <span class="message-content">${data.message}</span> 
+                                        <span class="timestamp">${data.timestamp}</span>`;
+            document.getElementById('chat-messages').appendChild(messageElement);
+            scrollToBottom();
+        }
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.getElementById('message-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById("message-content");
+        const message = messageInput.value.trim();
+
+        if (message) {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName  
+            }));
+
+            messageInput.value = '';
+        } else {
+            alert("Please enter a message before sending.");
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        scrollToBottom();
+    });
+</script>
+
+
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+
+    .back-to-event {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .back-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    .back-button:hover {
+        background-color: #0056b3;
+    }
+    /* Main Container Styling */
+    .chat-room-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header Styling */
+    .chat-room-header h1 {
+        font-size: 28px;
+        text-align: center;
+        color: #444;
+        margin-bottom: 20px;
+    }
+    .chat-room-header h1 span {
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    /* Main Content Layout */
+    .chat-room-main {
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Members List */
+    .members-list {
+        flex: 1;
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .members-list h2 {
+        font-size: 18px;
+        color: #444;
+        margin-bottom: 10px;
+    }
+
+    .members-list ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .members-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 5px 0;
+        padding: 8px;
+        background-color: #e9e9e9;
+        border-radius: 6px;
+    }
+
+    .kicked-member {
+        color: #b0b0b0;
+        font-style: italic;
+    }
+    .kicked-label {
+        color: #d9534f;
+        font-size: 0.9em;
+        margin-left: 5px;
+    }
+
+    .btn-kick {
+        padding: 5px 10px;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .btn-kick:hover {
+        background-color: #c9302c;
+    }
+
+    /* Chat Room Content */
+    .chat-room-content {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Announcements Section */
+    .announcements {
+        background-color: #fffae6;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .announcements h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .announcement-message {
+        background-color: #ffe4b5;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        color: #444;
+        font-size: 14px;
+    }
+
+    /* Chat Messages */
+    .chat-messages {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-message {
+        padding: 12px;
+        margin: 5px 0;
+        border-radius: 8px;
+        background-color: #e9e9e9;
+        color: #333;
+    }
+
+    .creator-message {
+        background-color: #d1ecf1;
+        font-weight: bold;
+        border-left: 4px solid #0c5460;
+        padding-left: 10px;
+    }
+
+    .username {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .message-content {
+        color: #555;
+        margin-left: 10px;
+    }
+
+    .timestamp {
+        font-size: 0.8em;
+        color: #999;
+        float: right;
+    }
+
+    /* Message Form */
+    .message-form {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .message-form input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        outline: none;
+    }
+
+    .message-form .btn-send, .message-form .btn-announce {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-send {
+        background-color: #28a745;
+    }
+    .btn-send:hover {
+        background-color: #218838;
+    }
+
+    .btn-announce {
+        background-color: #007bff;
+    }
+    .btn-announce:hover {
+        background-color: #0069d9;
+    }
+</style>
+{% endblock %}
