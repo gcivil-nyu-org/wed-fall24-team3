@@ -754,9 +754,9 @@ def buy_tickets(request, event_id):
 
     initial_data = {}
     if user_profile and user_profile.email:  # Check if the profile and email exist
-        initial_data[
-            "email"
-        ] = user_profile.email  # Pre-fill with user's email if available
+        initial_data["email"] = (
+            user_profile.email
+        )  # Pre-fill with user's email if available
 
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
