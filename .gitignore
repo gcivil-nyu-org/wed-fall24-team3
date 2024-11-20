@@ -10,7 +10,9 @@ __pycache__/
 *.pyc
 /admin_accessKeys.csv
 /TravisCI_accessKeys.csv
-/eventsphere/.coverage
+/eventsphere/.coverage*
+**/.coverage*
 /suprateek_accessKeys.csv
 newenv/
 /eventsphere/.xml
+/dump.rdb
