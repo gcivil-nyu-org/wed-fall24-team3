@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Notifications - EventSphere{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <h2>Notifications</h2>
+    <div id="notification-list">
+        {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                <div class="notification-content">
+                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-timestamp">{{ notification.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                <div class="notification-actions">
+                    {% if not notification.is_read %}
+                        <button class="mark-as-read" onclick="markAsRead({{ notification.id }})">Mark as Read</button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const notificationSocket = new WebSocket(
+        protocol + '://' + window.location.host + '/ws/notifications/'
+    );
+
+    // WebSocket message handler
+    notificationSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        const notificationList = document.getElementById("notification-list");
+
+        // Create a new notification card
+        const newNotification = document.createElement("div");
+        newNotification.classList.add("notification-card", "unread");
+        newNotification.setAttribute("id", `notification-${data.id}`);
+        newNotification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-message">${data.message}</div>
+                <div class="notification-timestamp">${new Date(data.timestamp).toLocaleString()}</div>
+            </div>
+            <div class="notification-actions">
+                <button class="mark-as-read" onclick="markAsRead(${data.id})">Mark as Read</button>
+            </div>
+        `;
+
+        // Prepend the new notification to the list
+        notificationList.prepend(newNotification);
+
+        // Optionally, display an alert for the notification
+        {#alert(data.message);#}
+    };
+
+    notificationSocket.onclose = function (e) {
+        console.error("Notification WebSocket closed unexpectedly.");
+    };
+
+    // Function to mark a notification as read
+    function markAsRead(notificationId) {
+        fetch(`/notifications/mark_as_read/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                // Update the UI to reflect the notification as read
+                const notificationCard = document.getElementById(`notification-${notificationId}`);
+                if (notificationCard) {
+                    notificationCard.classList.remove("unread");
+                    const button = notificationCard.querySelector(".mark-as-read");
+                    if (button) button.remove();
+                }
+            } else {
+                console.error("Failed to mark notification as read.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .notifications-container h2 {
+        font-size: 28px;
+        text-align: center;
+        color: #444;
+        margin-bottom: 20px;
+    }
+
+    #notification-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .notification-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .notification-card.unread {
+        background-color: #d1ecf1;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-message {
+        font-size: 16px;
+        color: #333;
+    }
+
+    .notification-timestamp {
+        font-size: 0.85em;
+        color: #777;
+        margin-top: 5px;
+    }
+
+    .notification-actions {
+        margin-left: 15px;
+    }
+
+    .mark-as-read {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .mark-as-read:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}

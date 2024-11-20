@@ -18,6 +18,7 @@ from .models import (
     ChatRoom,
     ChatMessage,
     RoomMember,
+    Notification,
 )
 from io import BytesIO
 import boto3
@@ -89,20 +90,25 @@ def chat_room(request, room_id):
 
 @login_required
 def send_message(request, room_id):
+    print("Reached send_message = ", request)
     chat_room = get_object_or_404(ChatRoom, id=room_id)
     content = request.POST.get("content")
+    print("Chat content = ", content)
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
             status=403,
         )
 
+    # print("Chat content = ", content)
     # Save and broadcast message if there's content
     if content:
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+        
     return JsonResponse({"status": "success"})
 
 
@@ -171,6 +177,12 @@ def leave_chat(request, room_id):
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
     member.delete()
     return redirect("user_home")
+
+
+@login_required
+def view_notifications(request):
+    tickets = Ticket.objects.filter(user=request.user)
+    return render(request, "events/notifications.html")
 
 
 @login_required
@@ -655,7 +667,6 @@ def creator_profile(request):
     return render(
         request, "events/creator_profile.html", {"form": form, "tickets": tickets}
     )
-
 
 @login_required
 def my_tickets(request):

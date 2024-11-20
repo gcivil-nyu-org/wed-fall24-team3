@@ -94,6 +94,7 @@
             {% endif %}
             <li style="margin-left: auto; color: white;">
                 Welcome, {{ user.username }}
+                <li><a href="{% url 'notifications' %}">Notifications</a></li>
                 <form action="{% url 'logout' %}" method="POST" style="display: inline;">
                     {% csrf_token %}
                     <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>

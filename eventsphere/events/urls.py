@@ -57,4 +57,6 @@ urlpatterns = [
         name="kick_member",
     ),
     path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
+    path("notifications", views.view_notifications, name="notifications"),
+
 ]

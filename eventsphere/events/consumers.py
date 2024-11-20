@@ -4,7 +4,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.utils import timezone
-from .models import ChatRoom, ChatMessage, RoomMember
+from .models import ChatRoom, ChatMessage, RoomMember, Notification
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -33,9 +33,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data.get("message")
         user = self.scope["user"]
-
         if message:
             await self.save_message(message, user)
+            chat_room = await self.get_chat_room(self.room_id)
+            await self.notify_group_members(chat_room, user, message)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -45,6 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
             )
+        
 
     async def chat_message(self, event):
         await self.send(
@@ -63,6 +65,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Notify the user that they are kicked and redirect them
             await self.send(text_data=json.dumps({"type": "user_kicked"}))
             await self.close()
+    
+    async def notify_group_members(self, room, sender, message):
+        # Get all members of the room except the sender
+        members = await self.get_all_members_except_sender(room, sender)
+
+        for member in members:
+            await self.save_notification(room, member, message)
+            await self.channel_layer.group_send(
+                f"notifications_{member.user.id}",
+                {
+                    "type": "send_notification",
+                    "data": {
+                        "message": f"New message in {room.event.name} chat: {message}",
+                        "timestamp": timezone.now().isoformat(),
+                    },
+                },
+            )
 
     @database_sync_to_async
     def get_chat_room(self, room_id):
@@ -76,3 +95,42 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, content, user):
         chat_room = ChatRoom.objects.get(id=self.room_id)
         ChatMessage.objects.create(room=chat_room, user=user, content=content)
+    
+    @database_sync_to_async
+    def get_all_members_except_sender(self, chat_room, sender):
+        return list(RoomMember.objects.filter(room=chat_room).exclude(user=sender))
+    
+    
+    @database_sync_to_async
+    def save_notification(self, room, member, message):
+        Notification.objects.create(
+                user=member.user,
+                message=f"New message in {room.event.name} chat: {message}",
+            )
+
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.group_name = f"notifications_{self.user.id}"
+
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name,
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name,
+        )
+
+    async def send_notification(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
+
