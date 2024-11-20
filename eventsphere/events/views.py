@@ -330,7 +330,7 @@ def fetch_filter_wise_data(request):
         for entry in user_counts_per_day:
             unique_users_data[entry["day"]] = entry["unique_users"]
 
-    print(list(unique_users_data.values()))
+    # print(list(unique_users_data.values()))
     # Convert the queryset to a list of dictionaries for JSON response
     return JsonResponse(
         {
