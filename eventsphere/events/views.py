@@ -684,7 +684,7 @@ def buy_tickets(request, event_id):
             if quantity > event.tickets_left:
                 messages.error(
                     request,
-                    f"Only {event.tickets_left} tickets are available! Please adjust your quantity.",
+                    f"Not enough tickets available!",
                 )
                 return render(
                     request, "events/buy_tickets.html", {"event": event, "form": form}

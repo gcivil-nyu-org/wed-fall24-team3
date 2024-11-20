@@ -11,6 +11,7 @@ __pycache__/
 /admin_accessKeys.csv
 /TravisCI_accessKeys.csv
 /eventsphere/.coverage
+/eventsphere/.coverage*
 /suprateek_accessKeys.csv
 newenv/
 /eventsphere/.xml
