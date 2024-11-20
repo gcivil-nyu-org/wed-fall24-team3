@@ -86,6 +86,7 @@
 {% endblock %}
 
 {% block extra_js %}
+    {{ block.super }}
 <script>
     function getCSRFToken() {
         return document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -147,7 +148,6 @@
     const roomId = "{{ chat_room.id }}";
     const userName = "{{ request.user.username }}";
     const currentUserId = "{{ request.user.id }}";
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const chatSocket = new WebSocket(
         protocol + '://' + window.location.host + '/ws/chat/' + roomId + '/'
     );

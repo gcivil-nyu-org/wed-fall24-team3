@@ -181,8 +181,19 @@ def leave_chat(request, room_id):
 
 @login_required
 def view_notifications(request):
-    unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by("-created_at")
-    return render(request, "events/notifications.html", {"notifications": unread_notifications})
+    unread_notifications =fetch_unread_notif_db(request.user).values('id', 'message', 'created_at')
+    return render(request, "events/notifications.html", {"notifications": list(unread_notifications)})
+
+
+@login_required
+def get_user_unread_notifications(request):
+    unread_notifs = fetch_unread_notif_db(request.user)
+    return JsonResponse(list(unread_notifs.values('id', 'message', 'created_at')), safe=False)
+
+
+def fetch_unread_notif_db(user):
+    return Notification.objects.filter(user=user, is_read=False).order_by(
+        "-created_at")
 
 
 @login_required

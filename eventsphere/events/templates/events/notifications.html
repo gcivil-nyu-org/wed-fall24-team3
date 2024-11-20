@@ -10,6 +10,9 @@
             </button>
         </div>
 
+        <div id="notification-data" style="display: none;">
+            {{ notifications|json_script:"unreadNotifications" }}
+        </div>
         <div id="notification-list">
             {% for notification in notifications %}
                 <div class="notification-card {% if not notification.is_read %}unread{% endif %}"
@@ -17,7 +20,8 @@
                     <div class="notification-content">
                         <div class="notification-message">{{ notification.message }}</div>
                         <div class="notification-timestamp">
-                            {{ notification.created_at|date:"Y-m-d H:i" }}</div>
+                            {{ notification.created_at|date:"Y-m-d H:i" }}
+                        </div>
                     </div>
                     <div class="notification-actions">
                         {% if not notification.is_read %}
@@ -33,16 +37,17 @@
     </div>
 {% endblock %}
 
+{{ notifications|json_script:"notifications" }}
 {% block extra_js %}
+    {{ block.super }}
     <script>
-        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const notificationSocket = new WebSocket(
-            protocol + '://' + window.location.host + '/ws/notifications/'
-        );
+        const unreadNotifications = JSON.parse(document.getElementById('unreadNotifications').textContent);
+        console.log("Unread Notifications:", unreadNotifications);
 
-        // WebSocket message handler
-        notificationSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
+        document.addEventListener('notificationReceived', function (e) {
+            {#notificationSocket.onmessage = function (e) {#}
+            console.log("event = ", e)
+            const data = e.detail;
             const notificationList = document.getElementById("notification-list");
 
             // Create a new notification card
@@ -61,14 +66,11 @@
 
             // Prepend the new notification to the list
             notificationList.prepend(newNotification);
+            unreadNotifications.push(newNotification);
 
             // Optionally, display an alert for the notification
             {#alert(data.message);#}
-        };
-
-        notificationSocket.onclose = function (e) {
-            console.error("Notification WebSocket closed unexpectedly.");
-        };
+        });
 
         // Function to mark a notification as read
         function markAsRead(notificationId) {
@@ -89,6 +91,13 @@
                             const button = notificationCard.querySelector(".mark-as-read");
                             if (button) button.remove();
                         }
+                        const index = unreadNotifications.findIndex(e => e.id === notificationId);
+                        unreadNotifications.splice(index, 1);
+                        console.log("unreadNotifications.length = ", unreadNotifications.length)
+                        if(unreadNotifications.length === 0){
+                            document.getElementById('notification-link').classList.remove('has-unread');
+                        }
+
                     } else {
                         console.error("Failed to mark notification as read.");
                     }

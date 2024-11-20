@@ -14,3 +14,4 @@ __pycache__/
 /suprateek_accessKeys.csv
 newenv/
 /eventsphere/.xml
+/dump.rdb
