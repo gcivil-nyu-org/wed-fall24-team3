@@ -1082,6 +1082,7 @@ class BuyTicketsViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="user", password="pass")
+        self.profile = UserProfile.objects.create(user=self.user)
         self.creator_user = User.objects.create_user(
             username="creator", password="creatorpass"
         )
@@ -1136,6 +1137,25 @@ class BuyTicketsViewTest(TestCase):
             reverse("login") + "?next=" + reverse("buy_tickets", args=[self.event.id])
         )
         self.assertRedirects(response, login_url)
+
+    def test_buy_tickets_as_creator(self):
+        self.client.logout()
+        self.client.login(username="creator", password="creatorpass")
+        response = self.client.get(reverse("buy_tickets", args=[self.event.id]))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_buy_tickets_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+        response = self.client.get(reverse("buy_tickets", args=[self.event.id]))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
 
 class CreatorDashboardViewTest(TestCase):

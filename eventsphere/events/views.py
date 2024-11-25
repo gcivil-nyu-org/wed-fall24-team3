@@ -32,7 +32,7 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
-from .utils import admin_required, creator_required
+from .utils import admin_required, creator_required, user_required
 
 
 @login_required
@@ -747,6 +747,7 @@ def my_tickets(request):
 
 
 @login_required
+@user_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
