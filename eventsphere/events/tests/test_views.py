@@ -360,6 +360,7 @@ class ProfileTicketsViewTest(TestCase):
         self.client = Client()
         # Create a user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
         # Create an event
         self.event = Event.objects.create(
             name="Test Event",
@@ -393,6 +394,29 @@ class ProfileTicketsViewTest(TestCase):
         response = self.client.get(reverse("profile_tickets"))
         login_url = reverse("login") + "?next=" + reverse("profile_tickets")
         self.assertRedirects(response, login_url)
+
+    def test_profile_tickets_as_creator(self):
+        self.client.logout()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+        self.client.login(username="creator", password="creatorpass")
+        response = self.client.get(reverse("profile_tickets"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_profile_tickets_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+        response = self.client.get(reverse("profile_tickets"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
 
 class LoginViewTest(TestCase):

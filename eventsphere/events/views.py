@@ -252,6 +252,7 @@ def mark_all_as_read(request):
 
 
 @login_required
+@user_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
     events_with_tickets = (
