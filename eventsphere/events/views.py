@@ -723,6 +723,7 @@ def user_profile(request):
 
 
 @login_required
+@creator_required
 def creator_profile(request):
     profile, created = CreatorProfile.objects.get_or_create(creator=request.user)
 
