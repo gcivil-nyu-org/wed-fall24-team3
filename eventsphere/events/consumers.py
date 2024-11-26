@@ -112,10 +112,11 @@ async def notify_group_members(room, sender, message, msg_type):
     channel_layer = get_channel_layer()
     members = await get_all_members_except_sender(room, sender)
     event_name = await get_event_name(room)
+    url_path = f"{room.id}"
 
     for member in members:
         title_val = "New Message" if msg_type == "chat_message" else "New Announcement"
-        notif_id = await save_notification(room, member, message, title_val, event_name)
+        notif_id = await save_notification(room, member, message, title_val, event_name, url_path)
         await channel_layer.group_send(
             f"notifications_{member.user.id}",
             {
@@ -125,6 +126,7 @@ async def notify_group_members(room, sender, message, msg_type):
                     "sub_title": event_name,
                     "message": message,
                     "timestamp": timezone.now().isoformat(),
+                    "url_link": url_path,
                     "id": notif_id,
                     "msg_type": msg_type,
                 },
@@ -133,9 +135,9 @@ async def notify_group_members(room, sender, message, msg_type):
 
 
 @database_sync_to_async
-def save_notification(room, member, message, title, sub_title):
+def save_notification(room, member, message, title, sub_title, url_path):
     notif = Notification.objects.create(
-        user=member.user, message=message, title=title, sub_title=sub_title
+        user=member.user, message=message, title=title, sub_title=sub_title, url_link=url_path
     )
     return notif.id
 
