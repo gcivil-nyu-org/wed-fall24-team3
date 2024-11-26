@@ -43,7 +43,7 @@ class NotifyGroupMembersTestCase(unittest.IsolatedAsyncioTestCase):
 
         mock_event_name = "Test Event"
         mock_get_event_name.return_value = mock_event_name
-        mock_notif_url_path= "1"
+        mock_notif_url_path = "1"
 
         mock_save_notification.side_effect = [101, 102, 103]
 
@@ -68,7 +68,12 @@ class NotifyGroupMembersTestCase(unittest.IsolatedAsyncioTestCase):
         )
         for member, notif_id in zip(mock_members, [101, 102, 103]):
             mock_save_notification.assert_any_await(
-                mock_room, member, message, expected_title, mock_event_name, mock_notif_url_path
+                mock_room,
+                member,
+                message,
+                expected_title,
+                mock_event_name,
+                mock_notif_url_path,
             )
 
         self.assertEqual(mock_save_notification.await_count, len(mock_members))
