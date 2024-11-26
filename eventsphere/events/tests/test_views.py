@@ -160,9 +160,7 @@ class CreatorProfileViewTest(TestCase):
 
     def test_creator_profile_as_user(self):
         self.client.logout()
-        self.user = User.objects.create_user(
-            username="user", password="pass"
-        )
+        self.user = User.objects.create_user(username="user", password="pass")
         self.profile = UserProfile.objects.create(user=self.user)
         self.client.login(username="user", password="pass")
 
