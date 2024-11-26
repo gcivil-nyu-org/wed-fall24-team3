@@ -31,6 +31,9 @@
                     {{ notification.created_at|date:"Y-m-d H:i" }}
                 </span>
                         {% if not notification.is_read %}
+                            {% if notification.url_link %}
+                            <a class="go-to-chat" href="{% url 'chat_room' notification.url_link %}">Go to Chat Room</a>
+                                {% endif %}
                             <button class="mark-as-read"
                                     onclick="markAsRead({{ notification.id }})">
                                 Mark as Read
@@ -68,7 +71,9 @@
                 </div>
                 <div class="notification-footer">
                     <span class="notification-timestamp">${new Date(data.timestamp).toISOString().slice(0, 16).replace('T', ' ')}</span>
+                    <a class="go-to-chat" href="{% url 'chat_room' 1 %}">Go to Chat Room</a>
                     <button class="mark-as-read" onclick="markAsRead(${data.id})">Mark as Read</button>
+                    {#<a href="{% url 'chat_room' event.chat_room.id %}" class="btn-create-event">Open Chat Room</a>#}
                 </div>
             `;
 
@@ -259,20 +264,43 @@
         }
 
         .mark-as-read {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-left: auto;
-        }
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+            margin: 3px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+    margin-left: auto;
+}
 
-        .mark-as-read:hover {
-            background-color: #218838;
-        }
+.mark-as-read:hover {
+    background-color: #218838;
+}
+
+.go-to-chat {
+    margin: 3px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.go-to-chat:hover {
+    background-color: #0056b3;
+}
 
     </style>
 {% endblock %}
