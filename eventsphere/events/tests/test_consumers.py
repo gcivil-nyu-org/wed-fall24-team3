@@ -1,8 +1,49 @@
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock, MagicMock
 
-from events.consumers import notify_group_members
+from events.consumers import NotificationConsumer, notify_group_members
+
+from channels.testing import WebsocketCommunicator
+from django.test import TestCase
+from unittest.mock import MagicMock, AsyncMock, patch
+
+
+class NotificationConsumerTestCase(TestCase):
+
+    def setUp(self):
+        # Create a mock user
+        self.user = MagicMock()
+        self.user.id = 1
+        self.user.is_authenticated = True
+        self.group_name = f"notifications_{self.user.id}"
+        self.channel_name = "sample_channel"
+
+    async def test_unauthenticated_connection(self):
+        """Test that unauthenticated users cannot connect"""
+        unauthenticated_user = MagicMock()
+        unauthenticated_user.is_authenticated = False
+
+        communicator = WebsocketCommunicator(
+            application=NotificationConsumer.as_asgi(),
+            path="/ws/notifications/",
+        )
+        communicator.scope["user"] = unauthenticated_user
+
+        connected, _ = await communicator.connect()
+        self.assertFalse(connected)
+
+    async def test_authenticated_connection(self):
+        """Test that authenticated users can connect and are added to the correct group"""
+        communicator = WebsocketCommunicator(
+            application=NotificationConsumer.as_asgi(),
+            path="/ws/notifications/",
+        )
+        communicator.scope["user"] = self.user
+
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        await communicator.disconnect()
 
 
 class NotifyGroupMembersTestCase(unittest.IsolatedAsyncioTestCase):
