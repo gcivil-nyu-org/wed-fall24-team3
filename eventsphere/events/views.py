@@ -210,7 +210,11 @@ def get_user_unread_notifications(request):
 
 def fetch_unread_notif_db(user):
     res = Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
-    return list(res.values("id", "message", "created_at", "type", "title", "sub_title", "url_link"))
+    return list(
+        res.values(
+            "id", "message", "created_at", "type", "title", "sub_title", "url_link"
+        )
+    )
 
 
 @login_required
