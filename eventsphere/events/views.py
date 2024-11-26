@@ -696,6 +696,7 @@ def delete_event_view(request, event_id):
 
 
 @login_required
+@user_required
 def user_profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 

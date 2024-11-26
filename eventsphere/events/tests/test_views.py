@@ -147,8 +147,37 @@ class CreatorProfileViewTest(TestCase):
 class UserProfileViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
         self.client = Client()
         self.client.login(username="testuser", password="testpass")
+
+    def test_user_profile_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+
+        response = self.client.get(reverse("user_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_user_profile_as_creator(self):
+        self.client.logout()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+        self.client.login(username="creator", password="creatorpass")
+
+        response = self.client.get(reverse("user_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
     @patch("events.views.UserProfile.objects.get_or_create")
     @patch("events.views.Ticket.objects.filter")
