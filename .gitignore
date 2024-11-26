@@ -17,3 +17,4 @@ newenv/
 /eventsphere/.xml
 /dump.rdb
 .coverage*
+/prod.env
