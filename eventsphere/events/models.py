@@ -3,17 +3,22 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator
 
+
 class CreatorProfile(models.Model):
     creator = models.OneToOneField(User, on_delete=models.CASCADE)
     organization_name = models.CharField(max_length=255, null=True, blank=True)
     organization_email = models.EmailField(null=True, blank=True)
     organization_social_media = models.URLField(blank=True, null=True)  # Optional
-    contact_number = models.CharField(max_length=10, null=True, blank=True,  validators=[
+    contact_number = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        validators=[
             RegexValidator(
-                regex=r'^\d{10}$',
-                message='Contact number must be exactly 10 digits.'
+                regex=r"^\d{10}$", message="Contact number must be exactly 10 digits."
             )
-        ])
+        ],
+    )
     # creator_id = models.CharField(primary_key=True, max_length=10)
     # creator = models.OneToOneField(User, on_delete=models.CASCADE)
     # name = models.CharField(max_length=100, null=True, blank=True)
@@ -67,7 +72,6 @@ class UserProfile(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
-    
 
     def __str__(self):
         return self.user.username
@@ -83,10 +87,9 @@ class Ticket(models.Model):
         blank=True,
         validators=[
             RegexValidator(
-                regex=r'^\d{10}$',
-                message='Phone number must be exactly 10 digits.'
+                regex=r"^\d{10}$", message="Phone number must be exactly 10 digits."
             )
-        ]
+        ],
     )
     quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)

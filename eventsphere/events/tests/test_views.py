@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, ANY
-
+from datetime import timedelta
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
@@ -14,7 +14,14 @@ from events.forms import (
     EventForm,
     TicketPurchaseForm,
 )
-from events.models import Event, CreatorProfile, UserProfile, Ticket
+from events.models import (
+    Event,
+    CreatorProfile,
+    UserProfile,
+    ChatRoom,
+    RoomMember,
+    Ticket,
+)
 
 
 class DeleteEventViewTest(TestCase):
@@ -1202,3 +1209,144 @@ class HomeViewTest(TestCase):
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/homepage.html")
+
+
+class ChatViewsTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.other_user = User.objects.create_user(
+            username="otheruser", password="password"
+        )
+        self.creator_profile = CreatorProfile.objects.create(creator=self.user)
+        self.event = Event.objects.create(
+            name="Test Event",
+            location="Test Location",
+            date_time=timezone.now(),
+            schedule="Sample Schedule",
+            speakers="Sample Speaker",
+            category="Sample Category",
+            created_by=self.creator_profile,
+        )
+        self.chat_room, created = ChatRoom.objects.get_or_create(
+            event=self.event, creator=self.creator_profile
+        )
+
+    @patch("events.models.Ticket.objects.filter")
+    def test_join_chat_non_creator_with_ticket(self, mock_ticket_filter):
+        self.client.login(username="otheruser", password="password")
+        mock_ticket_filter.return_value.exists.return_value = True
+        url = reverse("join_chat", args=[self.event.id])
+
+        with patch(
+            "events.models.RoomMember.objects.get_or_create"
+        ) as mock_get_or_create:
+            mock_get_or_create.return_value = (MagicMock(is_kicked=False), True)
+            response = self.client.get(url)
+
+            self.assertEqual(response.status_code, 302)
+
+    def test_send_message_as_member(self):
+        self.client.login(username="testuser", password="password")
+        RoomMember.objects.create(room=self.chat_room, user=self.user)
+        url = reverse("send_message", args=[self.chat_room.id])
+        response = self.client.post(url, {"content": "Hello"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_send_message_as_kicked_member(self):
+        self.client.login(username="testuser", password="password")
+        RoomMember.objects.create(room=self.chat_room, user=self.user, is_kicked=True)
+        url = reverse("send_message", args=[self.chat_room.id])
+        response = self.client.post(url, {"content": "Hello"})
+        self.assertEqual(response.status_code, 403)
+        self.assertJSONEqual(
+            response.content,
+            {"error": "You are not allowed to send messages in this chat room."},
+        )
+
+    @patch("events.models.ChatMessage.objects.create")
+    def test_make_announcement_as_creator(self, mock_message_create):
+        self.client.login(username="testuser", password="password")
+        url = reverse("make_announcement", args=[self.chat_room.id])
+        response = self.client.post(
+            url,
+            '{"content": "Important announcement"}',
+            content_type="application/json",
+        )
+        mock_message_create.assert_called_once_with(
+            room=self.chat_room,
+            user=self.user,
+            content="[Announcement] Important announcement",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"status": "success"})
+
+    def test_make_announcement_as_non_creator(self):
+        self.client.login(username="otheruser", password="password")
+        url = reverse("make_announcement", args=[self.chat_room.id])
+        response = self.client.post(
+            url, '{"content": "Unauthorized"}', content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertJSONEqual(
+            response.content, {"error": "You are not authorized to make announcements."}
+        )
+
+    @patch("channels.layers.get_channel_layer")
+    def test_kick_member_as_creator(self, mock_get_channel_layer):
+        self.client.login(username="testuser", password="password")
+        RoomMember.objects.create(room=self.chat_room, user=self.other_user)
+        url = reverse("kick_member", args=[self.chat_room.id, self.other_user.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            RoomMember.objects.get(room=self.chat_room, user=self.other_user).is_kicked
+        )
+        self.assertJSONEqual(response.content, {"status": "success"})
+
+    def test_leave_chat(self):
+        self.client.login(username="testuser", password="password")
+        RoomMember.objects.create(room=self.chat_room, user=self.user)
+        url = reverse("leave_chat", args=[self.chat_room.id])
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse("user_home"))
+        self.assertFalse(
+            RoomMember.objects.filter(room=self.chat_room, user=self.user).exists()
+        )
+
+
+class FilterWiseDataTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.creator_profile = CreatorProfile.objects.create(creator=self.user)
+        self.event = Event.objects.create(
+            name="Test Event",
+            location="Test Location",
+            date_time=timezone.now(),
+            schedule="Sample Schedule",
+            speakers="Sample Speaker",
+            category="Sample Category",
+            created_by=self.creator_profile,
+        )
+
+    @patch("events.models.Ticket.objects.filter")
+    def test_fetch_filter_wise_data(self, mock_ticket_filter):
+        mock_ticket = MagicMock()
+        mock_ticket.created_at = timezone.now() - timedelta(days=1)
+        mock_ticket.quantity = 5
+        mock_ticket.user_id = self.user.id
+        mock_ticket_filter.return_value.filter.return_value = [mock_ticket]
+
+        url = (
+            reverse("fetch_filter_wise_data")
+            + f"?event_id={self.event.id}&category={self.event.category}"
+        )
+        response = self.client.get(url)
+        data = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("ticket_sales_data", data)
+        self.assertIn("unique_users_data", data)
+        self.assertEqual(len(data["ticket_sales_data"]), 8)
+        self.assertEqual(len(data["unique_users_data"]), 8)
