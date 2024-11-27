@@ -32,7 +32,7 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
-from .utils import admin_required, creator_required
+from .utils import admin_required, creator_required, user_required
 
 
 @login_required
@@ -251,6 +251,7 @@ def mark_all_as_read(request):
 
 
 @login_required
+@user_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
     events_with_tickets = (
@@ -694,6 +695,7 @@ def delete_event_view(request, event_id):
 
 
 @login_required
+@user_required
 def user_profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 
@@ -720,6 +722,7 @@ def user_profile(request):
 
 
 @login_required
+@creator_required
 def creator_profile(request):
     profile, created = CreatorProfile.objects.get_or_create(creator=request.user)
 
@@ -746,6 +749,7 @@ def my_tickets(request):
 
 
 @login_required
+@user_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)

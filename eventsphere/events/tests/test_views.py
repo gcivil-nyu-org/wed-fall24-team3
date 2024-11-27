@@ -266,6 +266,8 @@ class DeleteEventViewTest(TestCase):
 class CreatorProfileViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = CreatorProfile.objects.create(creator=self.user)
+
         self.client = Client()
         self.client.login(username="testuser", password="testpass")
 
@@ -325,12 +327,66 @@ class CreatorProfileViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/creator_profile.html")
 
+    def test_creator_profile_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+
+        response = self.client.get(reverse("creator_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_creator_profile_as_user(self):
+        self.client.logout()
+        self.user = User.objects.create_user(username="user", password="pass")
+        self.profile = UserProfile.objects.create(user=self.user)
+        self.client.login(username="user", password="pass")
+
+        response = self.client.get(reverse("creator_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
 
 class UserProfileViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
         self.client = Client()
         self.client.login(username="testuser", password="testpass")
+
+    def test_user_profile_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+
+        response = self.client.get(reverse("user_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_user_profile_as_creator(self):
+        self.client.logout()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+        self.client.login(username="creator", password="creatorpass")
+
+        response = self.client.get(reverse("user_profile"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
     @patch("events.views.UserProfile.objects.get_or_create")
     @patch("events.views.Ticket.objects.filter")
@@ -542,6 +598,7 @@ class ProfileTicketsViewTest(TestCase):
         self.client = Client()
         # Create a user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
         # Create an event
         self.event = Event.objects.create(
             name="Test Event",
@@ -575,6 +632,29 @@ class ProfileTicketsViewTest(TestCase):
         response = self.client.get(reverse("profile_tickets"))
         login_url = reverse("login") + "?next=" + reverse("profile_tickets")
         self.assertRedirects(response, login_url)
+
+    def test_profile_tickets_as_creator(self):
+        self.client.logout()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+        self.client.login(username="creator", password="creatorpass")
+        response = self.client.get(reverse("profile_tickets"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_profile_tickets_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+        response = self.client.get(reverse("profile_tickets"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
 
 class LoginViewTest(TestCase):
@@ -1264,6 +1344,7 @@ class BuyTicketsViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username="user", password="pass")
+        self.profile = UserProfile.objects.create(user=self.user)
         self.creator_user = User.objects.create_user(
             username="creator", password="creatorpass"
         )
@@ -1318,6 +1399,25 @@ class BuyTicketsViewTest(TestCase):
             reverse("login") + "?next=" + reverse("buy_tickets", args=[self.event.id])
         )
         self.assertRedirects(response, login_url)
+
+    def test_buy_tickets_as_creator(self):
+        self.client.logout()
+        self.client.login(username="creator", password="creatorpass")
+        response = self.client.get(reverse("buy_tickets", args=[self.event.id]))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_buy_tickets_as_admin(self):
+        self.client.logout()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+        response = self.client.get(reverse("buy_tickets", args=[self.event.id]))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
 
 class CreatorDashboardViewTest(TestCase):
