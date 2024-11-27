@@ -208,7 +208,17 @@ class NotificationTests(TestCase):
 
 class DeleteEventViewTest(TestCase):
     def setUp(self):
+        # Set up a test user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
+        # Set up a creator
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+
+        # Set up a Admin
         self.superuser = User.objects.create_superuser(
             username="superuser", password="superpass"
         )
@@ -220,15 +230,15 @@ class DeleteEventViewTest(TestCase):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
+        # Login as an User
         self.client.login(username="testuser", password="testpass")
 
         response = self.client.post(
             reverse("delete_event", args=[1])
         )  # Event ID is mocked
 
-        mock_event.delete.assert_called_once()
         self.assertRedirects(
-            response, reverse("creator_dashboard"), target_status_code=302
+            response, reverse("not_authorized"), target_status_code=403
         )
 
     @patch("events.views.get_object_or_404")
@@ -236,6 +246,7 @@ class DeleteEventViewTest(TestCase):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
+        # login as an Admin
         self.client.login(username="superuser", password="superpass")
 
         response = self.client.post(reverse("delete_event", args=[1]))
@@ -245,11 +256,12 @@ class DeleteEventViewTest(TestCase):
         self.assertRedirects(response, reverse("event_list"))
 
     @patch("events.views.get_object_or_404")
-    def test_get_request_renders_delete_confirmation(self, mock_get_object):
+    def test_get_request_renders_delete_confirmation_as_creator(self, mock_get_object):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
-        self.client.login(username="testuser", password="testpass")
+        # Login as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         response = self.client.get(reverse("delete_event", args=[1]))
 
