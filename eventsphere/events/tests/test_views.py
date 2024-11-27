@@ -497,6 +497,55 @@ class UpdateEventViewTest(TestCase):
         mock_get_object.assert_called_once_with(Event, id=mock_event.id)
 
     @patch("events.views.get_object_or_404")
+    @patch("events.views.EventForm")
+    def test_get_request_renders_form_as_admin(self, mock_event_form, mock_get_object):
+        # Mock the event retrieval
+        mock_event = MagicMock()
+        mock_event.id = 1  # Set a real integer for event ID
+        mock_get_object.return_value = mock_event
+
+        # Mock the form instance
+        mock_form_instance = MagicMock()
+        mock_event_form.return_value = mock_form_instance
+
+        # Log in as a admin
+        self.client.login(username="superuser", password="superpass")
+
+        # Send a GET request
+        response = self.client.get(reverse("update_event", args=[mock_event.id]))
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/update_event.html")
+        self.assertEqual(response.context["form"], mock_form_instance)
+
+        # Ensure get_object_or_404 was called with correct arguments
+        mock_get_object.assert_called_once_with(Event, id=mock_event.id)
+
+    @patch("events.views.get_object_or_404")
+    @patch("events.views.EventForm")
+    def test_get_request_renders_form(self, mock_event_form, mock_get_object):
+        # Mock the event retrieval
+        mock_event = MagicMock()
+        mock_event.id = 1  # Set a real integer for event ID
+        mock_get_object.return_value = mock_event
+
+        # Mock the form instance
+        mock_form_instance = MagicMock()
+        mock_event_form.return_value = mock_form_instance
+
+        # Log in as a user
+        self.client.login(username="testuser", password="testpass")
+
+        # Send a GET request
+        response = self.client.get(reverse("update_event", args=[mock_event.id]))
+
+        # Check the response
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    @patch("events.views.get_object_or_404")
     @patch("events.views.boto3.client")
     @patch("events.views.EventForm")
     def test_post_request_valid_form_no_image(
