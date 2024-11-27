@@ -452,8 +452,17 @@ class UserProfileViewTest(TestCase):
 
 class UpdateEventViewTest(TestCase):
     def setUp(self):
-        # Set up a test user and superuser
+        # Set up a test user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+        
+        # Set up a creator
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+
+        # Set up a Admin
         self.superuser = User.objects.create_superuser(
             username="superuser", password="superpass"
         )
@@ -473,8 +482,8 @@ class UpdateEventViewTest(TestCase):
         mock_form_instance = MagicMock()
         mock_event_form.return_value = mock_form_instance
 
-        # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        # Log in as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a GET request
         response = self.client.get(reverse("update_event", args=[mock_event.id]))
@@ -504,8 +513,8 @@ class UpdateEventViewTest(TestCase):
         mock_form.save.return_value = mock_event
         mock_event_form.return_value = mock_form
 
-        # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        # Log in as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a POST request without an image
         response = self.client.post(
@@ -516,7 +525,7 @@ class UpdateEventViewTest(TestCase):
         # Ensure form.save() was called and redirection to creator_dashboard
         mock_form.save.assert_called_once()
         self.assertRedirects(
-            response, reverse("creator_dashboard"), target_status_code=302
+            response, reverse("creator_dashboard"), target_status_code=200
         )
 
     @patch("events.views.get_object_or_404")
@@ -579,7 +588,7 @@ class UpdateEventViewTest(TestCase):
         mock_event_form.return_value = mock_form
 
         # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a POST request with invalid data
         response = self.client.post(
