@@ -100,7 +100,7 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
-    print("member = ", member)
+    # print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
@@ -133,12 +133,12 @@ async def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            print("Creating announcement")
+            # print("Creating announcement")
             message = f"[Announcement] {content}"
             await sync_to_async(ChatMessage.objects.create)(
                 room=chat_room, user=request.user, content=message
             )
-            print("Created Announce Chat Message")
+            # print("Created Announce Chat Message")
             await notify_group_members(
                 chat_room, request.user, message, "chat_announcement"
             )
