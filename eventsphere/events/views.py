@@ -28,7 +28,7 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
-from .utils import admin_required, creator_required, user_required
+from .utils import admin_required, creator_required, user_required, admin_or_creator_required
 from django.http import JsonResponse
 import json
 
@@ -618,6 +618,7 @@ def create_event(request):
 
 
 @login_required
+@admin_or_creator_required
 def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
