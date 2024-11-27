@@ -101,8 +101,7 @@
     <ul>
         {% if user.is_authenticated %}
             {% if user.is_superuser %}
-                <li><a href="{% url 'event_list' %}">Admin Dashboard</a></li>
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                <li><a href="{% url 'event_list' %}">View All Events</a></li>
             {% elif user.is_staff %}
                 <li><a href="{% url 'creator_profile' %}">Profile</a></li>
                 <li><a href="{% url 'creator_dashboard' %}">Your Dashboard</a></li>
