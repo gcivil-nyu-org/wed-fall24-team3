@@ -28,6 +28,7 @@
         nav .nav-left {
             display: flex;
             gap: 20px;
+            align-items: center;
         }
 
         nav .nav-right {
@@ -253,17 +254,19 @@
         <!-- <a href="{% url 'create_event' %}" class="btn-create-event">Create Event</a> Create Event Button -->
     </div>
 
-    <!-- Right side of the navigation bar with logout button -->
-     <!-- Logout Button similar to base.html -->
-<div class="nav-right">
-    <!-- <li style="margin-left: auto; color: white;"> -->
-        <!-- Welcome, {{ user.username }} -->
-        <form action="{% url 'logout' %}" method="POST" style="display: inline;">
-            {% csrf_token %}
-            <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>
-        </form>
-    </li>
-</div>
+        <!-- Right side of the navigation bar with logout button -->
+        <!-- Logout Button similar to base.html -->
+    <div class="nav-right">
+        <!-- <a href="{% url 'logout' %}" style="color: white; margin: 0 40px; padding: 10px 20px">Logout</a> -->
+        <!-- <li style="margin-left: auto; color: white;"> -->
+            <!-- Welcome, {{ user.username }} -->
+            <form action="{% url 'logout' %}" method="POST" style="display: inline;">
+                {% csrf_token %}
+                <a href="#" onclick="this.closest('form').submit()" style="color: white; margin: 0 40px; padding: 10px 20px">Logout</a>
+            </form>
+        <!-- </li> -->
+        
+    </div>
 
 
     <!-- Hamburger Menu -->
