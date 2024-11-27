@@ -161,3 +161,4 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 
 if "test" in sys.argv:
     DATABASES["default"] = {"ENGINE": "django.db.backends.sqlite3"}
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

@@ -100,7 +100,7 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
-    print("member = ", member)
+    # print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
@@ -133,12 +133,12 @@ async def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            print("Creating announcement")
+            # print("Creating announcement")
             message = f"[Announcement] {content}"
             await sync_to_async(ChatMessage.objects.create)(
                 room=chat_room, user=request.user, content=message
             )
-            print("Created Announce Chat Message")
+            # print("Created Announce Chat Message")
             await notify_group_members(
                 chat_room, request.user, message, "chat_announcement"
             )
@@ -191,13 +191,11 @@ def leave_chat(request, room_id):
 
 @login_required
 def view_notifications(request):
-    unread_notifications = fetch_unread_notif_db(request.user).values(
-        "id", "message", "created_at", "type", "title", "sub_title"
-    )
+    unread_notifications = fetch_unread_notif_db(request.user)
     return render(
         request,
         "events/notifications.html",
-        {"notifications": list(unread_notifications)},
+        {"notifications": unread_notifications},
     )
 
 
@@ -205,17 +203,18 @@ def view_notifications(request):
 def get_user_unread_notifications(request):
     unread_notifs = fetch_unread_notif_db(request.user)
     return JsonResponse(
-        list(
-            unread_notifs.values(
-                "id", "message", "created_at", "type", "title", "sub_title"
-            )
-        ),
+        unread_notifs,
         safe=False,
     )
 
 
 def fetch_unread_notif_db(user):
-    return Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
+    res = Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
+    return list(
+        res.values(
+            "id", "message", "created_at", "type", "title", "sub_title", "url_link"
+        )
+    )
 
 
 @login_required
