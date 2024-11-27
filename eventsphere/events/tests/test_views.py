@@ -984,6 +984,45 @@ class UserEventListViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["events"]), 0)
 
+class AdminEventListViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.superuser = User.objects.create_superuser(
+            username="admin", password="adminpass"
+        )
+        self.client.login(username="admin", password="adminpass")
+
+    def test_admin_event_list_as_admin(self):
+        response = self.client.get(reverse("event_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/event_list.html")
+
+    def test_admin_event_list_as_user(self):
+        self.client.logout()
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
+        self.client.login(username="testuser", password="testpass")
+
+        response = self.client.get(reverse("event_list"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_admin_event_list_as_creator(self):
+        self.client.logout()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+        self.client.login(username="creator", password="creatorpass")
+
+        response = self.client.get(reverse("event_list"))
+
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
 class EventDetailViewTest(TestCase):
     def setUp(self):
