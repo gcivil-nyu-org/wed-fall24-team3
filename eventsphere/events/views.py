@@ -1,8 +1,6 @@
 import base64
-import json
 from datetime import timedelta
 from io import BytesIO
-
 import boto3
 import qrcode  # type: ignore
 from asgiref.sync import async_to_sync, sync_to_async
@@ -16,10 +14,8 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
 from django.db import transaction
 from django.db.models.functions import Coalesce, TruncDate
-from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -33,6 +29,29 @@ from .models import (
 )
 from .consumers import notify_group_members
 from .utils import admin_required, creator_required, user_required
+from django.http import JsonResponse
+import json
+
+
+@login_required
+def map_view(request):
+    events = Event.objects.all()
+    events_data = [
+        {
+            "id": event.id,
+            "name": event.name,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "location": event.location,
+            "image_url": event.image_url,
+        }
+        for event in events
+        if event.latitude and event.longitude  # Ensure events with valid coordinates
+    ]
+    context = {
+        "events_json": json.dumps(events_data),  # Serialize the data
+    }
+    return render(request, "events/map_view.html", context)
 
 
 @login_required

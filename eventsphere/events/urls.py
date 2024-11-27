@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import user_profile, my_tickets
+from .views import user_profile, my_tickets, map_view
 
 urlpatterns = [
     path(
@@ -74,4 +74,5 @@ urlpatterns = [
         views.get_user_unread_notifications,
         name="get_user_unread_notifications",
     ),
+    path("mapview/", map_view, name="map_view"),  # Map View
 ]

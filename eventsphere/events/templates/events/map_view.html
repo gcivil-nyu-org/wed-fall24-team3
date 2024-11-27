@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Map View - EventSphere{% endblock %}
+
+{% block content %}
+<style>
+    /* Map Container */
+    #map {
+        position: absolute;
+        top: 50px;
+        left: 0;
+        height: calc(100vh - 50px); /* Adjust height to account for header */
+        width: 100%;
+        z-index: 0;
+    }
+
+    .event-card {
+        position: absolute;
+        top: 50%; /* Center vertically */
+        left: 20px; /* Add margin from the left edge */
+        transform: translateY(-50%); /* Adjust vertical centering */
+        width: 30%; /* 30% of the page width */
+        height: 70%; /* 70% of the page height */
+        background: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 1000;
+        display: none; /* Initially hidden */
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    /* Updated Event Image Styling */
+    .event-card img {
+        width: 100%;
+        height: 40%; /* Adjust to take 40% of the card's height */
+        object-fit: cover;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .event-card .event-details {
+        padding: 20px;
+        height: 60%; /* Remaining space for details */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Close Button */
+    .event-card .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white; /* Add a background color */
+        border: 1px solid #ccc; /* Add a border */
+        border-radius: 50%; /* Make it circular */
+        font-size: 20px;
+        color: #333;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .event-card .close-button:hover {
+        background: red;
+        color: white;
+    }
+
+    /* "View Details" Button */
+    .event-card .view-details {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 15px;
+        background: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .event-card .view-details:hover {
+        background: #45a049;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    /* Toggle Buttons */
+    .toggle-buttons {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1001;
+        display: flex;
+        gap: 10px;
+    }
+
+    .toggle-buttons button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 14px;
+    }
+
+    .toggle-buttons button.active {
+        background-color: #043d08;
+    }
+
+    .toggle-buttons button:hover {
+        background-color: #3e8e41;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<!-- Toggle Buttons -->
+<div class="toggle-buttons">
+    <button onclick="window.location.href='/userevents/';">List View</button>
+    <button class="active">Map View</button>
+</div>
+
+<!-- Map Container -->
+<div id="map"></div>
+
+<!-- Event Card -->
+<div id="event-card" class="event-card">
+    <button id="close-card" class="close-button">&times;</button>
+</div>
+
+<!-- Include Leaflet CSS and JS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+<script>
+    // Initialize the map centered at New York City with a higher zoom level
+    const map = L.map('map').setView([40.7128, -74.0060], 12);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Function to render a custom card for events
+    function renderEventCard(event) {
+        const eventCard = document.getElementById('event-card');
+        const imageUrl = event.image_url ? event.image_url : 'https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=';
+        console.log(imageUrl)
+        eventCard.innerHTML = `
+            <img src="${imageUrl}" alt="${event.name}" class="event-image" />
+            <div class="event-details">
+                <h2>${event.name}</h2>
+                <p>${event.location}</p>
+                <p>${event.description || 'No description available.'}</p>
+                <a href="/userevents/${event.id}/" class="view-details">View Details</a>
+            </div>
+            <button class="close-button" onclick="closeEventCard()">&times;</button>
+        `;
+        eventCard.style.display = 'block';
+    }
+
+    // Close event card
+    function closeEventCard() {
+        const eventCard = document.getElementById('event-card');
+        eventCard.style.display = 'none';
+    }
+
+    // Add markers with click events to show event details
+    const events = JSON.parse('{{ events_json|escapejs }}');
+    events.forEach(event => {
+        const marker = L.marker([event.latitude, event.longitude]).addTo(map);
+        marker.on('click', () => renderEventCard(event));
+    });
+</script>
+{% endblock %}

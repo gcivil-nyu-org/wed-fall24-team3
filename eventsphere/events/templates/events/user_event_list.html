@@ -311,6 +311,36 @@
         color: #333;
     }
 
+    .toggle-buttons-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f2f5; /* Optional background color for better visibility */
+    }
+
+    .toggle-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .toggle-buttons button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 14px;
+    }
+
+    .toggle-buttons button.active {
+        background-color: #043d08;
+    }
+
+    .toggle-buttons button:hover {
+        background-color: #3e8e41;
+    }
+
 </style>
 
 <!-- Hero Section -->
@@ -353,18 +383,6 @@
         <a href="?category=Food" class="category-item" title="Food">
             <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Food">
             <p>Food</p>
-        <!-- </a> -->
-        <!-- <a href="?category=Health" class="category-item" title="Health">
-            <img src="https://cdn-icons-png.flaticon.com/512/1047/1047445.png" alt="Health">
-            <p>Health</p>
-        </a>
-        <a href="?category=Music" class="category-item" title="Music">
-            <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Music">
-            <p>Music</p>
-        </a>
-        <a href="?category=Art" class="category-item" title="Art">
-            <img src="https://cdn-icons-png.flaticon.com/512/1086/1086765.png" alt="Art">
-            <p>Art</p> -->
         </a>
     </div>
 </div>
@@ -377,6 +395,13 @@
         <input type="text" name="q" placeholder="Search events..." value="{{ query|default:'' }}">
         <button type="submit">Search</button>
     </form>
+</div>
+
+<div class="toggle-buttons-container">
+<div class="toggle-buttons">
+    <button class="active">List View</button>
+    <button class="inactive" onclick="window.location.href='/mapview/';">Map View</button>
+</div>
 </div>
 
 <!-- Events Section -->
