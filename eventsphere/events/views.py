@@ -81,7 +81,7 @@ def chat_room(request, room_id):
     if not members.filter(user=request.user).exists():
         return redirect("join_chat", event_id=chat_room.event.id)
 
-    mark_event_as_read(request.user, room_id)
+    # mark_event_as_read(request.user, room_id)
 
     return render(
         request,
@@ -252,15 +252,15 @@ def mark_all_as_read(request):
     )
 
 
-def mark_event_as_read(user, event_id):
-    """
-    Marks all notifications for a specific event as read for a given user.
-    """
-    Notification.objects.filter(
-        user=user,  # Target notifications for the specific user
-        is_read=False,  # Only unread notifications
-        url_link=str(event_id),  # Match the event ID stored in the `url_link`
-    ).update(is_read=True)
+# def mark_event_as_read(user, event_id):
+#     """
+#     Marks all notifications for a specific event as read for a given user.
+#     """
+#     Notification.objects.filter(
+#         user=user,  # Target notifications for the specific user
+#         is_read=False,  # Only unread notifications
+#         url_link=str(event_id),  # Match the event ID stored in the `url_link`
+#     ).update(is_read=True)
 
 
 @login_required
