@@ -1156,12 +1156,15 @@ class CreatorProfileViewTest2(TestCase):
 class CreateEventViewTest(TestCase):
     def setUp(self):
         self.client = Client()
-        # Create a creator user
+
         self.creator_user = User.objects.create_user(
             username="creator", password="creatorpass"
         )
         self.creator_profile = CreatorProfile.objects.create(creator=self.creator_user)
-        # Create a superuser
+
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
         self.superuser = User.objects.create_superuser(
             username="admin", password="adminpass"
         )
@@ -1220,8 +1223,16 @@ class CreateEventViewTest(TestCase):
     def test_create_event_get_superuser(self):
         self.client.login(username="admin", password="adminpass")
         response = self.client.get(reverse("create_event"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "events/create_event.html")
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+    
+    def test_create_event_as_user(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("create_event"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
     def test_create_event_unauthenticated(self):
         response = self.client.get(reverse("create_event"))

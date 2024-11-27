@@ -580,6 +580,7 @@ def signup(request):
 
 
 @login_required
+@creator_required
 def create_event(request):
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES)
