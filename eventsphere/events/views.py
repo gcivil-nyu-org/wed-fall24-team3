@@ -707,6 +707,7 @@ def event_success(request):
 
 
 @login_required  # Ensure only logged-in users can delete events
+@admin_or_creator_required
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
