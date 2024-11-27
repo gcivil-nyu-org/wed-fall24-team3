@@ -455,7 +455,7 @@ class UpdateEventViewTest(TestCase):
         # Set up a test user
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.profile = UserProfile.objects.create(user=self.user)
-        
+
         # Set up a creator
         self.creator_user = User.objects.create_user(
             username="creator", password="creatorpass"
