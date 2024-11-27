@@ -48,9 +48,15 @@
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
         }
 
+        #location-container {
+            position: relative;
+        }
+
         .custom-dropdown {
         display: none;
         position: absolute;
+        top: 75%;
+        left: 0;
         background-color: #fff;
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -136,10 +142,12 @@
         <input type="datetime-local" id="id_date_time" name="date_time"
                value="{{ form.date_time.value|date:'Y-m-d\\TH:i' }}" required>
     
-        <label for="id_location">Location</label>
-        <input type="text" id="id_location" name="location" placeholder="Enter location"
-               value="{{ form.location.value|default_if_none:'' }}" required>
-        <div id="custom-dropdown" class="custom-dropdown"></div>
+        <div id="location-container">
+            <label for="id_location">Location</label>
+            <input type="text" id="id_location" name="location" placeholder="Enter location"
+                value="{{ form.location.value|default_if_none:'' }}" required>
+            <div id="custom-dropdown" class="custom-dropdown"></div>
+        </div>
     
         <!-- Hidden fields for latitude and longitude -->
         <input type="hidden" id="id_latitude" name="latitude" value="{{ form.latitude.value }}">
@@ -167,12 +175,6 @@
 
                         if (data.length > 0) {
                             customDropdown.style.display = 'block';
-
-                            // Get the input field's position and dimensions
-                            const rect = locationInput.getBoundingClientRect();
-                            customDropdown.style.top = `${rect.bottom + window.scrollY}px`;
-                            customDropdown.style.left = `${rect.left + window.scrollX}px`;
-                            customDropdown.style.width = `${rect.width}px`;
 
                             data.forEach(item => {
                                 const optionDiv = document.createElement('div');
