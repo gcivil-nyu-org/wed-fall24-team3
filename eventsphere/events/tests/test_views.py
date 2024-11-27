@@ -484,7 +484,9 @@ class UpdateEventViewTest(TestCase):
 
     @patch("events.views.get_object_or_404")
     @patch("events.views.EventForm")
-    def test_get_request_renders_form_as_creator(self, mock_event_form, mock_get_object):
+    def test_get_request_renders_form_as_creator(
+        self, mock_event_form, mock_get_object
+    ):
         # Mock the event retrieval
         mock_event = MagicMock()
         mock_event.id = 1  # Set a real integer for event ID
