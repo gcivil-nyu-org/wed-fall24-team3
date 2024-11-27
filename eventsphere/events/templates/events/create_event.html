@@ -262,6 +262,11 @@ select::after {
 <body>
     <div class="container">
         <h1>Create a New Event</h1>
+
+        <form action="{% url 'creator_dashboard' %}" method="GET" style="margin-bottom: 20px;">
+            <button type="submit" class="btn-back">Back to Dashboard</button>
+        </form>
+
         <form id="eventForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <label for="id_name">Event Name</label>

@@ -125,7 +125,7 @@
     <form action="{% url 'creator_dashboard' %}" method="GET" style="margin-bottom: 20px;">
         <button type="submit" class="btn-back">Back to Dashboard</button>
     </form>
-{% endif %}
+    {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}

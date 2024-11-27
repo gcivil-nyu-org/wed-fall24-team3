@@ -1,10 +1,13 @@
 # events/consumers.py
 
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.layers import get_channel_layer
 from django.utils import timezone
-from .models import ChatRoom, ChatMessage, RoomMember
+
+from .models import ChatRoom, ChatMessage, RoomMember, Notification
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -33,9 +36,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data.get("message")
         user = self.scope["user"]
-
         if message:
             await self.save_message(message, user)
+            chat_room = await self.get_chat_room(self.room_id)
+            await notify_group_members(chat_room, user, message, "chat_message")
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -76,3 +80,79 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, content, user):
         chat_room = ChatRoom.objects.get(id=self.room_id)
         ChatMessage.objects.create(room=chat_room, user=user, content=content)
+
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.group_name = f"notifications_{self.user.id}"
+
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name,
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name,
+        )
+
+    async def send_notification(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
+
+
+async def notify_group_members(room, sender, message, msg_type):
+    channel_layer = get_channel_layer()
+    members = await get_all_members_except_sender(room, sender)
+    event_name = await get_event_name(room)
+    url_path = f"{room.id}"
+
+    for member in members:
+        title_val = "New Message" if msg_type == "chat_message" else "New Announcement"
+        notif_id = await save_notification(
+            room, member, message, title_val, event_name, url_path
+        )
+        await channel_layer.group_send(
+            f"notifications_{member.user.id}",
+            {
+                "type": "send_notification",
+                "data": {
+                    "title": title_val,
+                    "sub_title": event_name,
+                    "message": message,
+                    "timestamp": timezone.now().isoformat(),
+                    "url_link": url_path,
+                    "id": notif_id,
+                    "msg_type": msg_type,
+                },
+            },
+        )
+
+
+@database_sync_to_async
+def save_notification(room, member, message, title, sub_title, url_path):
+    notif = Notification.objects.create(
+        user=member.user,
+        message=message,
+        title=title,
+        sub_title=sub_title,
+        url_link=url_path,
+    )
+    return notif.id
+
+
+@database_sync_to_async
+def get_all_members_except_sender(chat_room, sender):
+    return list(RoomMember.objects.filter(room=chat_room).exclude(user=sender))
+
+
+@database_sync_to_async
+def get_event_name(room):
+    return room.event.name

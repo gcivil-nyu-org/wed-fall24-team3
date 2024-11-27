@@ -1,14 +1,21 @@
 import base64
+from datetime import timedelta
+from io import BytesIO
+import boto3
 import qrcode  # type: ignore
-import json
+from asgiref.sync import async_to_sync, sync_to_async
+from botocore.exceptions import BotoCoreError, ClientError
+from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
-from django.http import JsonResponse
+from django.db import transaction
+from django.db.models.functions import Coalesce, TruncDate
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -18,15 +25,33 @@ from .models import (
     ChatRoom,
     ChatMessage,
     RoomMember,
+    Notification,
 )
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-from django.db.models.functions import Coalesce, TruncDate
-from django.utils import timezone
-from datetime import timedelta
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from .consumers import notify_group_members
+from .utils import admin_required, creator_required, user_required
+from django.http import JsonResponse
+import json
+
+
+@login_required
+def map_view(request):
+    events = Event.objects.all()
+    events_data = [
+        {
+            "id": event.id,
+            "name": event.name,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "location": event.location,
+            "image_url": event.image_url,
+        }
+        for event in events
+        if event.latitude and event.longitude  # Ensure events with valid coordinates
+    ]
+    context = {
+        "events_json": json.dumps(events_data),  # Serialize the data
+    }
+    return render(request, "events/map_view.html", context)
 
 
 @login_required
@@ -94,24 +119,28 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    # print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
             status=403,
         )
 
-    # Save and broadcast message if there's content
     if content:
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+
     return JsonResponse({"status": "success"})
 
 
 @login_required
-def make_announcement(request, room_id):
-    chat_room = get_object_or_404(ChatRoom, id=room_id)
+async def make_announcement(request, room_id):
+    chat_room = await sync_to_async(get_object_or_404)(ChatRoom, id=room_id)
+    is_creator = await sync_to_async(
+        lambda: request.user == chat_room.creator.creator
+    )()
 
     # Check if the user is the creator of the chat room
-    if request.user == chat_room.creator.creator:
+    if is_creator:
         # Parse JSON data from request body
         try:
             data = json.loads(request.body)  # Retrieve the JSON body
@@ -123,8 +152,14 @@ def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            ChatMessage.objects.create(
-                room=chat_room, user=request.user, content=f"[Announcement] {content}"
+            # print("Creating announcement")
+            message = f"[Announcement] {content}"
+            await sync_to_async(ChatMessage.objects.create)(
+                room=chat_room, user=request.user, content=message
+            )
+            # print("Created Announce Chat Message")
+            await notify_group_members(
+                chat_room, request.user, message, "chat_announcement"
             )
             return JsonResponse({"status": "success"})
         else:
@@ -174,6 +209,68 @@ def leave_chat(request, room_id):
 
 
 @login_required
+def view_notifications(request):
+    unread_notifications = fetch_unread_notif_db(request.user)
+    return render(
+        request,
+        "events/notifications.html",
+        {"notifications": unread_notifications},
+    )
+
+
+@login_required
+def get_user_unread_notifications(request):
+    unread_notifs = fetch_unread_notif_db(request.user)
+    return JsonResponse(
+        unread_notifs,
+        safe=False,
+    )
+
+
+def fetch_unread_notif_db(user):
+    res = Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
+    return list(
+        res.values(
+            "id", "message", "created_at", "type", "title", "sub_title", "url_link"
+        )
+    )
+
+
+@login_required
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        try:
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return JsonResponse(
+                {"success": True, "message": "Notification marked as read."}
+            )
+        except Notification.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Notification not found."}, status=404
+            )
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+
+@login_required
+def mark_all_as_read(request):
+    if request.method == "POST":
+        Notification.objects.filter(user=request.user, is_read=False).update(
+            is_read=True
+        )
+        return JsonResponse({"success": True})
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+
+@login_required
+@user_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
     events_with_tickets = (
@@ -341,6 +438,7 @@ def fetch_filter_wise_data(request):
 
 
 @login_required
+@creator_required
 def creator_dashboard(request):
     try:
         creator_profile = CreatorProfile.objects.get(creator=request.user)
@@ -422,6 +520,8 @@ def creator_dashboard(request):
     )
 
 
+@login_required
+@admin_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
@@ -429,7 +529,9 @@ def event_list(request):
 
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    return render(request, "events/event_detail.html", {"event": event})
+    return render(
+        request, "events/event_detail.html", {"event": event, "now": timezone.now()}
+    )
 
 
 def signup(request):
@@ -612,6 +714,7 @@ def delete_event_view(request, event_id):
 
 
 @login_required
+@user_required
 def user_profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 
@@ -638,6 +741,7 @@ def user_profile(request):
 
 
 @login_required
+@creator_required
 def creator_profile(request):
     profile, created = CreatorProfile.objects.get_or_create(creator=request.user)
 
@@ -664,6 +768,7 @@ def my_tickets(request):
 
 
 @login_required
+@user_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -678,23 +783,30 @@ def buy_tickets(request, event_id):
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
         if form.is_valid():
-            ticket = form.save(commit=False)
-            ticket.user = request.user
-            ticket.event = event
-            ticket.created_at = timezone.now().date()
-
-            if ticket.quantity > event.tickets_left:
-                messages.error(request, "Not enough tickets available!")
+            quantity = form.cleaned_data["quantity"]
+            # Check ticket availability early
+            if quantity > event.tickets_left:
+                messages.error(
+                    request,
+                    "Not enough tickets available!",
+                )
                 return render(
                     request, "events/buy_tickets.html", {"event": event, "form": form}
                 )
 
-            # Save the ticket
-            ticket.save()
+            with transaction.atomic():
+                ticket = form.save(commit=False)
+                ticket.user = request.user
+                ticket.event = event
+                ticket.created_at = timezone.now().date()
 
-            # Update the event's ticketsSold
-            event.ticketsSold += ticket.quantity
-            event.save(update_fields=["ticketsSold"])
+                # Save the ticket
+                ticket.save()
+
+                # Update the event's ticketsSold
+                event.ticketsSold += ticket.quantity
+                event.save(update_fields=["ticketsSold"])
+
             if ticket.quantity == 1:
                 messages.success(request, "Ticket purchased successfully!")
             else:
@@ -708,4 +820,24 @@ def buy_tickets(request, event_id):
     else:
         form = TicketPurchaseForm(initial=initial_data)
 
-    return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+    return render(
+        request,
+        "events/buy_tickets.html",
+        {"event": event, "form": form, "now": timezone.now()},
+    )
+
+
+def not_authorized(request):
+    # Determine the user's homepage based on their role
+    if request.user.is_superuser:
+        redirect_url = "event_list"  # Admin dashboard
+    elif CreatorProfile.objects.filter(creator=request.user).exists():
+        redirect_url = "creator_dashboard"  # Creator dashboard
+    else:
+        redirect_url = "user_home"  # User homepage
+
+    context = {
+        "redirect_url": redirect_url,
+    }
+
+    return render(request, "events/not_authorized.html", context, status=403)

@@ -174,13 +174,18 @@
         {% if messages %}
         <div class="alert-container">
             {% for message in messages %}
-                <div class="alert {{ message.tags }}">{{ message }}</div>
+                <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Buy Tickets Button -->
-        <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
+        <!-- Buy Tickets Button -->        
+        {% if event.date_time > now %}
+            <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
+        {% else %}
+            <p class="text-muted">This event has already taken place. Ticket purchase is unavailable.</p>
+        {% endif %}
+
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
 
         <!-- Event Name -->

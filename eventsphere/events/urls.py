@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import user_profile, my_tickets
+from .views import user_profile, my_tickets, map_view
 
 urlpatterns = [
     path(
@@ -57,4 +57,22 @@ urlpatterns = [
         name="kick_member",
     ),
     path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
+    path("not-authorized/", views.not_authorized, name="not_authorized"),
+    path("notifications", views.view_notifications, name="notifications"),
+    path(
+        "notifications/mark_as_read/<int:notification_id>/",
+        views.mark_as_read,
+        name="mark_as_read",
+    ),
+    path(
+        "notifications/mark_all_as_read",
+        views.mark_all_as_read,
+        name="mark_all_as_read",
+    ),
+    path(
+        "notifications/get_unread_notif",
+        views.get_user_unread_notifications,
+        name="get_user_unread_notifications",
+    ),
+    path("mapview/", map_view, name="map_view"),  # Map View
 ]

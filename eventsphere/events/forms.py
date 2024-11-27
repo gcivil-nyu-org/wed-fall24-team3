@@ -1,7 +1,23 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.core.validators import RegexValidator, MaxLengthValidator
+from django.core.exceptions import ValidationError
 from django import forms
 from .models import UserProfile, CreatorProfile, Event, Ticket
+
+
+phone_number_validator = RegexValidator(
+    r"^\d{10,12}$", "Enter a valid phone number (10-12 digits)."
+)
+
+
+def email_uniqueness_validator(email, model, instance=None):
+    queryset = model.objects.filter(email=email)
+    if instance:
+        queryset = queryset.exclude(pk=instance.pk)
+    if queryset.exists():
+        raise forms.ValidationError("This email is already in use.")
+
 
 EVENT_CATEGORIES = [
     ("Entertainment", "Entertainment"),
@@ -34,11 +50,33 @@ class EventForm(forms.ModelForm):
         widgets = {
             "latitude": forms.HiddenInput(),
             "longitude": forms.HiddenInput(),
+            "date_time": forms.DateTimeInput(
+                attrs={"class": "form-control datetimepicker"}
+            ),
         }
 
 
 class SignupForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+    username = forms.CharField(
+        max_length=255,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter your username"}
+        ),
+        validators=[MaxLengthValidator(255)],
+        error_messages={
+            "required": "Username is required.",
+            "max_length": "Username cannot exceed 255 characters.",
+        },
+    )
+
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "Enter your email"}
+        ),
+        error_messages={"required": "Email is required."},
+    )
 
     class Meta:
         model = User
@@ -68,31 +106,22 @@ class UserProfileForm(forms.ModelForm):
         }
         interests = forms.CharField(required=False)
         bio = forms.CharField(required=False)
-        # "bio": forms.Textarea(attrs={"rows": 3}),
-        # "interests": forms.Textarea(attrs={"rows": 3}),
-        # }
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        if (
-            email
-            and UserProfile.objects.filter(email=email)
-            .exclude(pk=self.instance.pk)
-            .exists()
-        ):
-            raise forms.ValidationError("This email is already in use.")
+        if email:
+            email_uniqueness_validator(email, UserProfile, self.instance)
         return email
 
+    def clean_age(self):
+        age = self.cleaned_data.get("age")
+        if age is not None and age <= 0:  # Validate positive age
+            raise ValidationError("Age must be a positive number.")
+        if age is not None and age >= 150:
+            raise ValidationError("Come on, nobody's THAT old!")
+        return age
 
-# class CreatorProfileForm(forms.ModelForm):
-#     class Meta:
-#         model = CreatorProfile
-#         fields = ['organization_name', 'organization_email', 'organization_social_media', 'contact_number']
-#         # fields = ["name", "age", "bio", "organisation", "location", "interests"]
-#         # widgets = {
-#         #     "bio": forms.Textarea(attrs={"rows": 3}),
-#         #     "interests": forms.Textarea(attrs={"rows": 2}),
-#         # }
+
 class CreatorProfileForm(forms.ModelForm):
     class Meta:
         model = CreatorProfile
@@ -125,46 +154,55 @@ class CreatorProfileForm(forms.ModelForm):
                 attrs={
                     "placeholder": "Enter your contact number",
                     "class": "form-control",
-                    "maxlength": "10",  # Optional attribute for validation
+                    "maxlength": "12",  # Optional attribute for validation
                 }
             ),
         }
 
-
-# class TicketPurchaseForm(forms.ModelForm):
-#     class Meta:
-#         model = Ticket
-#         fields = ["email", "phone_number", "quantity"]
-#         widgets = {
-#             "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
-#         }
-
-#     def clean_quantity(self):
-#         quantity = self.cleaned_data.get("quantity")
-#         if quantity > 5:
-#             raise forms.ValidationError("You cannot purchase more than 5 tickets.")
-#         return quantity
+    def clean_contact_number(self):
+        contact_number = self.cleaned_data.get("contact_number")
+        if contact_number:
+            phone_number_validator(contact_number)
+        return contact_number
 
 
 class TicketPurchaseForm(forms.ModelForm):
     class Meta:
         model = Ticket
         fields = ["email", "phone_number", "quantity"]
-        widgets = {
-            "quantity": forms.NumberInput(attrs={"min": 1, "max": 5}),
-        }
 
-    email = forms.EmailField(required=True, max_length=255)
-    phone_number = forms.CharField(required=True, max_length=12)
+    email = forms.EmailField(
+        required=True,
+        max_length=255,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter your email",
+            }
+        ),
+        error_messages={
+            "required": "Please enter your email.",
+            "invalid": "Enter a valid email address.",
+        },
+    )
+    phone_number = forms.CharField(
+        required=True,
+        max_length=12,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter your phone number",
+            }
+        ),
+        validators=[phone_number_validator],
+    )
+    quantity = forms.IntegerField(
+        widget=forms.NumberInput(attrs={"min": 1, "max": 5, "class": "form-control"}),
+        error_messages={"invalid": "Enter a valid quantity."},
+    )
 
     def clean_quantity(self):
         quantity = self.cleaned_data.get("quantity")
-        if quantity > 5:
-            raise forms.ValidationError("You cannot purchase more than 5 tickets.")
+        if not (1 <= quantity <= 5):
+            raise forms.ValidationError("You can only purchase 1 to 5 tickets.")
         return quantity
-
-    def clean_phone_number(self):
-        phone_number = self.cleaned_data.get("phone_number")
-        if not phone_number.isdigit():
-            raise forms.ValidationError("Please enter a valid phone number.")
-        return phone_number
