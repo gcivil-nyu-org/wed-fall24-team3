@@ -100,7 +100,7 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
-    print("member = ", member)
+    # print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
