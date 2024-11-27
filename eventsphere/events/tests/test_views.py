@@ -1226,7 +1226,7 @@ class CreateEventViewTest(TestCase):
         self.assertRedirects(
             response, reverse("not_authorized"), target_status_code=403
         )
-    
+
     def test_create_event_as_user(self):
         self.client.login(username="testuser", password="testpass")
         response = self.client.get(reverse("create_event"))
