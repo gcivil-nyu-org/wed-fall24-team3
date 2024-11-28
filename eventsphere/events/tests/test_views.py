@@ -208,7 +208,17 @@ class NotificationTests(TestCase):
 
 class DeleteEventViewTest(TestCase):
     def setUp(self):
+        # Set up a test user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
+        # Set up a creator
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+
+        # Set up a Admin
         self.superuser = User.objects.create_superuser(
             username="superuser", password="superpass"
         )
@@ -220,15 +230,15 @@ class DeleteEventViewTest(TestCase):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
+        # Login as an User
         self.client.login(username="testuser", password="testpass")
 
         response = self.client.post(
             reverse("delete_event", args=[1])
         )  # Event ID is mocked
 
-        mock_event.delete.assert_called_once()
         self.assertRedirects(
-            response, reverse("creator_dashboard"), target_status_code=302
+            response, reverse("not_authorized"), target_status_code=403
         )
 
     @patch("events.views.get_object_or_404")
@@ -236,6 +246,7 @@ class DeleteEventViewTest(TestCase):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
+        # login as an Admin
         self.client.login(username="superuser", password="superpass")
 
         response = self.client.post(reverse("delete_event", args=[1]))
@@ -245,11 +256,12 @@ class DeleteEventViewTest(TestCase):
         self.assertRedirects(response, reverse("event_list"))
 
     @patch("events.views.get_object_or_404")
-    def test_get_request_renders_delete_confirmation(self, mock_get_object):
+    def test_get_request_renders_delete_confirmation_as_creator(self, mock_get_object):
         mock_event = MagicMock()
         mock_get_object.return_value = mock_event
 
-        self.client.login(username="testuser", password="testpass")
+        # Login as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         response = self.client.get(reverse("delete_event", args=[1]))
 
@@ -452,8 +464,17 @@ class UserProfileViewTest(TestCase):
 
 class UpdateEventViewTest(TestCase):
     def setUp(self):
-        # Set up a test user and superuser
+        # Set up a test user
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
+        # Set up a creator
+        self.creator_user = User.objects.create_user(
+            username="creator", password="creatorpass"
+        )
+        self.profile = CreatorProfile.objects.create(creator=self.creator_user)
+
+        # Set up a Admin
         self.superuser = User.objects.create_superuser(
             username="superuser", password="superpass"
         )
@@ -463,7 +484,9 @@ class UpdateEventViewTest(TestCase):
 
     @patch("events.views.get_object_or_404")
     @patch("events.views.EventForm")
-    def test_get_request_renders_form(self, mock_event_form, mock_get_object):
+    def test_get_request_renders_form_as_creator(
+        self, mock_event_form, mock_get_object
+    ):
         # Mock the event retrieval
         mock_event = MagicMock()
         mock_event.id = 1  # Set a real integer for event ID
@@ -473,8 +496,8 @@ class UpdateEventViewTest(TestCase):
         mock_form_instance = MagicMock()
         mock_event_form.return_value = mock_form_instance
 
-        # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        # Log in as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a GET request
         response = self.client.get(reverse("update_event", args=[mock_event.id]))
@@ -486,6 +509,55 @@ class UpdateEventViewTest(TestCase):
 
         # Ensure get_object_or_404 was called with correct arguments
         mock_get_object.assert_called_once_with(Event, id=mock_event.id)
+
+    @patch("events.views.get_object_or_404")
+    @patch("events.views.EventForm")
+    def test_get_request_renders_form_as_admin(self, mock_event_form, mock_get_object):
+        # Mock the event retrieval
+        mock_event = MagicMock()
+        mock_event.id = 1  # Set a real integer for event ID
+        mock_get_object.return_value = mock_event
+
+        # Mock the form instance
+        mock_form_instance = MagicMock()
+        mock_event_form.return_value = mock_form_instance
+
+        # Log in as a admin
+        self.client.login(username="superuser", password="superpass")
+
+        # Send a GET request
+        response = self.client.get(reverse("update_event", args=[mock_event.id]))
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/update_event.html")
+        self.assertEqual(response.context["form"], mock_form_instance)
+
+        # Ensure get_object_or_404 was called with correct arguments
+        mock_get_object.assert_called_once_with(Event, id=mock_event.id)
+
+    @patch("events.views.get_object_or_404")
+    @patch("events.views.EventForm")
+    def test_get_request_renders_form_user(self, mock_event_form, mock_get_object):
+        # Mock the event retrieval
+        mock_event = MagicMock()
+        mock_event.id = 1  # Set a real integer for event ID
+        mock_get_object.return_value = mock_event
+
+        # Mock the form instance
+        mock_form_instance = MagicMock()
+        mock_event_form.return_value = mock_form_instance
+
+        # Log in as a user
+        self.client.login(username="testuser", password="testpass")
+
+        # Send a GET request
+        response = self.client.get(reverse("update_event", args=[mock_event.id]))
+
+        # Check the response
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
     @patch("events.views.get_object_or_404")
     @patch("events.views.boto3.client")
@@ -504,8 +576,8 @@ class UpdateEventViewTest(TestCase):
         mock_form.save.return_value = mock_event
         mock_event_form.return_value = mock_form
 
-        # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        # Log in as a creator
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a POST request without an image
         response = self.client.post(
@@ -516,7 +588,7 @@ class UpdateEventViewTest(TestCase):
         # Ensure form.save() was called and redirection to creator_dashboard
         mock_form.save.assert_called_once()
         self.assertRedirects(
-            response, reverse("creator_dashboard"), target_status_code=302
+            response, reverse("creator_dashboard"), target_status_code=200
         )
 
     @patch("events.views.get_object_or_404")
@@ -579,7 +651,7 @@ class UpdateEventViewTest(TestCase):
         mock_event_form.return_value = mock_form
 
         # Log in as a regular user
-        self.client.login(username="testuser", password="testpass")
+        self.client.login(username="creator", password="creatorpass")
 
         # Send a POST request with invalid data
         response = self.client.post(
@@ -1156,12 +1228,15 @@ class CreatorProfileViewTest2(TestCase):
 class CreateEventViewTest(TestCase):
     def setUp(self):
         self.client = Client()
-        # Create a creator user
+
         self.creator_user = User.objects.create_user(
             username="creator", password="creatorpass"
         )
         self.creator_profile = CreatorProfile.objects.create(creator=self.creator_user)
-        # Create a superuser
+
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.profile = UserProfile.objects.create(user=self.user)
+
         self.superuser = User.objects.create_superuser(
             username="admin", password="adminpass"
         )
@@ -1220,8 +1295,16 @@ class CreateEventViewTest(TestCase):
     def test_create_event_get_superuser(self):
         self.client.login(username="admin", password="adminpass")
         response = self.client.get(reverse("create_event"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "events/create_event.html")
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
+
+    def test_create_event_as_user(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("create_event"))
+        self.assertRedirects(
+            response, reverse("not_authorized"), target_status_code=403
+        )
 
     def test_create_event_unauthenticated(self):
         response = self.client.get(reverse("create_event"))
