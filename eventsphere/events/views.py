@@ -1,6 +1,7 @@
 import base64
 from datetime import timedelta
 from io import BytesIO
+from better_profanity import profanity
 import boto3
 from django.http import JsonResponse
 import json
@@ -39,6 +40,7 @@ from .utils import (
     admin_or_creator_required,
 )
 
+profanity.load_censor_words()
 
 @login_required
 def profile_chats(request):
@@ -155,6 +157,7 @@ def chat_room(request, room_id):
     )
 
 
+
 @login_required
 def send_message(request, room_id):
     chat_room = get_object_or_404(ChatRoom, id=room_id)
@@ -170,6 +173,11 @@ def send_message(request, room_id):
         )
 
     if content:
+        if profanity.contains_profanity(content):
+            return JsonResponse(
+                {"error": "Your message contains inappropriate language. Please revise."},
+                status=400,
+            )
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
 
     return JsonResponse({"status": "success"})

@@ -1,6 +1,7 @@
 # events/consumers.py
 
 import json
+from better_profanity import profanity
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -8,6 +9,7 @@ from channels.layers import get_channel_layer
 from django.utils import timezone
 
 from .models import ChatRoom, ChatMessage, RoomMember, Notification
+profanity.load_censor_words()
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -34,17 +36,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        # message = data.get("message")
         message = data.get("message")
+        censored_message = profanity.censor(message)
+
         user = self.scope["user"]
         if message:
-            await self.save_message(message, user)
+            await self.save_message(censored_message, user)
             chat_room = await self.get_chat_room(self.room_id)
-            await notify_group_members(chat_room, user, message, "chat_message")
+            await notify_group_members(chat_room, user, censored_message, "chat_message")
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     "type": "chat_message",
-                    "message": message,
+                    "message": censored_message,
                     "username": user.username,
                     "timestamp": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
