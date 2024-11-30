@@ -10,10 +10,14 @@ urlpatterns = [
         views.generate_event_qr_code,
         name="generate_event_qr",
     ),
-    path('toggle_favorite/<int:event_id>/', views.toggle_favorite, name='toggle_favorite'),
-    path('profile/chats/', views.profile_chats, name='profile_chats'),  # Add this line
+    path(
+        "toggle_favorite/<int:event_id>/", views.toggle_favorite, name="toggle_favorite"
+    ),
+    path("profile/chats/", views.profile_chats, name="profile_chats"),  # Add this line
     # Favorites List View
-    path('profile/favorites/', views.profile_favorites, name='profile_favorites'),  # Use this as the main route for the favorites tab
+    path(
+        "profile/favorites/", views.profile_favorites, name="profile_favorites"
+    ),  # Use this as the main route for the favorites tab
     # path('toggle_favorite/<int:event_id>/', views.toggle_favorite, name='toggle_favorite'),
     # path('profile/favorites/', views.favorites_list, name='favorites_list'),
     # path('profile/favorites/', views.profile_favorites, name='profile_favorites'),

@@ -30,7 +30,6 @@ from .models import (
     RoomMember,
     Favorite,
     Notification,
-
 )
 from .consumers import notify_group_members
 from .utils import (
@@ -42,15 +41,19 @@ from .utils import (
 
 profanity.load_censor_words()
 
+
 @login_required
 def profile_chats(request):
     # Fetch all chat rooms the user is a member of
     chat_rooms = ChatRoom.objects.filter(members__user=request.user).distinct()
 
-    return render(request, "events/profile_chats.html", {
-        "chat_rooms": chat_rooms,
-    })
-
+    return render(
+        request,
+        "events/profile_chats.html",
+        {
+            "chat_rooms": chat_rooms,
+        },
+    )
 
 
 @login_required
@@ -61,23 +64,30 @@ def toggle_favorite(request, event_id):
     if not created:
         # If the favorite already exists, remove it
         favorite.delete()
-        return JsonResponse({'favorited': False, 'message': 'Event removed from favorites.'})
+        return JsonResponse(
+            {"favorited": False, "message": "Event removed from favorites."}
+        )
 
-    return JsonResponse({'favorited': True, 'message': 'Event added to favorites!'})
+    return JsonResponse({"favorited": True, "message": "Event added to favorites!"})
+
 
 @login_required
 def profile_favorites(request):
     # Get the user's favorited events
     favorited_events = Event.objects.filter(favorited_by__user=request.user)
 
-    return render(request, "events/profile_favorites.html", {
-        "favorited_events": favorited_events,
-    })
+    return render(
+        request,
+        "events/profile_favorites.html",
+        {
+            "favorited_events": favorited_events,
+        },
+    )
 
 
 @login_required
 def map_view(request):
-    current_time = now()
+    current_time = timezone.now()
     events = Event.objects.filter(date_time__gte=current_time)
     events_data = [
         {
@@ -157,7 +167,6 @@ def chat_room(request, room_id):
     )
 
 
-
 @login_required
 def send_message(request, room_id):
     chat_room = get_object_or_404(ChatRoom, id=room_id)
@@ -175,7 +184,9 @@ def send_message(request, room_id):
     if content:
         if profanity.contains_profanity(content):
             return JsonResponse(
-                {"error": "Your message contains inappropriate language. Please revise."},
+                {
+                    "error": "Your message contains inappropriate language. Please revise."
+                },
                 status=400,
             )
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
@@ -431,19 +442,17 @@ def home(request):
 #     if category:
 #         events = events.filter(category__iexact=category)
 
+
 #     return render(
 #         request,
 #         "events/user_event_list.html",
 #         {"events": events, "query": query, "category": category},
 #     )
-
-from django.utils.timezone import now
-
 @login_required
 def user_event_list(request):
     query = request.GET.get("q")
     category = request.GET.get("category")
-    current_time = now()
+    current_time = timezone.now()
 
     # Separate upcoming and past events
     upcoming_events = Event.objects.filter(date_time__gte=current_time)
@@ -452,27 +461,30 @@ def user_event_list(request):
     # Apply filters to both upcoming and past events
     if query:
         upcoming_events = upcoming_events.filter(
-            Q(name__icontains=query) | 
-            Q(location__icontains=query) | 
-            Q(category__icontains=query)
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
+            | Q(category__icontains=query)
         )
         past_events = past_events.filter(
-            Q(name__icontains=query) | 
-            Q(location__icontains=query) | 
-            Q(category__icontains=query)
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
+            | Q(category__icontains=query)
         )
 
     if category:
         upcoming_events = upcoming_events.filter(category__iexact=category)
         past_events = past_events.filter(category__iexact=category)
 
-    return render(request, "events/user_event_list.html", {
-        "upcoming_events": upcoming_events,
-        "past_events": past_events,
-        "query": query,
-        "category": category,
-    })
-
+    return render(
+        request,
+        "events/user_event_list.html",
+        {
+            "upcoming_events": upcoming_events,
+            "past_events": past_events,
+            "query": query,
+            "category": category,
+        },
+    )
 
 
 def tickets_per_filter(request):
@@ -628,11 +640,17 @@ def event_list(request):
 
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    now = timezone.now()
+    # now = timezone.now()
     is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
- 
+
     return render(
-        request, "events/event_detail.html", {"event": event, "now": timezone.now(), "is_favorited": is_favorited,}
+        request,
+        "events/event_detail.html",
+        {
+            "event": event,
+            "now": timezone.now(),
+            "is_favorited": is_favorited,
+        },
     )
 
 

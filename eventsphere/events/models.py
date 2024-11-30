@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.core.validators import RegexValidator
 from django.core.validators import MinValueValidator
 
+
 class CreatorProfile(models.Model):
     creator = models.OneToOneField(User, on_delete=models.CASCADE)
     organization_name = models.CharField(max_length=255, null=True, blank=True)
@@ -62,19 +63,20 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="favorited_by")
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="favorited_by"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'event')  # Prevent duplicate favorites
+        unique_together = ("user", "event")  # Prevent duplicate favorites
 
     def __str__(self):
         return f"{self.user.username} favorited {self.event.name}"
-
 
 
 class UserProfile(models.Model):

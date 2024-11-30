@@ -9,6 +9,7 @@ from channels.layers import get_channel_layer
 from django.utils import timezone
 
 from .models import ChatRoom, ChatMessage, RoomMember, Notification
+
 profanity.load_censor_words()
 
 
@@ -44,7 +45,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if message:
             await self.save_message(censored_message, user)
             chat_room = await self.get_chat_room(self.room_id)
-            await notify_group_members(chat_room, user, censored_message, "chat_message")
+            await notify_group_members(
+                chat_room, user, censored_message, "chat_message"
+            )
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
