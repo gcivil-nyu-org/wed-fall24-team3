@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Chats - User Profile{% endblock %}
+
+{% block content %}
+<style>
+    .chats-container {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chats-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .chats-header h2 {
+        font-size: 28px;
+        color: #333333;
+    }
+
+    .chat-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .chat-list-item {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-list-item a {
+        text-decoration: none;
+        color: #4CAF50;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .chat-list-item a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="chats-container">
+    <div class="chats-header">
+        <h2>Joined Chats</h2>
+    </div>
+
+    {% if chat_rooms %}
+        <ul class="chat-list">
+            {% for room in chat_rooms %}
+                <li class="chat-list-item">
+                    <span>{{ room.event.name }}</span>
+                    <a href="{% url 'chat_room' room.id %}">Go to Chat</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have not joined any chat rooms yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
