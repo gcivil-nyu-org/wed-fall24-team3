@@ -28,7 +28,12 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
-from .utils import admin_required, creator_required, user_required
+from .utils import (
+    admin_required,
+    creator_required,
+    user_required,
+    admin_or_creator_required,
+)
 from django.http import JsonResponse
 import json
 
@@ -99,6 +104,8 @@ def chat_room(request, room_id):
     # Check if the user is a member and redirect if they're not
     if not members.filter(user=request.user).exists():
         return redirect("join_chat", event_id=chat_room.event.id)
+
+    # mark_event_as_read(request.user, room_id)
 
     return render(
         request,
@@ -267,6 +274,17 @@ def mark_all_as_read(request):
     return JsonResponse(
         {"success": False, "message": "Invalid request method."}, status=405
     )
+
+
+# def mark_event_as_read(user, event_id):
+#     """
+#     Marks all notifications for a specific event as read for a given user.
+#     """
+#     Notification.objects.filter(
+#         user=user,  # Target notifications for the specific user
+#         is_read=False,  # Only unread notifications
+#         url_link=str(event_id),  # Match the event ID stored in the `url_link`
+#     ).update(is_read=True)
 
 
 @login_required
@@ -580,6 +598,7 @@ def signup(request):
 
 
 @login_required
+@creator_required
 def create_event(request):
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES)
@@ -617,6 +636,7 @@ def create_event(request):
 
 
 @login_required
+@admin_or_creator_required
 def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
@@ -700,6 +720,7 @@ def event_success(request):
 
 
 @login_required  # Ensure only logged-in users can delete events
+@admin_or_creator_required
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
