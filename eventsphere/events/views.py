@@ -19,6 +19,7 @@ from django.db import transaction
 from django.db.models.functions import Coalesce, TruncDate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -638,20 +639,35 @@ def event_list(request):
     return render(request, "events/event_list.html", {"events": events})
 
 
-def event_detail(request, pk):
-    event = get_object_or_404(Event, pk=pk)
-    # now = timezone.now()
-    is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check if user is authenticated before checking favorites
+    if not isinstance(request.user, AnonymousUser):
+        is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+    else:
+        is_favorited = False  # Anonymous users can't favorite events
 
-    return render(
-        request,
-        "events/event_detail.html",
-        {
-            "event": event,
-            "now": timezone.now(),
-            "is_favorited": is_favorited,
-        },
-    )
+    return render(request, "events/event_detail.html", {
+        "event": event,
+        "now": timezone.now(),
+        "is_favorited": is_favorited,
+    })
+
+# def event_detail(request, pk):
+#     event = get_object_or_404(Event, pk=pk)
+#     # now = timezone.now()
+#     is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+
+#     return render(
+#         request,
+#         "events/event_detail.html",
+#         {
+#             "event": event,
+#             "now": timezone.now(),
+#             "is_favorited": is_favorited,
+#         },
+#     )
 
 
 def signup(request):
