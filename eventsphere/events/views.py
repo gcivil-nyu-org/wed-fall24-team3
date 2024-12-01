@@ -28,7 +28,12 @@ from .models import (
     Notification,
 )
 from .consumers import notify_group_members
-from .utils import admin_required, creator_required, user_required
+from .utils import (
+    admin_required,
+    creator_required,
+    user_required,
+    admin_or_creator_required,
+)
 from django.http import JsonResponse
 import json
 
@@ -593,6 +598,7 @@ def signup(request):
 
 
 @login_required
+@creator_required
 def create_event(request):
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES)
@@ -630,6 +636,7 @@ def create_event(request):
 
 
 @login_required
+@admin_or_creator_required
 def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
@@ -713,6 +720,7 @@ def event_success(request):
 
 
 @login_required  # Ensure only logged-in users can delete events
+@admin_or_creator_required
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
