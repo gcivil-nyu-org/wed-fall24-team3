@@ -155,6 +155,34 @@
             #map {
                 max-width: 100%;
             }
+            .heart {
+    font-size: 24px;
+    color: gray;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.heart.favorited {
+    color: red;
+}
+
+.favorite-btn {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.favorite-btn:hover {
+    background-color: #e1e1e1;
+    color: #000;
+}
+
         }
     </style>
 {% endblock %}
@@ -187,6 +215,24 @@
         {% endif %}
 
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
+
+        <!-- Favorite Button -->
+<div>
+    <button 
+        class="favorite-btn" 
+        data-event-id="{{ event.id }}" 
+        onclick="toggleFavorite(this)">
+        <span class="heart {% if is_favorited %}favorited{% endif %}">
+            &#x2764;
+        </span> 
+        {% if is_favorited %}
+            Remove from Favorites
+        {% else %}
+            Add to Favorites
+        {% endif %}
+    </button>
+</div>
+
 
         <!-- Event Name -->
         <h1>{{ event.name }}</h1>
@@ -248,6 +294,48 @@
                 }
             };
         });
+
+        function toggleFavorite(button) {
+    const eventId = button.dataset.eventId;
+    const heart = button.querySelector('.heart');
+
+    fetch(`/toggle_favorite/${eventId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF protection
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.favorited) {
+            heart.classList.add('favorited');
+            button.innerHTML = `<span class="heart favorited">&#x2764;</span> Remove from Favorites`;
+            alert(data.message); // Optional: Use a toast for better UX
+        } else {
+            heart.classList.remove('favorited');
+            button.innerHTML = `<span class="heart">&#x2764;</span> Add to Favorites`;
+            alert(data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// CSRF token helper function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -258,5 +346,7 @@
                 }, 10000);  // Hides the alert after 3 seconds
             });
         });
+
+
     </script>
 {% endblock %}

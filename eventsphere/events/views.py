@@ -1,7 +1,10 @@
 import base64
 from datetime import timedelta
 from io import BytesIO
+from better_profanity import profanity
 import boto3
+from django.http import JsonResponse
+import json
 import qrcode  # type: ignore
 from asgiref.sync import async_to_sync, sync_to_async
 from botocore.exceptions import BotoCoreError, ClientError
@@ -16,6 +19,7 @@ from django.db import transaction
 from django.db.models.functions import Coalesce, TruncDate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
     UserProfile,
@@ -25,6 +29,7 @@ from .models import (
     ChatRoom,
     ChatMessage,
     RoomMember,
+    Favorite,
     Notification,
 )
 from .consumers import notify_group_members
@@ -34,13 +39,57 @@ from .utils import (
     user_required,
     admin_or_creator_required,
 )
-from django.http import JsonResponse
-import json
+
+profanity.load_censor_words()
+
+
+@login_required
+def profile_chats(request):
+    # Fetch all chat rooms the user is a member of
+    chat_rooms = ChatRoom.objects.filter(members__user=request.user).distinct()
+
+    return render(
+        request,
+        "events/profile_chats.html",
+        {
+            "chat_rooms": chat_rooms,
+        },
+    )
+
+
+@login_required
+def toggle_favorite(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, event=event)
+
+    if not created:
+        # If the favorite already exists, remove it
+        favorite.delete()
+        return JsonResponse(
+            {"favorited": False, "message": "Event removed from favorites."}
+        )
+
+    return JsonResponse({"favorited": True, "message": "Event added to favorites!"})
+
+
+@login_required
+def profile_favorites(request):
+    # Get the user's favorited events
+    favorited_events = Event.objects.filter(favorited_by__user=request.user)
+
+    return render(
+        request,
+        "events/profile_favorites.html",
+        {
+            "favorited_events": favorited_events,
+        },
+    )
 
 
 @login_required
 def map_view(request):
-    events = Event.objects.all()
+    current_time = timezone.now()
+    events = Event.objects.filter(date_time__gte=current_time)
     events_data = [
         {
             "id": event.id,
@@ -134,6 +183,13 @@ def send_message(request, room_id):
         )
 
     if content:
+        if profanity.contains_profanity(content):
+            return JsonResponse(
+                {
+                    "error": "Your message contains inappropriate language. Please revise."
+                },
+                status=400,
+            )
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
 
     return JsonResponse({"status": "success"})
@@ -367,30 +423,68 @@ def home(request):
     return render(request, "events/homepage.html")
 
 
+# def user_event_list(request):
+#     query = request.GET.get("q")
+#     category = request.GET.get(
+#         "category"
+#     )  # Get the selected category from the URL parameters
+#     events = Event.objects.all()
+
+#     # Filter by search query if provided
+#     if query:
+#         events = events.filter(
+#             Q(name__icontains=query)
+#             | Q(location__icontains=query)
+#             | Q(speakers__icontains=query)
+#             | Q(category__icontains=query)
+#         )
+
+#     # Filter by category if provided, ignoring case
+#     if category:
+#         events = events.filter(category__iexact=category)
+
+
+#     return render(
+#         request,
+#         "events/user_event_list.html",
+#         {"events": events, "query": query, "category": category},
+#     )
+@login_required
 def user_event_list(request):
     query = request.GET.get("q")
-    category = request.GET.get(
-        "category"
-    )  # Get the selected category from the URL parameters
-    events = Event.objects.all()
+    category = request.GET.get("category")
+    current_time = timezone.now()
 
-    # Filter by search query if provided
+    # Separate upcoming and past events
+    upcoming_events = Event.objects.filter(date_time__gte=current_time)
+    past_events = Event.objects.filter(date_time__lt=current_time)
+
+    # Apply filters to both upcoming and past events
     if query:
-        events = events.filter(
+        upcoming_events = upcoming_events.filter(
             Q(name__icontains=query)
             | Q(location__icontains=query)
-            | Q(speakers__icontains=query)
+            | Q(category__icontains=query)
+        )
+        past_events = past_events.filter(
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
             | Q(category__icontains=query)
         )
 
-    # Filter by category if provided, ignoring case
     if category:
-        events = events.filter(category__iexact=category)
+        upcoming_events = upcoming_events.filter(category__iexact=category)
+        past_events = past_events.filter(category__iexact=category)
 
     return render(
         request,
         "events/user_event_list.html",
-        {"events": events, "query": query, "category": category},
+        {
+            "upcoming_events": upcoming_events,
+            "past_events": past_events,
+            "query": query,
+            "category": category,
+        },
     )
 
 
@@ -545,11 +639,35 @@ def event_list(request):
     return render(request, "events/event_list.html", {"events": events})
 
 
-def event_detail(request, pk):
-    event = get_object_or_404(Event, pk=pk)
-    return render(
-        request, "events/event_detail.html", {"event": event, "now": timezone.now()}
-    )
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check if user is authenticated before checking favorites
+    if not isinstance(request.user, AnonymousUser):
+        is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+    else:
+        is_favorited = False  # Anonymous users can't favorite events
+
+    return render(request, "events/event_detail.html", {
+        "event": event,
+        "now": timezone.now(),
+        "is_favorited": is_favorited,
+    })
+
+# def event_detail(request, pk):
+#     event = get_object_or_404(Event, pk=pk)
+#     # now = timezone.now()
+#     is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+
+#     return render(
+#         request,
+#         "events/event_detail.html",
+#         {
+#             "event": event,
+#             "now": timezone.now(),
+#             "is_favorited": is_favorited,
+#         },
+#     )
 
 
 def signup(request):
