@@ -648,18 +648,23 @@ def event_list(request):
 
 def event_detail(request, pk):
     event = get_object_or_404(Event, id=pk)
-    
+
     # Check if user is authenticated before checking favorites
     if not isinstance(request.user, AnonymousUser):
         is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
     else:
         is_favorited = False  # Anonymous users can't favorite events
 
-    return render(request, "events/event_detail.html", {
-        "event": event,
-        "now": timezone.now(),
-        "is_favorited": is_favorited,
-    })
+    return render(
+        request,
+        "events/event_detail.html",
+        {
+            "event": event,
+            "now": timezone.now(),
+            "is_favorited": is_favorited,
+        },
+    )
+
 
 # def event_detail(request, pk):
 #     event = get_object_or_404(Event, pk=pk)
