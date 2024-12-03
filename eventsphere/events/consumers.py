@@ -158,7 +158,9 @@ def save_notification(room, member, message, title, sub_title, url_path):
 
 @database_sync_to_async
 def get_all_members_except_sender(chat_room, sender):
-    return list(RoomMember.objects.filter(room=chat_room).exclude(user=sender))
+    return list(
+        RoomMember.objects.filter(room=chat_room, is_kicked=False).exclude(user=sender)
+    )
 
 
 @database_sync_to_async

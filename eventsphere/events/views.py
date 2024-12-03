@@ -362,6 +362,13 @@ def profile_tickets(request):
 
 # Custom login view to handle both admin and user redirection
 def login_view(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("event_list")
+    elif request.user.is_authenticated and request.user.is_staff:
+        return redirect("creator_dashboard")
+    elif request.user.is_authenticated:
+        return redirect("user_event_list")
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
