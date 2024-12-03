@@ -362,6 +362,13 @@ def profile_tickets(request):
 
 # Custom login view to handle both admin and user redirection
 def login_view(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("event_list")
+    elif request.user.is_authenticated and request.user.is_staff:
+        return redirect("creator_dashboard")
+    elif request.user.is_authenticated:
+        return redirect("user_event_list")
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -639,8 +646,8 @@ def event_list(request):
     return render(request, "events/event_list.html", {"events": events})
 
 
-def event_detail(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
+def event_detail(request, pk):
+    event = get_object_or_404(Event, id=pk)
     
     # Check if user is authenticated before checking favorites
     if not isinstance(request.user, AnonymousUser):

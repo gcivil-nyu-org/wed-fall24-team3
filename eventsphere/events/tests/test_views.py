@@ -1018,6 +1018,8 @@ class GenerateEventQRCodeTest(TestCase):
 class UserEventListViewTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username="testuser", password="password123")
+        self.client.login(username="testuser", password="password123")
         self.event1 = Event.objects.create(
             name="Music Concert",
             location="Stadium",
@@ -1039,22 +1041,31 @@ class UserEventListViewTest(TestCase):
             ticketsSold=0,
         )
 
+    def test_redirect_if_not_logged_in(self):
+        self.client.logout()  # Ensure no user is logged in
+        response = self.client.get(reverse("user_event_list"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)  # Check redirection to login
+
     def test_user_event_list_no_query(self):
         response = self.client.get(reverse("user_event_list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/user_event_list.html")
-        self.assertEqual(len(response.context["events"]), 2)
+        self.assertEqual(len(response.context["upcoming_events"]), 2)
+        self.assertEqual(len(response.context["past_events"]), 0)  # Assuming no past events
 
     def test_user_event_list_with_query(self):
         response = self.client.get(reverse("user_event_list"), {"q": "Music"})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["events"]), 1)
-        self.assertEqual(response.context["events"][0], self.event1)
+        self.assertEqual(len(response.context["upcoming_events"]), 1)  # Changed from 'events' to 'upcoming_events'
+        self.assertEqual(response.context["upcoming_events"][0], self.event1)
+        self.assertEqual(len(response.context["past_events"]), 0)  # Assuming no past events match
 
     def test_user_event_list_no_matching_query(self):
         response = self.client.get(reverse("user_event_list"), {"q": "Nonexistent"})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["events"]), 0)
+        self.assertEqual(len(response.context["upcoming_events"]), 0)  # No upcoming events match
+        self.assertEqual(len(response.context["past_events"]), 0)  # No past events match
 
 
 class AdminEventListViewTest(TestCase):
