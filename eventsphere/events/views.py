@@ -702,18 +702,18 @@ def signup(request):
             except ValidationError:
                 messages.error(request, "Enter a valid email address.")
                 return render(request, "events/signup.html")
-            
+
             # Admin email check
             if AdminProfile.objects.filter(email=email).exists():
                 messages.error(request, "This email is already in use.")
                 return render(request, "events/signup.html")
 
-            # Creator email check 
+            # Creator email check
             if CreatorProfile.objects.filter(organization_email=email).exists():
                 messages.error(request, "This email is already in use.")
                 return render(request, "events/signup.html")
-            
-            # User check 
+
+            # User check
             if UserProfile.objects.filter(email=email).exists():
                 messages.error(request, "This email is already in use.")
                 return render(request, "events/signup.html")
