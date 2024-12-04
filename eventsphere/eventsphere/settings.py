@@ -36,6 +36,9 @@ ALLOWED_HOSTS = [
     "prod-env.eba-qff7pamz.us-west-2.elasticbeanstalk.com",
 ]
 
+if "test" in sys.argv:
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
