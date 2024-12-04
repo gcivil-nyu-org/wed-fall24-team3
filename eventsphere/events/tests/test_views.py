@@ -18,6 +18,7 @@ from events.forms import (
 )
 from events.models import (
     Event,
+    AdminProfile,
     CreatorProfile,
     UserProfile,
     ChatRoom,
@@ -806,6 +807,7 @@ class SignupTest(TestCase):
     def test_signup_post_password_mismatch(self):
         form_data = {
             "username": "newuser",
+            "email": "newuser@gmail.com",
             "password": "password123",
             "confirm_password": "password456",  # Mismatched password
             "user_type": "user",
@@ -828,6 +830,7 @@ class SignupTest(TestCase):
 
         form_data = {
             "username": "existinguser",  # Username already exists
+            "email": "newuser@gmail.com",
             "password": "password123",
             "confirm_password": "password123",
             "user_type": "user",
@@ -844,9 +847,126 @@ class SignupTest(TestCase):
             any("Username already exists." in str(m.message) for m in messages)
         )
 
+    def test_signup_post_no_email(self):
+
+        form_data = {
+            "username": "existinguser",
+            "password": "password123",
+            "confirm_password": "password123",
+            "user_type": "user",
+        }
+        response = self.client.post(self.url, data=form_data)
+
+        # Check response and template
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/signup.html")
+
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any("Email is required." in str(m.message) for m in messages))
+
+    def test_signup_post_invalid_email(self):
+
+        form_data = {
+            "username": "existinguser",
+            "email": "abcd",
+            "password": "password123",
+            "confirm_password": "password123",
+            "user_type": "user",
+        }
+        response = self.client.post(self.url, data=form_data)
+
+        # Check response and template
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/signup.html")
+
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any("Enter a valid email address." in str(m.message) for m in messages)
+        )
+
+    def test_signup_post_email_in_use_admin(self):
+
+        # Create a user to simulate an existing username
+        user = User.objects.create_user(
+            username="user", password="password123", is_superuser=True
+        )
+        AdminProfile.objects.create(admin=user, email="test@gmail.com")
+
+        form_data = {
+            "username": "existinguser",
+            "email": "test@gmail.com",
+            "password": "password123",
+            "confirm_password": "password123",
+            "user_type": "user",
+        }
+        response = self.client.post(self.url, data=form_data)
+
+        # Check response and template
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/signup.html")
+
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any("This email is already in use." in str(m.message) for m in messages)
+        )
+
+    def test_signup_post_email_in_use_creator(self):
+
+        # Create a user to simulate an existing username
+        user = User.objects.create_user(username="user", password="password123")
+        CreatorProfile.objects.create(creator=user, organization_email="test@gmail.com")
+
+        form_data = {
+            "username": "existinguser",
+            "email": "test@gmail.com",
+            "password": "password123",
+            "confirm_password": "password123",
+            "user_type": "user",
+        }
+        response = self.client.post(self.url, data=form_data)
+
+        # Check response and template
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/signup.html")
+
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any("This email is already in use." in str(m.message) for m in messages)
+        )
+
+    def test_signup_post_email_in_use_user(self):
+
+        # Create a user to simulate an existing username
+        user = User.objects.create_user(username="user", password="password123")
+        UserProfile.objects.create(user=user, email="test@gmail.com")
+
+        form_data = {
+            "username": "existinguser",
+            "email": "test@gmail.com",
+            "password": "password123",
+            "confirm_password": "password123",
+            "user_type": "user",
+        }
+        response = self.client.post(self.url, data=form_data)
+
+        # Check response and template
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "events/signup.html")
+
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any("This email is already in use." in str(m.message) for m in messages)
+        )
+
     def test_signup_post_success(self):
         form_data = {
             "username": "newuser",
+            "email": "newuser@gmail.com",
             "password": "password123",
             "confirm_password": "password123",
             "user_type": "admin",
@@ -878,6 +998,7 @@ class SignupTests(TestCase):
     def test_user_signup_post_valid_data(self):
         form_data = {
             "username": "testuser",
+            "email": "testuser@gmail.com",
             "password": "testpassword123",
             "confirm_password": "testpassword123",
             "user_type": "user",
@@ -916,6 +1037,7 @@ class SignupTests(TestCase):
     def test_creator_signup_post_valid_data(self):
         form_data = {
             "username": "creatoruser",
+            "email": "newuser@gmail.com",
             "password": "creatorpassword123",
             "confirm_password": "creatorpassword123",
             "user_type": "creator",
@@ -933,6 +1055,7 @@ class SignupTests(TestCase):
     def test_creator_signup_post_invalid_data(self):
         form_data = {
             "username": "creatoruser",
+            "email": "newuser@gmail.com",
             "password": "password123",
             "confirm_password": "differentpassword123",  # Passwords don't match
             "user_type": "creator",
