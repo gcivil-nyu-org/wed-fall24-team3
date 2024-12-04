@@ -5,6 +5,13 @@ from django.core.validators import RegexValidator
 from django.core.validators import MinValueValidator
 
 
+class AdminProfile(models.Model):
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.EmailField(unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.admin.username
+
 class CreatorProfile(models.Model):
     creator = models.OneToOneField(User, on_delete=models.CASCADE)
     organization_name = models.CharField(max_length=255, null=True, blank=True)
