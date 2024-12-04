@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
 from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
 from .models import (
+    AdminProfile,
     UserProfile,
     CreatorProfile,
     Ticket,
@@ -39,6 +40,8 @@ from .utils import (
     user_required,
     admin_or_creator_required,
 )
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 profanity.load_censor_words()
 
@@ -685,9 +688,35 @@ def event_detail(request, pk):
 def signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
+        email = request.POST.get("email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
         user_type = request.POST.get("user_type")
+
+        if not email:
+            messages.error(request, "Email is required.")
+            return render(request, "events/signup.html")
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, "Enter a valid email address.")
+                return render(request, "events/signup.html")
+            
+            # Admin email check
+            if AdminProfile.objects.filter(email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
+
+            # Creator email check 
+            if CreatorProfile.objects.filter(organization_email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
+            
+            # User check 
+            if UserProfile.objects.filter(email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
 
         # Check if passwords match
         if password != confirm_password:
@@ -709,18 +738,19 @@ def signup(request):
         if user_type == "admin":
             user.is_superuser = True
             user.save()
+            AdminProfile.objects.create(admin=user, email=email)
             login(request, user)
             return redirect("event_list")
 
         elif user_type == "creator":
             user.is_staff = True
             user.save()
-            CreatorProfile.objects.create(creator=user)
+            CreatorProfile.objects.create(creator=user, organization_email=email)
             login(request, user)
             return redirect("creator_profile")
 
         else:
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.create(user=user, email=email)
             login(request, user)
             return redirect("user_profile")
 
