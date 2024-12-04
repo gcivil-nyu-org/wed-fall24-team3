@@ -863,9 +863,7 @@ class SignupTest(TestCase):
 
         # Check for error message
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(
-            any("Email is required." in str(m.message) for m in messages)
-        )
+        self.assertTrue(any("Email is required." in str(m.message) for m in messages))
 
     def test_signup_post_invalid_email(self):
 
@@ -891,7 +889,9 @@ class SignupTest(TestCase):
     def test_signup_post_email_in_use_admin(self):
 
         # Create a user to simulate an existing username
-        user = User.objects.create_user(username="user", password="password123", is_superuser=True)
+        user = User.objects.create_user(
+            username="user", password="password123", is_superuser=True
+        )
         AdminProfile.objects.create(admin=user, email="test@gmail.com")
 
         form_data = {
