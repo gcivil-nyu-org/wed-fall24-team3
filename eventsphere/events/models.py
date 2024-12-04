@@ -12,6 +12,7 @@ class AdminProfile(models.Model):
     def __str__(self):
         return self.admin.username
 
+
 class CreatorProfile(models.Model):
     creator = models.OneToOneField(User, on_delete=models.CASCADE)
     organization_name = models.CharField(max_length=255, null=True, blank=True)
