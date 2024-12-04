@@ -9,9 +9,6 @@ from django.urls import reverse
 from django.utils import timezone
 from events.views import fetch_unread_notif_db
 from django.core import mail
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-import re
 
 
 from events.forms import (
@@ -1253,7 +1250,7 @@ class ForgotPasswordTest(TestCase):
         Test that requesting a password reset for a user without a profile email does not send an email.
         """
         # Create a user without a profile email
-        user = User.objects.create_user(username="noprofuser", password="noprofpass")
+        User.objects.create_user(username="noprofuser", password="noprofpass")
         # Do not create a profile for this user
         response = self.client.post(
             reverse("password_reset"), {"email": "noprofuser@yopmail.com"}

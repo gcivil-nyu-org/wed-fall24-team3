@@ -255,17 +255,14 @@ class CustomPasswordResetForm(PasswordResetForm):
             try:
                 admin_profile = user.adminprofile
                 profile_email = admin_profile.email
-                print(f"Sending email to AdminProfile email: {profile_email}")
             except AdminProfile.DoesNotExist:
                 try:
                     user_profile = user.userprofile
                     profile_email = user_profile.email
-                    print(f"Sending email to UserProfile email: {profile_email}")
                 except UserProfile.DoesNotExist:
                     try:
                         creator_profile = user.creatorprofile
                         profile_email = creator_profile.organization_email
-                        print(f"Sending email to CreatorProfile email: {profile_email}")
                     except CreatorProfile.DoesNotExist:
                         print("No profile found for user:", user.username)
                         continue
@@ -280,6 +277,5 @@ class CustomPasswordResetForm(PasswordResetForm):
                         profile_email,
                         html_email_template_name,
                     )
-                    print(f"Email sent to {profile_email}")
                 except Exception as e:
                     print(f"Failed to send email to {profile_email}: {e}")
