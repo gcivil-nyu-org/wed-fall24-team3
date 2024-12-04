@@ -206,24 +206,31 @@ class TicketPurchaseForm(forms.ModelForm):
         if not (1 <= quantity <= 5):
             raise forms.ValidationError("You can only purchase 1 to 5 tickets.")
         return quantity
-    
+
+
 class CustomPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(label="Email", max_length=254, required=True)
 
     def clean_email(self):
-        email = self.cleaned_data['email']
+        email = self.cleaned_data["email"]
         users = set()
 
         # Search in AdminProfile
-        admin_users = AdminProfile.objects.filter(email__iexact=email).values_list('admin', flat=True)
+        admin_users = AdminProfile.objects.filter(email__iexact=email).values_list(
+            "admin", flat=True
+        )
         users.update(User.objects.filter(id__in=admin_users))
 
         # Search in UserProfile
-        user_users = UserProfile.objects.filter(email__iexact=email).values_list('user', flat=True)
+        user_users = UserProfile.objects.filter(email__iexact=email).values_list(
+            "user", flat=True
+        )
         users.update(User.objects.filter(id__in=user_users))
 
         # Search in CreatorProfile (organization_email)
-        creator_users = CreatorProfile.objects.filter(organization_email__iexact=email).values_list('creator', flat=True)
+        creator_users = CreatorProfile.objects.filter(
+            organization_email__iexact=email
+        ).values_list("creator", flat=True)
         users.update(User.objects.filter(id__in=creator_users))
 
         if not users:
@@ -234,10 +241,17 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def get_users(self, email):
         return self.users_cache
-    
-    def send_mail(self, subject_template_name, email_template_name,
-                context, from_email, to_email, html_email_template_name=None):
-        for user in self.get_users(self.cleaned_data['email']):
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        for user in self.get_users(self.cleaned_data["email"]):
             try:
                 admin_profile = user.adminprofile
                 profile_email = admin_profile.email
@@ -258,9 +272,14 @@ class CustomPasswordResetForm(PasswordResetForm):
 
             if profile_email:
                 try:
-                    super().send_mail(subject_template_name, email_template_name,
-                                    context, from_email, profile_email, html_email_template_name)
+                    super().send_mail(
+                        subject_template_name,
+                        email_template_name,
+                        context,
+                        from_email,
+                        profile_email,
+                        html_email_template_name,
+                    )
                     print(f"Email sent to {profile_email}")
                 except Exception as e:
                     print(f"Failed to send email to {profile_email}: {e}")
-
