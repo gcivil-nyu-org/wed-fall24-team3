@@ -1,9 +1,9 @@
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator, MaxLengthValidator
 from django.core.exceptions import ValidationError
 from django import forms
-from .models import UserProfile, CreatorProfile, Event, Ticket
+from .models import AdminProfile, UserProfile, CreatorProfile, Event, Ticket
 
 
 phone_number_validator = RegexValidator(
@@ -206,3 +206,61 @@ class TicketPurchaseForm(forms.ModelForm):
         if not (1 <= quantity <= 5):
             raise forms.ValidationError("You can only purchase 1 to 5 tickets.")
         return quantity
+    
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(label="Email", max_length=254, required=True)
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        users = set()
+
+        # Search in AdminProfile
+        admin_users = AdminProfile.objects.filter(email__iexact=email).values_list('admin', flat=True)
+        users.update(User.objects.filter(id__in=admin_users))
+
+        # Search in UserProfile
+        user_users = UserProfile.objects.filter(email__iexact=email).values_list('user', flat=True)
+        users.update(User.objects.filter(id__in=user_users))
+
+        # Search in CreatorProfile (organization_email)
+        creator_users = CreatorProfile.objects.filter(organization_email__iexact=email).values_list('creator', flat=True)
+        users.update(User.objects.filter(id__in=creator_users))
+
+        if not users:
+            raise ValidationError("No user is associated with this email address.")
+
+        self.users_cache = users  # Cache the users for use in the view
+        return email
+
+    def get_users(self, email):
+        return self.users_cache
+    
+    def send_mail(self, subject_template_name, email_template_name,
+                context, from_email, to_email, html_email_template_name=None):
+        for user in self.get_users(self.cleaned_data['email']):
+            try:
+                admin_profile = user.adminprofile
+                profile_email = admin_profile.email
+                print(f"Sending email to AdminProfile email: {profile_email}")
+            except AdminProfile.DoesNotExist:
+                try:
+                    user_profile = user.userprofile
+                    profile_email = user_profile.email
+                    print(f"Sending email to UserProfile email: {profile_email}")
+                except UserProfile.DoesNotExist:
+                    try:
+                        creator_profile = user.creatorprofile
+                        profile_email = creator_profile.organization_email
+                        print(f"Sending email to CreatorProfile email: {profile_email}")
+                    except CreatorProfile.DoesNotExist:
+                        print("No profile found for user:", user.username)
+                        continue
+
+            if profile_email:
+                try:
+                    super().send_mail(subject_template_name, email_template_name,
+                                    context, from_email, profile_email, html_email_template_name)
+                    print(f"Email sent to {profile_email}")
+                except Exception as e:
+                    print(f"Failed to send email to {profile_email}: {e}")
+

@@ -14,13 +14,15 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.views import PasswordResetView
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
 from django.db import transaction
 from django.db.models.functions import Coalesce, TruncDate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from django.urls import reverse_lazy
 from django.contrib.auth.models import AnonymousUser
-from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
+from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm, CustomPasswordResetForm
 from .models import (
     AdminProfile,
     UserProfile,
@@ -756,6 +758,12 @@ def signup(request):
 
     return render(request, "events/signup.html")
 
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'events/password_reset_form.html'
+    email_template_name = 'events/password_reset_email.html'
+    subject_template_name = 'events/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
 
 @login_required
 @creator_required
