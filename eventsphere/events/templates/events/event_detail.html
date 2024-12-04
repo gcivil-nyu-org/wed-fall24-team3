@@ -155,35 +155,54 @@
             #map {
                 max-width: 100%;
             }
-            .heart {
-    font-size: 24px;
-    color: gray;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.heart.favorited {
-    color: red;
-}
-
-.favorite-btn {
-    background-color: #f1f1f1;
-    border: 1px solid #ccc;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.favorite-btn:hover {
-    background-color: #e1e1e1;
-    color: #000;
-}
-
         }
+
+        .fav-class {
+            display: flex;
+        align-items: center;
+        justify-content: center;
+            padding: 12px 12px;
+        }
+
+        .favorite-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid #ccc;
+        background: linear-gradient(90deg, #ffffff, #f8f8f8);
+        color: #555;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .favorite-btn:hover {
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        color: white;
+        border-color: #45a049;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .favorite-btn .heart {
+        font-size: 20px;
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .favorite-btn:hover .heart {
+        transform: scale(1.2);
+        color: white;
+    }
+
+    .heart.favorited {
+        color: red;
+    }
+
+        
     </style>
 {% endblock %}
 
@@ -217,7 +236,7 @@
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
 
         <!-- Favorite Button -->
-<div>
+<div class='fav-class'>
     <button 
         class="favorite-btn" 
         data-event-id="{{ event.id }}" 
