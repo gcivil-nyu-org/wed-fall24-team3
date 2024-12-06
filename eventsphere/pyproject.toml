@@ -1,7 +1,7 @@
 [tool.black]
 line-length = 88
 target-version = ['py39']
-exclude = 'migration*'
+exclude = 'migrations*'
 
 [tool.coverage.report]
 omit = [

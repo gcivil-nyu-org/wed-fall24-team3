@@ -311,6 +311,73 @@
         color: #333;
     }
 
+    .toggle-buttons-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f2f5; /* Optional background color for better visibility */
+    }
+
+    .toggle-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .toggle-buttons button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 14px;
+    }
+
+    .toggle-buttons button.active {
+        background-color: #043d08;
+    }
+
+    .tab-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .tab-button {
+        padding: 10px 20px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        background-color: transparent;
+        font-size: 16px;
+        margin: 0 10px;
+        transition: border-color 0.3s ease;
+    }
+
+    .tab-button.active {
+        border-color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 30px;
+    }
+
+
+    .toggle-buttons button:hover {
+        background-color: #3e8e41;
+    }
+
 </style>
 
 <!-- Hero Section -->
@@ -353,18 +420,6 @@
         <a href="?category=Food" class="category-item" title="Food">
             <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Food">
             <p>Food</p>
-        <!-- </a> -->
-        <!-- <a href="?category=Health" class="category-item" title="Health">
-            <img src="https://cdn-icons-png.flaticon.com/512/1047/1047445.png" alt="Health">
-            <p>Health</p>
-        </a>
-        <a href="?category=Music" class="category-item" title="Music">
-            <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt="Music">
-            <p>Music</p>
-        </a>
-        <a href="?category=Art" class="category-item" title="Art">
-            <img src="https://cdn-icons-png.flaticon.com/512/1086/1086765.png" alt="Art">
-            <p>Art</p> -->
         </a>
     </div>
 </div>
@@ -379,7 +434,80 @@
     </form>
 </div>
 
-<!-- Events Section -->
+<div class="toggle-buttons-container">
+<div class="toggle-buttons">
+    <button class="active">List View</button>
+    <button class="inactive" onclick="window.location.href='/mapview/';">Map View</button>
+</div>
+</div>
+<div class="container events-section">
+    <h2>Events</h2>
+
+    <!-- Tabs for Upcoming and Past Events -->
+    <div class="tab-container">
+        <button class="tab-button active" onclick="showTab('upcoming')">Upcoming Events</button>
+        <button class="tab-button" onclick="showTab('past')">Past Events</button>
+    </div>
+
+    <!-- Upcoming Events Section -->
+    <div id="upcoming" class="tab-content active">
+        <h3>Upcoming Events</h3>
+        <div class="card-grid">
+            {% for event in upcoming_events %}
+                <div class="card">
+                    <a href="{% url 'event_detail' event.pk %}">
+                        <div class="card-image-wrapper">
+                            <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}" 
+ 
+                                 alt="{{ event.name }}" class="card-image">
+                            <div class="overlay-text">
+                                <span class="event-date">{{ event.date_time|date:"M d, Y" }}</span>
+                                <span class="event-tag">{{ event.category }}</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">{{ event.name }}</h3>
+                            <p class="card-location"><strong>Location:</strong> {{ event.location }}</p>
+                            <p class="card-description">{{ event.schedule|truncatewords:20 }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <p>No upcoming events found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Past Events Section -->
+    <div id="past" class="tab-content">
+        <h3>Past Events</h3>
+        <div class="card-grid">
+            {% for event in past_events %}
+                <div class="card">
+                    <a href="{% url 'event_detail' event.pk %}">
+                        <div class="card-image-wrapper">
+                            <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}"  
+                                 alt="{{ event.name }}" class="card-image">
+                            <div class="overlay-text">
+                                <span class="event-date">{{ event.date_time|date:"M d, Y" }}</span>
+                                <span class="event-tag">{{ event.category }}</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">{{ event.name }}</h3>
+                            <p class="card-location"><strong>Location:</strong> {{ event.location }}</p>
+                            <p class="card-description">{{ event.schedule|truncatewords:20 }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <p>No past events found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Events Section
 <div class="container events-section">
     <h2>Popular Events</h2>
     <div class="card-grid">
@@ -393,13 +521,13 @@
 
                         <div class="overlay-text">
                             <span class="event-date">{{ event.date_time|date:"M d, Y" }}</span>
-                            <span class="event-tag">{{ event.category }}</span> <!-- Display the event category here -->
+                            <span class="event-tag">{{ event.category }}</span> 
                         </div>
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">{{ event.name }}</h3>
                         <p class="card-location"><strong>Location:</strong> {{ event.location }}</p>
-                        <p class="card-description">{{ event.schedule|truncatewords:20 }}</p> <!-- Event description limited to 20 words -->
+                        <p class="card-description">{{ event.schedule|truncatewords:20 }}</p> 
                     </div>
                 </a>
             </div>
@@ -408,8 +536,25 @@
         {% endfor %}
     </div>
     
-    <!-- See More Button -->
+     See More Button -->
     <!-- <a href="#" class="see-more-button">See More</a> -->
-</div>
 
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+    
+            // Deactivate all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+    
+            // Show the selected tab content
+            document.getElementById(tabId).classList.add('active');
+    
+            // Activate the corresponding button
+            event.target.classList.add('active');
+        }
+    </script>
+    
 {% endblock %}

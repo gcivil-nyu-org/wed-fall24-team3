@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Not Authorized{% endblock %}
+
+{% block content %}
+<div class="not-authorized-container">
+    <h1>403 - Not Authorized</h1>
+    <p>You do not have permission to access this page.</p>
+    <a href="{% url redirect_url %}" class="btn btn-primary">Go to Your Homepage</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .not-authorized-container {
+        text-align: center;
+        padding: 100px 20px;
+    }
+    .not-authorized-container h1 {
+        font-size: 48px;
+        color: #e74c3c;
+        margin-bottom: 20px;
+    }
+    .not-authorized-container p {
+        font-size: 20px;
+        margin-bottom: 40px;
+    }
+    .btn {
+        display: inline-block;
+        padding: 15px 30px;
+        font-size: 18px;
+        color: #fff;
+        background-color: #3498db;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    .btn:hover {
+        background-color: #2980b9;
+    }
+</style>
+{% endblock %}

@@ -1,16 +1,36 @@
 import base64
-import qrcode  # type: ignore
+from datetime import timedelta
+from io import BytesIO
+from better_profanity import profanity
+import boto3
+from django.http import JsonResponse
 import json
+import qrcode  # type: ignore
+from asgiref.sync import async_to_sync, sync_to_async
+from botocore.exceptions import BotoCoreError, ClientError
+from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.views import PasswordResetView
 from django.db.models import Q, Sum, F, FloatField, Case, When, Count
-from django.http import JsonResponse
+from django.db import transaction
+from django.db.models.functions import Coalesce, TruncDate
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import UserProfileForm, CreatorProfileForm, TicketPurchaseForm, EventForm
+from django.utils import timezone
+from django.urls import reverse_lazy
+from django.contrib.auth.models import AnonymousUser
+from .forms import (
+    UserProfileForm,
+    CreatorProfileForm,
+    TicketPurchaseForm,
+    EventForm,
+    CustomPasswordResetForm,
+)
 from .models import (
+    AdminProfile,
     UserProfile,
     CreatorProfile,
     Ticket,
@@ -18,15 +38,85 @@ from .models import (
     ChatRoom,
     ChatMessage,
     RoomMember,
+    Favorite,
+    Notification,
 )
-from io import BytesIO
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-from django.db.models.functions import Coalesce, TruncDate
-from django.utils import timezone
-from datetime import timedelta
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from .consumers import notify_group_members
+from .utils import (
+    admin_required,
+    creator_required,
+    user_required,
+    admin_or_creator_required,
+)
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
+profanity.load_censor_words()
+
+
+@login_required
+def profile_chats(request):
+    # Fetch all chat rooms the user is a member of
+    chat_rooms = ChatRoom.objects.filter(members__user=request.user).distinct()
+
+    return render(
+        request,
+        "events/profile_chats.html",
+        {
+            "chat_rooms": chat_rooms,
+        },
+    )
+
+
+@login_required
+def toggle_favorite(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, event=event)
+
+    if not created:
+        # If the favorite already exists, remove it
+        favorite.delete()
+        return JsonResponse(
+            {"favorited": False, "message": "Event removed from favorites."}
+        )
+
+    return JsonResponse({"favorited": True, "message": "Event added to favorites!"})
+
+
+@login_required
+def profile_favorites(request):
+    # Get the user's favorited events
+    favorited_events = Event.objects.filter(favorited_by__user=request.user)
+
+    return render(
+        request,
+        "events/profile_favorites.html",
+        {
+            "favorited_events": favorited_events,
+        },
+    )
+
+
+@login_required
+def map_view(request):
+    current_time = timezone.now()
+    events = Event.objects.filter(date_time__gte=current_time)
+    events_data = [
+        {
+            "id": event.id,
+            "name": event.name,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "location": event.location,
+            "image_url": event.image_url,
+        }
+        for event in events
+        if event.latitude and event.longitude  # Ensure events with valid coordinates
+    ]
+    context = {
+        "events_json": json.dumps(events_data),  # Serialize the data
+    }
+    return render(request, "events/map_view.html", context)
 
 
 @login_required
@@ -75,6 +165,8 @@ def chat_room(request, room_id):
     if not members.filter(user=request.user).exists():
         return redirect("join_chat", event_id=chat_room.event.id)
 
+    # mark_event_as_read(request.user, room_id)
+
     return render(
         request,
         "events/chat_room.html",
@@ -94,24 +186,35 @@ def send_message(request, room_id):
 
     # Check if user is a member and not kicked
     member = get_object_or_404(RoomMember, room=chat_room, user=request.user)
+    # print("member = ", member)
     if member.is_kicked:
         return JsonResponse(
             {"error": "You are not allowed to send messages in this chat room."},
             status=403,
         )
 
-    # Save and broadcast message if there's content
     if content:
+        if profanity.contains_profanity(content):
+            return JsonResponse(
+                {
+                    "error": "Your message contains inappropriate language. Please revise."
+                },
+                status=400,
+            )
         ChatMessage.objects.create(room=chat_room, user=request.user, content=content)
+
     return JsonResponse({"status": "success"})
 
 
 @login_required
-def make_announcement(request, room_id):
-    chat_room = get_object_or_404(ChatRoom, id=room_id)
+async def make_announcement(request, room_id):
+    chat_room = await sync_to_async(get_object_or_404)(ChatRoom, id=room_id)
+    is_creator = await sync_to_async(
+        lambda: request.user == chat_room.creator.creator
+    )()
 
     # Check if the user is the creator of the chat room
-    if request.user == chat_room.creator.creator:
+    if is_creator:
         # Parse JSON data from request body
         try:
             data = json.loads(request.body)  # Retrieve the JSON body
@@ -123,8 +226,14 @@ def make_announcement(request, room_id):
 
         if content:
             # Create the announcement message
-            ChatMessage.objects.create(
-                room=chat_room, user=request.user, content=f"[Announcement] {content}"
+            # print("Creating announcement")
+            message = f"[Announcement] {content}"
+            await sync_to_async(ChatMessage.objects.create)(
+                room=chat_room, user=request.user, content=message
+            )
+            # print("Created Announce Chat Message")
+            await notify_group_members(
+                chat_room, request.user, message, "chat_announcement"
             )
             return JsonResponse({"status": "success"})
         else:
@@ -174,6 +283,79 @@ def leave_chat(request, room_id):
 
 
 @login_required
+def view_notifications(request):
+    unread_notifications = fetch_unread_notif_db(request.user)
+    return render(
+        request,
+        "events/notifications.html",
+        {"notifications": unread_notifications},
+    )
+
+
+@login_required
+def get_user_unread_notifications(request):
+    unread_notifs = fetch_unread_notif_db(request.user)
+    return JsonResponse(
+        unread_notifs,
+        safe=False,
+    )
+
+
+def fetch_unread_notif_db(user):
+    res = Notification.objects.filter(user=user, is_read=False).order_by("-created_at")
+    return list(
+        res.values(
+            "id", "message", "created_at", "type", "title", "sub_title", "url_link"
+        )
+    )
+
+
+@login_required
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        try:
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return JsonResponse(
+                {"success": True, "message": "Notification marked as read."}
+            )
+        except Notification.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Notification not found."}, status=404
+            )
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+
+@login_required
+def mark_all_as_read(request):
+    if request.method == "POST":
+        Notification.objects.filter(user=request.user, is_read=False).update(
+            is_read=True
+        )
+        return JsonResponse({"success": True})
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+
+# def mark_event_as_read(user, event_id):
+#     """
+#     Marks all notifications for a specific event as read for a given user.
+#     """
+#     Notification.objects.filter(
+#         user=user,  # Target notifications for the specific user
+#         is_read=False,  # Only unread notifications
+#         url_link=str(event_id),  # Match the event ID stored in the `url_link`
+#     ).update(is_read=True)
+
+
+@login_required
+@user_required
 def profile_tickets(request):
     # Group tickets by event and calculate the total tickets for each event
     events_with_tickets = (
@@ -191,6 +373,13 @@ def profile_tickets(request):
 
 # Custom login view to handle both admin and user redirection
 def login_view(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("event_list")
+    elif request.user.is_authenticated and request.user.is_staff:
+        return redirect("creator_dashboard")
+    elif request.user.is_authenticated:
+        return redirect("user_event_list")
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -252,30 +441,68 @@ def home(request):
     return render(request, "events/homepage.html")
 
 
+# def user_event_list(request):
+#     query = request.GET.get("q")
+#     category = request.GET.get(
+#         "category"
+#     )  # Get the selected category from the URL parameters
+#     events = Event.objects.all()
+
+#     # Filter by search query if provided
+#     if query:
+#         events = events.filter(
+#             Q(name__icontains=query)
+#             | Q(location__icontains=query)
+#             | Q(speakers__icontains=query)
+#             | Q(category__icontains=query)
+#         )
+
+#     # Filter by category if provided, ignoring case
+#     if category:
+#         events = events.filter(category__iexact=category)
+
+
+#     return render(
+#         request,
+#         "events/user_event_list.html",
+#         {"events": events, "query": query, "category": category},
+#     )
+@login_required
 def user_event_list(request):
     query = request.GET.get("q")
-    category = request.GET.get(
-        "category"
-    )  # Get the selected category from the URL parameters
-    events = Event.objects.all()
+    category = request.GET.get("category")
+    current_time = timezone.now()
 
-    # Filter by search query if provided
+    # Separate upcoming and past events
+    upcoming_events = Event.objects.filter(date_time__gte=current_time)
+    past_events = Event.objects.filter(date_time__lt=current_time)
+
+    # Apply filters to both upcoming and past events
     if query:
-        events = events.filter(
+        upcoming_events = upcoming_events.filter(
             Q(name__icontains=query)
             | Q(location__icontains=query)
-            | Q(speakers__icontains=query)
+            | Q(category__icontains=query)
+        )
+        past_events = past_events.filter(
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
             | Q(category__icontains=query)
         )
 
-    # Filter by category if provided, ignoring case
     if category:
-        events = events.filter(category__iexact=category)
+        upcoming_events = upcoming_events.filter(category__iexact=category)
+        past_events = past_events.filter(category__iexact=category)
 
     return render(
         request,
         "events/user_event_list.html",
-        {"events": events, "query": query, "category": category},
+        {
+            "upcoming_events": upcoming_events,
+            "past_events": past_events,
+            "query": query,
+            "category": category,
+        },
     )
 
 
@@ -341,6 +568,7 @@ def fetch_filter_wise_data(request):
 
 
 @login_required
+@creator_required
 def creator_dashboard(request):
     try:
         creator_profile = CreatorProfile.objects.get(creator=request.user)
@@ -422,22 +650,81 @@ def creator_dashboard(request):
     )
 
 
+@login_required
+@admin_required
 def event_list(request):
     events = Event.objects.all()
     return render(request, "events/event_list.html", {"events": events})
 
 
 def event_detail(request, pk):
-    event = get_object_or_404(Event, pk=pk)
-    return render(request, "events/event_detail.html", {"event": event})
+    event = get_object_or_404(Event, id=pk)
+
+    # Check if user is authenticated before checking favorites
+    if not isinstance(request.user, AnonymousUser):
+        is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+    else:
+        is_favorited = False  # Anonymous users can't favorite events
+
+    return render(
+        request,
+        "events/event_detail.html",
+        {
+            "event": event,
+            "now": timezone.now(),
+            "is_favorited": is_favorited,
+        },
+    )
+
+
+# def event_detail(request, pk):
+#     event = get_object_or_404(Event, pk=pk)
+#     # now = timezone.now()
+#     is_favorited = Favorite.objects.filter(user=request.user, event=event).exists()
+
+#     return render(
+#         request,
+#         "events/event_detail.html",
+#         {
+#             "event": event,
+#             "now": timezone.now(),
+#             "is_favorited": is_favorited,
+#         },
+#     )
 
 
 def signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
+        email = request.POST.get("email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
         user_type = request.POST.get("user_type")
+
+        if not email:
+            messages.error(request, "Email is required.")
+            return render(request, "events/signup.html")
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, "Enter a valid email address.")
+                return render(request, "events/signup.html")
+
+            # Admin email check
+            if AdminProfile.objects.filter(email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
+
+            # Creator email check
+            if CreatorProfile.objects.filter(organization_email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
+
+            # User check
+            if UserProfile.objects.filter(email=email).exists():
+                messages.error(request, "This email is already in use.")
+                return render(request, "events/signup.html")
 
         # Check if passwords match
         if password != confirm_password:
@@ -459,25 +746,36 @@ def signup(request):
         if user_type == "admin":
             user.is_superuser = True
             user.save()
+            AdminProfile.objects.create(admin=user, email=email)
             login(request, user)
             return redirect("event_list")
 
         elif user_type == "creator":
             user.is_staff = True
             user.save()
-            CreatorProfile.objects.create(creator=user)
+            CreatorProfile.objects.create(creator=user, organization_email=email)
             login(request, user)
             return redirect("creator_profile")
 
         else:
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.create(user=user, email=email)
             login(request, user)
             return redirect("user_profile")
 
     return render(request, "events/signup.html")
 
 
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = "events/password_reset_form.html"
+    email_template_name = "events/password_reset_email.html"
+    html_email_template_name = "events/password_reset_email.html"
+    subject_template_name = "events/password_reset_subject.txt"
+    success_url = reverse_lazy("password_reset_done")
+
+
 @login_required
+@creator_required
 def create_event(request):
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES)
@@ -515,6 +813,7 @@ def create_event(request):
 
 
 @login_required
+@admin_or_creator_required
 def update_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     initial_location = event.location
@@ -598,6 +897,7 @@ def event_success(request):
 
 
 @login_required  # Ensure only logged-in users can delete events
+@admin_or_creator_required
 def delete_event_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
@@ -612,6 +912,7 @@ def delete_event_view(request, event_id):
 
 
 @login_required
+@user_required
 def user_profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 
@@ -638,6 +939,7 @@ def user_profile(request):
 
 
 @login_required
+@creator_required
 def creator_profile(request):
     profile, created = CreatorProfile.objects.get_or_create(creator=request.user)
 
@@ -664,6 +966,7 @@ def my_tickets(request):
 
 
 @login_required
+@user_required
 def buy_tickets(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -678,23 +981,30 @@ def buy_tickets(request, event_id):
     if request.method == "POST":
         form = TicketPurchaseForm(request.POST)
         if form.is_valid():
-            ticket = form.save(commit=False)
-            ticket.user = request.user
-            ticket.event = event
-            ticket.created_at = timezone.now().date()
-
-            if ticket.quantity > event.tickets_left:
-                messages.error(request, "Not enough tickets available!")
+            quantity = form.cleaned_data["quantity"]
+            # Check ticket availability early
+            if quantity > event.tickets_left:
+                messages.error(
+                    request,
+                    "Not enough tickets available!",
+                )
                 return render(
                     request, "events/buy_tickets.html", {"event": event, "form": form}
                 )
 
-            # Save the ticket
-            ticket.save()
+            with transaction.atomic():
+                ticket = form.save(commit=False)
+                ticket.user = request.user
+                ticket.event = event
+                ticket.created_at = timezone.now().date()
 
-            # Update the event's ticketsSold
-            event.ticketsSold += ticket.quantity
-            event.save(update_fields=["ticketsSold"])
+                # Save the ticket
+                ticket.save()
+
+                # Update the event's ticketsSold
+                event.ticketsSold += ticket.quantity
+                event.save(update_fields=["ticketsSold"])
+
             if ticket.quantity == 1:
                 messages.success(request, "Ticket purchased successfully!")
             else:
@@ -708,4 +1018,24 @@ def buy_tickets(request, event_id):
     else:
         form = TicketPurchaseForm(initial=initial_data)
 
-    return render(request, "events/buy_tickets.html", {"event": event, "form": form})
+    return render(
+        request,
+        "events/buy_tickets.html",
+        {"event": event, "form": form, "now": timezone.now()},
+    )
+
+
+def not_authorized(request):
+    # Determine the user's homepage based on their role
+    if request.user.is_superuser:
+        redirect_url = "event_list"  # Admin dashboard
+    elif CreatorProfile.objects.filter(creator=request.user).exists():
+        redirect_url = "creator_dashboard"  # Creator dashboard
+    else:
+        redirect_url = "user_home"  # User homepage
+
+    context = {
+        "redirect_url": redirect_url,
+    }
+
+    return render(request, "events/not_authorized.html", context, status=403)

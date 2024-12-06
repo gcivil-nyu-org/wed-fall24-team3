@@ -29,3 +29,4 @@ boto3
 daphne
 channels
 channels_redis
+better-profanity

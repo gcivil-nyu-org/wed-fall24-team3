@@ -2,11 +2,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
-from events.models import Event, Ticket, UserProfile
+from events.models import Event, Ticket, UserProfile, AdminProfile
 
 
 class EventModelTest(TestCase):
-
     def setUp(self):
         self.event = Event.objects.create(
             name="Tech Conference 2024",
@@ -88,7 +87,6 @@ class TicketModelTest(TestCase):
 
 
 class UserProfileModelTest(TestCase):
-
     def setUp(self):
         self.user = User.objects.create(username="user_2", password="12345")
         self.profile = UserProfile.objects.create(
@@ -124,6 +122,21 @@ class UserProfileModelTest(TestCase):
         )
         with self.assertRaises(ValidationError):
             profile.full_clean()
+
+
+class AdminProfileModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="test_admin", password="12345")
+        self.profile = AdminProfile.objects.create(
+            admin=self.user, email="test_admin@yahoo.com"
+        )
+
+    def test_admin_profile_creation(self):
+        self.assertTrue(isinstance(self.profile, AdminProfile))
+        self.assertEqual(self.profile.__str__(), self.user.username)
+
+    def test_user_profile_fields(self):
+        self.assertEqual(self.profile.email, "test_admin@yahoo.com")
 
 
 # class UserModelTest(TestCase):

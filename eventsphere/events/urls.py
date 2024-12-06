@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import user_profile, my_tickets
+from .views import user_profile, my_tickets, map_view, CustomPasswordResetView
 
 urlpatterns = [
     path(
@@ -10,6 +10,17 @@ urlpatterns = [
         views.generate_event_qr_code,
         name="generate_event_qr",
     ),
+    path(
+        "toggle_favorite/<int:event_id>/", views.toggle_favorite, name="toggle_favorite"
+    ),
+    path("profile/chats/", views.profile_chats, name="profile_chats"),  # Add this line
+    # Favorites List View
+    path(
+        "profile/favorites/", views.profile_favorites, name="profile_favorites"
+    ),  # Use this as the main route for the favorites tab
+    # path('toggle_favorite/<int:event_id>/', views.toggle_favorite, name='toggle_favorite'),
+    # path('profile/favorites/', views.favorites_list, name='favorites_list'),
+    # path('profile/favorites/', views.profile_favorites, name='profile_favorites'),
     path("profile/tickets/", views.profile_tickets, name="profile_tickets"),
     path("create/", views.create_event, name="create_event"),
     path("update/<int:event_id>/", views.update_event_view, name="update_event"),
@@ -57,4 +68,44 @@ urlpatterns = [
         name="kick_member",
     ),
     path("chat_room/<int:room_id>/leave/", views.leave_chat, name="leave_chat"),
+    path("not-authorized/", views.not_authorized, name="not_authorized"),
+    path("notifications", views.view_notifications, name="notifications"),
+    path(
+        "notifications/mark_as_read/<int:notification_id>/",
+        views.mark_as_read,
+        name="mark_as_read",
+    ),
+    path(
+        "notifications/mark_all_as_read",
+        views.mark_all_as_read,
+        name="mark_all_as_read",
+    ),
+    path(
+        "notifications/get_unread_notif",
+        views.get_user_unread_notifications,
+        name="get_user_unread_notifications",
+    ),
+    path("mapview/", map_view, name="map_view"),  # Map View
+    path("password_reset/", CustomPasswordResetView.as_view(), name="password_reset"),
+    path(
+        "password_reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="events/password_reset_done.html"
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="events/password_reset_confirm.html"
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="events/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
 ]

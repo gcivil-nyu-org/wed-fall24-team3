@@ -2,6 +2,15 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator
+from django.core.validators import MinValueValidator
+
+
+class AdminProfile(models.Model):
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.EmailField(unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.admin.username
 
 
 class CreatorProfile(models.Model):
@@ -64,10 +73,24 @@ class Event(models.Model):
         return self.name
 
 
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="favorited_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "event")  # Prevent duplicate favorites
+
+    def __str__(self):
+        return f"{self.user.username} favorited {self.event.name}"
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, null=True, blank=True)
-    age = models.IntegerField(null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0)])
     bio = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     interests = models.CharField(max_length=255, blank=True, null=True)
@@ -129,3 +152,19 @@ class RoomMember(models.Model):
 
     def __str__(self):
         return f"{self.user.username} in {self.room}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="notifications"
+    )
+    title = models.CharField(max_length=255)
+    sub_title = models.TextField(default="")
+    type = models.TextField(default="chat_message")
+    url_link = models.CharField(max_length=2083)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}"

@@ -43,6 +43,26 @@
             border-radius: 4px;
             transition: background-color 0.3s;
         }
+        
+        nav ul li a.notification-indicator {
+            position: relative;
+        }
+
+        nav ul li a.notification-indicator::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            display: none; /* Hidden by default */
+        }
+
+        nav ul li a.notification-indicator.has-unread::after {
+            display: block;
+        }
 
         .container {
             flex: 1;
@@ -81,8 +101,7 @@
     <ul>
         {% if user.is_authenticated %}
             {% if user.is_superuser %}
-                <li><a href="{% url 'event_list' %}">Admin Dashboard</a></li>
-                <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                <li><a href="{% url 'event_list' %}">View All Events</a></li>
             {% elif user.is_staff %}
                 <li><a href="{% url 'creator_profile' %}">Profile</a></li>
                 <li><a href="{% url 'creator_dashboard' %}">Your Dashboard</a></li>
@@ -94,13 +113,16 @@
             {% endif %}
             <li style="margin-left: auto; color: white;">
                 Welcome, {{ user.username }}
-                <form action="{% url 'logout' %}" method="POST" style="display: inline;">
-                    {% csrf_token %}
-                    <a href="#" onclick="this.closest('form').submit()" style="color: white; margin-left: 10px;">Logout</a>
-                </form>
+            <li><a href="{% url 'notifications' %}" class="notification-indicator" id="notification-link">Notifications</a></li>
+            <form action="{% url 'logout' %}" method="POST" style="display: inline;">
+                {% csrf_token %}
+                <a href="#" onclick="this.closest('form').submit()"
+                   style="color: white; margin-left: 10px;">Logout</a>
+            </form>
             </li>
         {% else %}
-            <li style="margin-left: auto;"><a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a></li>
+            <li style="margin-left: auto;"><a href="{% url 'login' %}">Login</a> | <a
+                    href="{% url 'signup' %}">Sign Up</a></li>
         {% endif %}
     </ul>
 </nav>
@@ -110,13 +132,60 @@
     {% block content %}{% endblock %}
 </div>
 
+<script>
+    var message_ele = document.getElementById("message_container");
+    if(message_ele){
+        setTimeout(function(){ 
+            message_ele.style.display = "none"; 
+        }, 3000);
+    }
+</script>
 <!-- Footer -->
 <footer>
     <p>&copy; 2024 EventSphere. All rights reserved.</p>
 </footer>
 
-<!-- Include extra JavaScript if defined -->
 {% block extra_js %}
+    <script>
+        window.protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const protocol = window.protocol
+        window.notificationSocket = new WebSocket(
+            protocol + '://' + window.location.host + '/ws/notifications/'
+        );
+
+        window.notificationSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const notificationLink = document.getElementById('notification-link');
+            notificationLink.classList.add('has-unread');
+
+            const event = new CustomEvent('notificationReceived', {detail: data});
+            document.dispatchEvent(event);
+        };
+
+        window.notificationSocket.onclose = function (e) {
+            console.error("Notification WebSocket closed unexpectedly.");
+        };
+        
+        function fetchUnreadNotifications() {
+            fetch('/notifications/get_unread_notif', {
+                method: 'GET',
+                credentials: 'same-origin',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const notificationLink = document.getElementById('notification-link');
+                    if (data.length > 0) {
+                        notificationLink.classList.add('has-unread');
+                    } else {
+                        notificationLink.classList.remove('has-unread');
+                    }
+                })
+                .catch(error => console.error("Error fetching unread notifications:", error));
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchUnreadNotifications);
+
+    </script>
 {% endblock %}
 
 </body>

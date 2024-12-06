@@ -156,6 +156,53 @@
                 max-width: 100%;
             }
         }
+
+        .fav-class {
+            display: flex;
+        align-items: center;
+        justify-content: center;
+            padding: 12px 12px;
+        }
+
+        .favorite-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid #ccc;
+        background: linear-gradient(90deg, #ffffff, #f8f8f8);
+        color: #555;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .favorite-btn:hover {
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        color: white;
+        border-color: #45a049;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .favorite-btn .heart {
+        font-size: 20px;
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .favorite-btn:hover .heart {
+        transform: scale(1.2);
+        color: white;
+    }
+
+    .heart.favorited {
+        color: red;
+    }
+
+        
     </style>
 {% endblock %}
 
@@ -174,14 +221,37 @@
         {% if messages %}
         <div class="alert-container">
             {% for message in messages %}
-                <div class="alert {{ message.tags }}">{{ message }}</div>
+                <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Buy Tickets Button -->
-        <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
+        <!-- Buy Tickets Button -->        
+        {% if event.date_time > now %}
+            <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
+        {% else %}
+            <p class="text-muted">This event has already taken place. Ticket purchase is unavailable.</p>
+        {% endif %}
+
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
+
+        <!-- Favorite Button -->
+<div class='fav-class'>
+    <button 
+        class="favorite-btn" 
+        data-event-id="{{ event.id }}" 
+        onclick="toggleFavorite(this)">
+        <span class="heart {% if is_favorited %}favorited{% endif %}">
+            &#x2764;
+        </span> 
+        {% if is_favorited %}
+            Remove from Favorites
+        {% else %}
+            Add to Favorites
+        {% endif %}
+    </button>
+</div>
+
 
         <!-- Event Name -->
         <h1>{{ event.name }}</h1>
@@ -243,6 +313,48 @@
                 }
             };
         });
+
+        function toggleFavorite(button) {
+    const eventId = button.dataset.eventId;
+    const heart = button.querySelector('.heart');
+
+    fetch(`/toggle_favorite/${eventId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF protection
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.favorited) {
+            heart.classList.add('favorited');
+            button.innerHTML = `<span class="heart favorited">&#x2764;</span> Remove from Favorites`;
+            alert(data.message); // Optional: Use a toast for better UX
+        } else {
+            heart.classList.remove('favorited');
+            button.innerHTML = `<span class="heart">&#x2764;</span> Add to Favorites`;
+            alert(data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// CSRF token helper function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -253,5 +365,7 @@
                 }, 10000);  // Hides the alert after 3 seconds
             });
         });
+
+
     </script>
 {% endblock %}
