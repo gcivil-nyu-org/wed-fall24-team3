@@ -109,6 +109,7 @@ def map_view(request):
             "longitude": event.longitude,
             "location": event.location,
             "image_url": event.image_url,
+            "description": event.schedule,
         }
         for event in events
         if event.latitude and event.longitude  # Ensure events with valid coordinates
