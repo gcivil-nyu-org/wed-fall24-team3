@@ -1,16 +1,16 @@
-from unittest.mock import patch, MagicMock, ANY
+import json
 from datetime import timedelta
+from unittest.mock import patch, MagicMock, ANY
+
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, Client
+from django.test import Client
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from events.views import fetch_unread_notif_db
-
-# from better_profanity import profanity
-
+from django.utils.timezone import now
 
 from events.forms import (
     CreatorProfileForm,
@@ -28,6 +28,10 @@ from events.models import (
     Ticket,
     Notification,
 )
+from events.views import fetch_unread_notif_db
+
+
+# from better_profanity import profanity
 
 
 class NotificationTests(TestCase):
@@ -857,7 +861,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_no_email(self):
-
         form_data = {
             "username": "existinguser",
             "password": "password123",
@@ -875,7 +878,6 @@ class SignupTest(TestCase):
         self.assertTrue(any("Email is required." in str(m.message) for m in messages))
 
     def test_signup_post_invalid_email(self):
-
         form_data = {
             "username": "existinguser",
             "email": "abcd",
@@ -896,7 +898,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_admin(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(
             username="user", password="password123", is_superuser=True
@@ -923,7 +924,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_creator(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(username="user", password="password123")
         CreatorProfile.objects.create(creator=user, organization_email="test@gmail.com")
@@ -948,7 +948,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_user(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(username="user", password="password123")
         UserProfile.objects.create(user=user, email="test@gmail.com")
@@ -1897,3 +1896,127 @@ class FilterWiseDataTestCase(TestCase):
         self.assertIn("unique_users_data", data)
         self.assertEqual(len(data["ticket_sales_data"]), 8)
         self.assertEqual(len(data["unique_users_data"]), 8)
+
+
+class MapViewTestCase(TestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.client = Client()
+        self.client.login(username="testuser", password="testpass")
+
+        # Mock current time
+        self.current_time = now()
+
+        # Create events
+        self.event_with_coordinates = Event.objects.create(
+            name="Event With Coordinates",
+            location="Location 1",
+            date_time=self.current_time,
+            latitude=12.3456,
+            longitude=78.9012,
+            image_url="http://example.com/image.jpg",
+            schedule="Event schedule",
+        )
+        self.event_without_coordinates = Event.objects.create(
+            name="Event Without Coordinates",
+            location="Location 2",
+            date_time=self.current_time,
+            latitude=None,
+            longitude=None,
+            image_url="http://example.com/image2.jpg",
+            schedule="Another schedule",
+        )
+
+    def test_map_view_renders_correctly(self):
+        # Mock the timezone.now function
+        with patch("django.utils.timezone.now", return_value=self.current_time):
+            response = self.client.get("/mapview/")  # URL of the view
+
+        # Check the response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check the rendered template
+        self.assertTemplateUsed(response, "events/map_view.html")
+
+        # Check that only events with valid coordinates are included in the context
+        events_json = json.loads(response.context["events_json"])
+        self.assertEqual(len(events_json), 1)
+        self.assertEqual(events_json[0]["id"], self.event_with_coordinates.id)
+        self.assertEqual(events_json[0]["name"], "Event With Coordinates")
+        self.assertEqual(events_json[0]["latitude"], 12.3456)
+        self.assertEqual(events_json[0]["longitude"], 78.9012)
+        self.assertEqual(events_json[0]["location"], "Location 1")
+        self.assertEqual(events_json[0]["image_url"], "http://example.com/image.jpg")
+        self.assertEqual(events_json[0]["description"], "Event schedule")
+
+
+class JoinChatTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="password"
+        )
+        self.other_user = User.objects.create_user(username="user", password="password")
+        self.event_creator_profile = CreatorProfile.objects.create(
+            creator=self.creator_user
+        )
+        self.event = Event.objects.create(
+            name="Test Event",
+            location="Test Location",
+            date_time="2024-12-31 18:00:00",
+            created_by=self.event_creator_profile,
+        )
+        self.chat_room_url = reverse("join_chat", kwargs={"event_id": self.event.id})
+        self.chat_room, _ = ChatRoom.objects.get_or_create(
+            event=self.event, creator=self.event_creator_profile
+        )
+
+    def test_creator_joins_chat_room(self):
+        # Login as creator
+        self.client.login(username="creator", password="password")
+        response = self.client.get(self.chat_room_url)
+        self.assertRedirects(
+            response, reverse("chat_room", kwargs={"room_id": self.chat_room.id})
+        )
+        self.assertTrue(
+            RoomMember.objects.filter(
+                room=self.chat_room, user=self.creator_user
+            ).exists()
+        )
+
+    def test_user_without_ticket_redirected(self):
+        # Login as a user who has not purchased a ticket
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url, follow=True)
+        self.assertRedirects(
+            response, reverse("event_detail", kwargs={"pk": self.event.id})
+        )
+        self.assertContains(
+            response, "Please purchase a ticket before joining the chat room."
+        )
+
+    def test_user_with_ticket_joins_chat_room(self):
+        # Create a ticket for the user
+        Ticket.objects.create(user=self.other_user, event=self.event)
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url)
+        self.assertRedirects(
+            response, reverse("chat_room", kwargs={"room_id": self.chat_room.id})
+        )
+        self.assertTrue(
+            RoomMember.objects.filter(
+                room=self.chat_room, user=self.other_user
+            ).exists()
+        )
+
+    def test_kicked_user_restricted(self):
+        # Create a ticket and mark the user as kicked
+        RoomMember.objects.create(
+            room=self.chat_room, user=self.other_user, is_kicked=True
+        )
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url, follow=True)
+        self.assertRedirects(
+            response, reverse("event_detail", kwargs={"pk": self.event.id})
+        )
