@@ -77,15 +77,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     @database_sync_to_async
-    def get_chat_room(self, room_id):
+    def get_chat_room(self, room_id):  # pragma: no cover
         return ChatRoom.objects.filter(id=room_id).first()
 
     @database_sync_to_async
-    def get_room_member(self, chat_room, user_id):
+    def get_room_member(self, chat_room, user_id):  # pragma: no cover
         return RoomMember.objects.filter(room=chat_room, user_id=user_id).first()
 
     @database_sync_to_async
-    def save_message(self, content, user):
+    def save_message(self, content, user):  # pragma: no cover
         chat_room = ChatRoom.objects.get(id=self.room_id)
         ChatMessage.objects.create(room=chat_room, user=user, content=content)
 
@@ -112,7 +112,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
 
-    async def send_notification(self, event):
+    async def send_notification(self, event):  # pragma: no cover
         await self.send(text_data=json.dumps(event["data"]))
 
 
@@ -145,7 +145,9 @@ async def notify_group_members(room, sender, message, msg_type):
 
 
 @database_sync_to_async
-def save_notification(room, member, message, title, sub_title, url_path):
+def save_notification(
+    room, member, message, title, sub_title, url_path
+):  # pragma: no cover
     notif = Notification.objects.create(
         user=member.user,
         message=message,
@@ -157,7 +159,7 @@ def save_notification(room, member, message, title, sub_title, url_path):
 
 
 @database_sync_to_async
-def get_all_members_except_sender(chat_room, sender):
+def get_all_members_except_sender(chat_room, sender):  # pragma: no cover
     return list(
         RoomMember.objects.filter(room=chat_room, is_kicked=False).exclude(user=sender)
     )

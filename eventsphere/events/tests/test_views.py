@@ -8,6 +8,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 from events.views import fetch_unread_notif_db
+
 # from better_profanity import profanity
 
 
@@ -1364,6 +1365,53 @@ class CreateEventViewTest(TestCase):
         self.superuser = User.objects.create_superuser(
             username="admin", password="adminpass"
         )
+
+    @patch("boto3.client")
+    def test_create_event_with_image(self, mock_boto3_client):
+        # Log in as creator
+        self.client.login(username="creator", password="creatorpass")
+
+        # Prepare mock S3 client
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
+
+        # Mock image file
+        image_content = b"file_content"
+        image_file = SimpleUploadedFile(
+            "test_image.jpg", image_content, content_type="image/jpeg"
+        )
+
+        # Prepare form data
+        form_data = {
+            "title": "Test Event",
+            "description": "This is a test event.",
+            "date": "2024-12-10",
+            "image": image_file,
+        }
+
+        # Send POST request
+        response = self.client.post(reverse("create_event"), data=form_data)
+
+        # Assertions
+        self.assertEqual(response.status_code, 200)
+
+    @patch("boto3.client")
+    def test_create_event_without_image(self, mock_boto3_client):
+        # Log in as creator
+        self.client.login(username="creator", password="creatorpass")
+
+        # Prepare form data without image
+        form_data = {
+            "title": "Test Event",
+            "description": "This is a test event.",
+            "date": "2024-12-10",
+        }
+
+        # Send POST request
+        _ = self.client.post(reverse("create_event"), data=form_data)
+
+        # Ensure S3 upload is not called
+        mock_boto3_client.assert_not_called()
 
     def test_create_event_get_creator(self):
         self.client.login(username="creator", password="creatorpass")
