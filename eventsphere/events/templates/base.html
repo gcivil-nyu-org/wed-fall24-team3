@@ -79,6 +79,15 @@
             width: 100%;
             position: relative;
         }
+        footer a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -143,6 +152,9 @@
 <!-- Footer -->
 <footer>
     <p>&copy; 2024 EventSphere. All rights reserved.</p>
+    <p>
+        <a href="{% url 'contacts' %}">Contact Us</a>
+    </p>
 </footer>
 
 {% block extra_js %}

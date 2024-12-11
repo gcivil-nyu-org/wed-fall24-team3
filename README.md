@@ -60,3 +60,7 @@ The major epics for EventSphere are:
    and after events.
 6. **Analytics and Insights for Event Organizers**: Dashboard for organizers to analyze
    event performance.
+
+## Running tests:
+- Run all test: `python manage.py test`
+- Run a particular test: `python manage.py test events.tests.test_forms.TestEmailUniquenessValidator`

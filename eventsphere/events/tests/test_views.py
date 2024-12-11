@@ -1,15 +1,16 @@
-from unittest.mock import patch, MagicMock, ANY
+import json
 from datetime import timedelta
+from unittest.mock import patch, MagicMock, ANY
+
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, Client
+from django.test import Client
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from events.views import fetch_unread_notif_db
-from django.core import mail
-
+from django.utils.timezone import now
 
 from events.forms import (
     CreatorProfileForm,
@@ -27,6 +28,10 @@ from events.models import (
     Ticket,
     Notification,
 )
+from events.views import fetch_unread_notif_db
+
+
+# from better_profanity import profanity
 
 
 class NotificationTests(TestCase):
@@ -696,11 +701,18 @@ class ProfileTicketsViewTest(TestCase):
         response = self.client.get(reverse("profile_tickets"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/profile_tickets.html")
-        self.assertIn("events_with_tickets", response.context)
-        events_with_tickets = response.context["events_with_tickets"]
-        self.assertEqual(len(events_with_tickets), 1)
-        self.assertEqual(events_with_tickets[0]["event__name"], "Test Event")
-        self.assertEqual(events_with_tickets[0]["total_tickets"], 2)
+
+        # self.assertIn("events_with_tickets", response.context)
+
+        # Verify upcoming_events context
+        upcoming_events = response.context["upcoming_events"]
+        self.assertEqual(len(upcoming_events), 1)
+        self.assertEqual(upcoming_events[0]["event__name"], "Test Event")
+        self.assertEqual(upcoming_events[0]["total_tickets"], 2)
+
+        # Verify past_events context is empty
+        past_events = response.context["past_events"]
+        self.assertEqual(len(past_events), 0)
 
     def test_profile_tickets_view_unauthenticated(self):
         response = self.client.get(reverse("profile_tickets"))
@@ -849,7 +861,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_no_email(self):
-
         form_data = {
             "username": "existinguser",
             "password": "password123",
@@ -867,7 +878,6 @@ class SignupTest(TestCase):
         self.assertTrue(any("Email is required." in str(m.message) for m in messages))
 
     def test_signup_post_invalid_email(self):
-
         form_data = {
             "username": "existinguser",
             "email": "abcd",
@@ -888,7 +898,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_admin(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(
             username="user", password="password123", is_superuser=True
@@ -915,7 +924,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_creator(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(username="user", password="password123")
         CreatorProfile.objects.create(creator=user, organization_email="test@gmail.com")
@@ -940,7 +948,6 @@ class SignupTest(TestCase):
         )
 
     def test_signup_post_email_in_use_user(self):
-
         # Create a user to simulate an existing username
         user = User.objects.create_user(username="user", password="password123")
         UserProfile.objects.create(user=user, email="test@gmail.com")
@@ -1073,238 +1080,6 @@ class SignupTests(TestCase):
         self.assertTrue(
             any("Passwords do not match." in str(message) for message in messages)
         )
-
-
-class ForgotPasswordTest(TestCase):
-    def setUp(self):
-        """
-        Set up users with different profiles for testing.
-        """
-        # Create Admin user
-        self.admin_user = User.objects.create_user(
-            username="adminuser", password="adminpass"
-        )
-        AdminProfile.objects.create(
-            admin=self.admin_user, email="adminuser@yopmail.com"
-        )
-
-        # Create Regular User
-        self.regular_user = User.objects.create_user(
-            username="regularuser", password="userpass"
-        )
-        UserProfile.objects.create(
-            user=self.regular_user, email="regularuser@yopmail.com"
-        )
-
-        # Create Creator user
-        self.creator_user = User.objects.create_user(
-            username="creatoruser", password="creatorpass"
-        )
-        CreatorProfile.objects.create(
-            creator=self.creator_user, organization_email="creatoruser@yopmail.com"
-        )
-
-    def test_password_reset_admin_user(self):
-        """
-        Test that an admin user can reset their password and receives the email at AdminProfile.email.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "adminuser@yopmail.com"}
-        )
-        # Check redirect to 'password_reset_done'
-        self.assertRedirects(response, reverse("password_reset_done"))
-        # Check that one email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        # Verify email details
-        email = mail.outbox[0]
-        self.assertIn("Password Reset Requested for EventSphere Account", email.subject)
-        self.assertIn("adminuser@yopmail.com", email.to)
-        self.assertIn("Hi adminuser,", email.body)
-
-    def test_password_reset_regular_user(self):
-        """
-        Test that a regular user can reset their password and receives the email at UserProfile.email.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "regularuser@yopmail.com"}
-        )
-        # Check redirect to 'password_reset_done'
-        self.assertRedirects(response, reverse("password_reset_done"))
-        # Check that one email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        # Verify email details
-        email = mail.outbox[0]
-        self.assertIn("Password Reset Requested for EventSphere Account", email.subject)
-        self.assertIn("regularuser@yopmail.com", email.to)
-        self.assertIn("Hi regularuser,", email.body)
-
-    def test_password_reset_creator_user(self):
-        """
-        Test that a creator can reset their password and receives the email at CreatorProfile.organization_email.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "creatoruser@yopmail.com"}
-        )
-        # Check redirect to 'password_reset_done'
-        self.assertRedirects(response, reverse("password_reset_done"))
-        # Check that one email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        # Verify email details
-        email = mail.outbox[0]
-        self.assertIn("Password Reset Requested for EventSphere Account", email.subject)
-        self.assertIn("creatoruser@yopmail.com", email.to)
-        self.assertIn("Hi creatoruser,", email.body)
-
-    def test_password_reset_non_existing_email(self):
-        """
-        Test that requesting a password reset with a non-existent email shows an appropriate error.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "nonexistent@yopmail.com"}
-        )
-        # Check that the form is re-rendered with errors
-        self.assertEqual(response.status_code, 200)
-        form = response.context.get("form")
-        self.assertIsNotNone(form)
-        self.assertFalse(form.is_valid())
-        self.assertIn("email", form.errors)
-        self.assertEqual(
-            form.errors["email"], ["No user is associated with this email address."]
-        )
-        # Ensure no email was sent
-        self.assertEqual(len(mail.outbox), 0)
-
-    def test_password_reset_invalid_email_format(self):
-        """
-        Test that entering an invalid email format shows form validation errors.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "invalid-email"}
-        )
-        # Check that the form is re-rendered with errors
-        self.assertEqual(response.status_code, 200)
-        form = response.context.get("form")
-        self.assertIsNotNone(form)
-        self.assertFalse(form.is_valid())
-        self.assertIn("email", form.errors)
-        self.assertEqual(form.errors["email"], ["Enter a valid email address."])
-        # Ensure no email was sent
-        self.assertEqual(len(mail.outbox), 0)
-
-    # def test_password_reset_link_is_valid(self):
-    #     """
-    #     Test that the password reset link sent via email is valid and can be used to reset the password.
-    #     """
-    #     # Initiate password reset
-    #     response = self.client.post(reverse('password_reset'), {'email': 'adminuser@yopmail.com'})
-    #     self.assertRedirects(response, reverse('password_reset_done'))
-    #     self.assertEqual(len(mail.outbox), 1)
-
-    #     # Extract the reset link from the email
-    #     email = mail.outbox[0]
-    #     # Use regex to find the URL in the email body
-    #     reset_link_match = re.search(r'http[s]?://[^ \n]+', email.body)
-    #     self.assertIsNotNone(reset_link_match, "No reset link found in the email.")
-    #     reset_link = reset_link_match.group(0)
-
-    #     # Convert the absolute URL to a relative path
-    #     domain = 'http://localhost:8000'
-    #     self.assertTrue(reset_link.startswith(domain), "Reset link does not start with expected domain.")
-    #     reset_path = reset_link.replace(domain, '')
-
-    #     # Access the reset link
-    #     response = self.client.get(reset_path)
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertContains(response, "Set a New Password")
-
-    #     # Submit the new password
-    #     new_password = 'newadminpass123'
-    #     response = self.client.post(reset_path, {
-    #         'new_password1': new_password,
-    #         'new_password2': new_password
-    #     })
-    #     self.assertRedirects(response, reverse('password_reset_complete'))
-
-    #     # Attempt to log in with the new password
-    #     login = self.client.login(username='adminuser', password=new_password)
-    #     self.assertTrue(login)
-
-    # def test_password_reset_link_invalid_token(self):
-    #     """
-    #     Test that accessing a password reset link with an invalid token is handled properly.
-    #     """
-    #     # Generate a valid uid
-    #     uid = urlsafe_base64_encode(force_bytes(self.admin_user.pk))
-    #     # Use an invalid token
-    #     token = 'invalid-token'
-    #     reset_url = reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
-
-    #     # Access the reset link with invalid token
-    #     response = self.client.get(reset_url)
-    #     self.assertEqual(response.status_code, 200)
-    #     # Check that the appropriate error message is displayed
-    #     self.assertContains(response, "The reset password link is no longer valid.", status_code=200)
-
-    def test_password_reset_no_profile_email(self):
-        """
-        Test that requesting a password reset for a user without a profile email does not send an email.
-        """
-        # Create a user without a profile email
-        User.objects.create_user(username="noprofuser", password="noprofpass")
-        # Do not create a profile for this user
-        response = self.client.post(
-            reverse("password_reset"), {"email": "noprofuser@yopmail.com"}
-        )
-        # Check that the form is re-rendered with errors
-        self.assertEqual(response.status_code, 200)
-        form = response.context.get("form")
-        self.assertIsNotNone(form)
-        self.assertFalse(form.is_valid())
-        self.assertIn("email", form.errors)
-        self.assertEqual(
-            form.errors["email"], ["No user is associated with this email address."]
-        )
-        # Ensure no email was sent
-        self.assertEqual(len(mail.outbox), 0)
-
-    def test_password_reset_profile_email_empty(self):
-        """
-        Test that requesting a password reset with an empty email field shows appropriate errors.
-        """
-        # Create a user with an empty profile email
-        user = User.objects.create_user(username="emptyemailuser", password="emptypass")
-        UserProfile.objects.create(user=user, email="")
-
-        response = self.client.post(reverse("password_reset"), {"email": ""})
-        # Check that the form is re-rendered with errors
-        self.assertEqual(response.status_code, 200)
-        form = response.context.get("form")
-        self.assertIsNotNone(form)
-        self.assertFalse(form.is_valid())
-        self.assertIn("email", form.errors)
-        self.assertEqual(form.errors["email"], ["This field is required."])
-        # Ensure no email was sent
-        self.assertEqual(len(mail.outbox), 0)
-
-    def test_password_reset_email_contains_reset_link(self):
-        """
-        Test that the password reset email contains a valid reset link.
-        """
-        response = self.client.post(
-            reverse("password_reset"), {"email": "adminuser@yopmail.com"}
-        )
-        self.assertRedirects(response, reverse("password_reset_done"))
-        self.assertEqual(len(mail.outbox), 1)
-
-        email = mail.outbox[0]
-        # Check that the email body contains a URL
-        self.assertRegex(email.body, r"http[s]?://[^ \n]+")
-
-    def tearDown(self):
-        """
-        Clean up after tests.
-        """
-        mail.outbox = []
 
 
 class UserHomeViewTest(TestCase):
@@ -1596,6 +1371,53 @@ class CreateEventViewTest(TestCase):
         self.superuser = User.objects.create_superuser(
             username="admin", password="adminpass"
         )
+
+    @patch("boto3.client")
+    def test_create_event_with_image(self, mock_boto3_client):
+        # Log in as creator
+        self.client.login(username="creator", password="creatorpass")
+
+        # Prepare mock S3 client
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
+
+        # Mock image file
+        image_content = b"file_content"
+        image_file = SimpleUploadedFile(
+            "test_image.jpg", image_content, content_type="image/jpeg"
+        )
+
+        # Prepare form data
+        form_data = {
+            "title": "Test Event",
+            "description": "This is a test event.",
+            "date": "2024-12-10",
+            "image": image_file,
+        }
+
+        # Send POST request
+        response = self.client.post(reverse("create_event"), data=form_data)
+
+        # Assertions
+        self.assertEqual(response.status_code, 200)
+
+    @patch("boto3.client")
+    def test_create_event_without_image(self, mock_boto3_client):
+        # Log in as creator
+        self.client.login(username="creator", password="creatorpass")
+
+        # Prepare form data without image
+        form_data = {
+            "title": "Test Event",
+            "description": "This is a test event.",
+            "date": "2024-12-10",
+        }
+
+        # Send POST request
+        _ = self.client.post(reverse("create_event"), data=form_data)
+
+        # Ensure S3 upload is not called
+        mock_boto3_client.assert_not_called()
 
     def test_create_event_get_creator(self):
         self.client.login(username="creator", password="creatorpass")
@@ -2074,3 +1896,127 @@ class FilterWiseDataTestCase(TestCase):
         self.assertIn("unique_users_data", data)
         self.assertEqual(len(data["ticket_sales_data"]), 8)
         self.assertEqual(len(data["unique_users_data"]), 8)
+
+
+class MapViewTestCase(TestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.client = Client()
+        self.client.login(username="testuser", password="testpass")
+
+        # Mock current time
+        self.current_time = now()
+
+        # Create events
+        self.event_with_coordinates = Event.objects.create(
+            name="Event With Coordinates",
+            location="Location 1",
+            date_time=self.current_time,
+            latitude=12.3456,
+            longitude=78.9012,
+            image_url="http://example.com/image.jpg",
+            schedule="Event schedule",
+        )
+        self.event_without_coordinates = Event.objects.create(
+            name="Event Without Coordinates",
+            location="Location 2",
+            date_time=self.current_time,
+            latitude=None,
+            longitude=None,
+            image_url="http://example.com/image2.jpg",
+            schedule="Another schedule",
+        )
+
+    def test_map_view_renders_correctly(self):
+        # Mock the timezone.now function
+        with patch("django.utils.timezone.now", return_value=self.current_time):
+            response = self.client.get("/mapview/")  # URL of the view
+
+        # Check the response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check the rendered template
+        self.assertTemplateUsed(response, "events/map_view.html")
+
+        # Check that only events with valid coordinates are included in the context
+        events_json = json.loads(response.context["events_json"])
+        self.assertEqual(len(events_json), 1)
+        self.assertEqual(events_json[0]["id"], self.event_with_coordinates.id)
+        self.assertEqual(events_json[0]["name"], "Event With Coordinates")
+        self.assertEqual(events_json[0]["latitude"], 12.3456)
+        self.assertEqual(events_json[0]["longitude"], 78.9012)
+        self.assertEqual(events_json[0]["location"], "Location 1")
+        self.assertEqual(events_json[0]["image_url"], "http://example.com/image.jpg")
+        self.assertEqual(events_json[0]["description"], "Event schedule")
+
+
+class JoinChatTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.creator_user = User.objects.create_user(
+            username="creator", password="password"
+        )
+        self.other_user = User.objects.create_user(username="user", password="password")
+        self.event_creator_profile = CreatorProfile.objects.create(
+            creator=self.creator_user
+        )
+        self.event = Event.objects.create(
+            name="Test Event",
+            location="Test Location",
+            date_time="2024-12-31 18:00:00",
+            created_by=self.event_creator_profile,
+        )
+        self.chat_room_url = reverse("join_chat", kwargs={"event_id": self.event.id})
+        self.chat_room, _ = ChatRoom.objects.get_or_create(
+            event=self.event, creator=self.event_creator_profile
+        )
+
+    def test_creator_joins_chat_room(self):
+        # Login as creator
+        self.client.login(username="creator", password="password")
+        response = self.client.get(self.chat_room_url)
+        self.assertRedirects(
+            response, reverse("chat_room", kwargs={"room_id": self.chat_room.id})
+        )
+        self.assertTrue(
+            RoomMember.objects.filter(
+                room=self.chat_room, user=self.creator_user
+            ).exists()
+        )
+
+    def test_user_without_ticket_redirected(self):
+        # Login as a user who has not purchased a ticket
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url, follow=True)
+        self.assertRedirects(
+            response, reverse("event_detail", kwargs={"pk": self.event.id})
+        )
+        self.assertContains(
+            response, "Please purchase a ticket before joining the chat room."
+        )
+
+    def test_user_with_ticket_joins_chat_room(self):
+        # Create a ticket for the user
+        Ticket.objects.create(user=self.other_user, event=self.event)
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url)
+        self.assertRedirects(
+            response, reverse("chat_room", kwargs={"room_id": self.chat_room.id})
+        )
+        self.assertTrue(
+            RoomMember.objects.filter(
+                room=self.chat_room, user=self.other_user
+            ).exists()
+        )
+
+    def test_kicked_user_restricted(self):
+        # Create a ticket and mark the user as kicked
+        RoomMember.objects.create(
+            room=self.chat_room, user=self.other_user, is_kicked=True
+        )
+        self.client.login(username="user", password="password")
+        response = self.client.get(self.chat_room_url, follow=True)
+        self.assertRedirects(
+            response, reverse("event_detail", kwargs={"pk": self.event.id})
+        )

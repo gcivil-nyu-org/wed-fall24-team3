@@ -1,10 +1,12 @@
+# import unittest
+
+from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator, MaxLengthValidator
 from django.core.exceptions import ValidationError
-from django import forms
-from .models import AdminProfile, UserProfile, CreatorProfile, Event, Ticket
+from django.core.validators import RegexValidator, MaxLengthValidator
 
+from .models import AdminProfile, UserProfile, CreatorProfile, Event, Ticket
 
 phone_number_validator = RegexValidator(
     r"^\d{10,12}$", "Enter a valid phone number (10-12 digits)."
