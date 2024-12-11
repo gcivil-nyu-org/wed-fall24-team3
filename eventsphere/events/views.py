@@ -55,6 +55,11 @@ from django.utils.timezone import now  # Ensure this is imported
 profanity.load_censor_words()
 
 
+from django.shortcuts import render
+
+def contacts(request):
+    return render(request, 'events/contacts.html')
+
 @login_required
 def profile_chats(request):
     # Fetch all chat rooms the user is a member of

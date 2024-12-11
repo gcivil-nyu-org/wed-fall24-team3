@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | EventSphere</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .contact-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-container h1, .contact-container h2 {
+            text-align: center;
+            color: #45a049;
+        }
+
+        .contact-details, .contact-form, .map {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .contact-details p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .contact-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .contact-form button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #45a049;
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .contact-form button:hover {
+            background-color: #45a049;
+        }
+
+        iframe {
+            width: 100%;
+            height: 300px;
+            border: 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-container">
+            <!-- <a href="events\user_home.html" style="display: inline-block; margin-bottom: 20px; text-decoration: none; color: #28a745; font-weight: bold;">&larr; Back to Home</a>
+            -->
+        <h1>Contact Us</h1>
+
+        <div class="contact-details">
+            <h2>Get in Touch</h2>
+            <p><strong>Email:</strong> support@eventsphere.com</p>
+            <p><strong>Phone:</strong> +1 (123) 456-7890</p>
+            <p><strong>Address:</strong> 123 EventSphere Lane, Suite 100, New York, NY 10001</p>
+        </div>
+
+        <!-- <div class="contact-form">
+            <h2>Send Us a Message</h2>
+            <form action="#" method="POST">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Your Name" required>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Your Email" required>
+
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="4" placeholder="Your Message" required></textarea>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div> -->
+
+        <div class="map">
+            <h2>Visit Us</h2>
+            <!-- <iframe 
+                src="https://www.openstreetmap.org/?mlat=40.694203&mlon=-73.985506#map=18/40.69420/-73.98551
+                "
+                allowfullscreen="" 
+                loading="lazy">
+            </iframe> -->
+            <iframe
+    width="100%"
+    height="300"
+    frameborder="0"
+    scrolling="no"
+    marginheight="0"
+    marginwidth="0"
+    src="https://www.openstreetmap.org/export/embed.html?bbox=-73.987706%2C40.692803%2C-73.983306%2C40.695603&amp;layer=mapnik&amp;marker=40.694203%2C-73.985506"
+></iframe>
+
+        </div>
+    </div>
+</body>
+</html>
