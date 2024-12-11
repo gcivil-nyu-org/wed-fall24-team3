@@ -697,11 +697,18 @@ class ProfileTicketsViewTest(TestCase):
         response = self.client.get(reverse("profile_tickets"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/profile_tickets.html")
-        self.assertIn("events_with_tickets", response.context)
-        events_with_tickets = response.context["events_with_tickets"]
-        self.assertEqual(len(events_with_tickets), 1)
-        self.assertEqual(events_with_tickets[0]["event__name"], "Test Event")
-        self.assertEqual(events_with_tickets[0]["total_tickets"], 2)
+
+        # self.assertIn("events_with_tickets", response.context)
+
+        # Verify upcoming_events context
+        upcoming_events = response.context["upcoming_events"]
+        self.assertEqual(len(upcoming_events), 1)
+        self.assertEqual(upcoming_events[0]["event__name"], "Test Event")
+        self.assertEqual(upcoming_events[0]["total_tickets"], 2)
+
+        # Verify past_events context is empty
+        past_events = response.context["past_events"]
+        self.assertEqual(len(past_events), 0)
 
     def test_profile_tickets_view_unauthenticated(self):
         response = self.client.get(reverse("profile_tickets"))
