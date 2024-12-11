@@ -24,6 +24,41 @@
         text-align: center;
     }
 
+    /* Tab styles */
+    .tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+        gap: 10px;
+    }
+
+    .tabs button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    .tabs button.active {
+        background-color: #45a049;
+    }
+
+    .tabs button:hover {
+        background-color: #3e8e41;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
     /* Table styling for tickets */
     .tickets-table {
         width: 100%;
@@ -32,7 +67,8 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .tickets-table th, .tickets-table td {
+    .tickets-table th,
+    .tickets-table td {
         padding: 15px;
         text-align: left;
         border-bottom: 1px solid #ddd;
@@ -85,40 +121,94 @@
 <div class="container">
     <h2>My Tickets</h2>
 
-    {% if events_with_tickets %}
-    <table class="tickets-table">
-        <thead>
-            <tr>
-                <th>Event</th>
-                <th>Total Tickets</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for event in events_with_tickets %}
-            <tr>
-                <td>{{ event.event__name }}</td>
-                <td>{{ event.total_tickets }}</td>
-                <td>
-                    <button class="btn-show-qr" onclick="toggleQRCode({{ event.event__id }})">Show QR Code</button>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3">
-                    <div class="qr-code-container" id="qr-code-container-{{ event.event__id }}">
-                        <img id="qr-code-{{ event.event__id }}" src="" alt="QR Code">
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No tickets purchased yet.</p>
-    {% endif %}
+    <!-- Tabs for Upcoming and Past Events -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="upcoming-tab">Upcoming Events</button>
+        <button class="tab-btn" data-tab="past-tab">Past Events</button>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div id="upcoming-tab" class="tab-content active">
+        {% if upcoming_events %}
+        <table class="tickets-table">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Total Tickets</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in upcoming_events %}
+                <tr>
+                    <td>{{ event.event__name }}</td>
+                    <td>{{ event.total_tickets }}</td>
+                    <td>
+                        <button class="btn-show-qr" onclick="toggleQRCode({{ event.event__id }})">Show QR Code</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <div class="qr-code-container" id="qr-code-container-{{ event.event__id }}">
+                            <img id="qr-code-{{ event.event__id }}" src="" alt="QR Code">
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No upcoming events.</p>
+        {% endif %}
+    </div>
+
+    <!-- Past Events -->
+    <div id="past-tab" class="tab-content">
+        {% if past_events %}
+        <table class="tickets-table">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Total Tickets</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in past_events %}
+                <tr>
+                    <td>{{ event.event__name }}</td>
+                    <td>{{ event.total_tickets }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No past events.</p>
+        {% endif %}
+    </div>
 </div>
 
 <script>
+    // Toggle between tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const targetTab = button.dataset.tab;
+            tabContents.forEach(content => {
+                if (content.id === targetTab) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    // Toggle QR Code visibility
     function toggleQRCode(eventId) {
         const qrContainer = document.getElementById(`qr-code-container-${eventId}`);
         const qrImage = document.getElementById(`qr-code-${eventId}`);
