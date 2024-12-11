@@ -55,10 +55,9 @@ from django.utils.timezone import now  # Ensure this is imported
 profanity.load_censor_words()
 
 
-from django.shortcuts import render
-
 def contacts(request):
-    return render(request, 'events/contacts.html')
+    return render(request, "events/contacts.html")
+
 
 @login_required
 def profile_chats(request):
@@ -115,6 +114,7 @@ def map_view(request):
             "longitude": event.longitude,
             "location": event.location,
             "image_url": event.image_url,
+            "description": event.schedule,
         }
         for event in events
         if event.latitude and event.longitude  # Ensure events with valid coordinates

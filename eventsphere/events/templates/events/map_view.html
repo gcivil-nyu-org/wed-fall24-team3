@@ -172,7 +172,8 @@
     function renderEventCard(event) {
         const eventCard = document.getElementById('event-card');
         const imageUrl = event.image_url ? event.image_url : 'https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY=';
-        console.log(imageUrl)
+        // console.log(imageUrl)
+        // console.log(event)
         eventCard.innerHTML = `
             <img src="${imageUrl}" alt="${event.name}" class="event-image" />
             <div class="event-details">
