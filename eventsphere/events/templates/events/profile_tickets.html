@@ -4,13 +4,59 @@
 
 {% block content %}
 <style>
-    * {
-        box-sizing: border-box;
+    .profile-container {
+         display: flex;
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        /* display: flex;
+        max-width: 1200px;
+        margin: 50px auto; */
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #f0f2f5;
     }
 
     .container {
-        max-width: 1200px;
-        margin: 50px auto;
+        width: 75%;
         padding: 30px;
         background-color: #fff;
         border-radius: 10px;
@@ -118,72 +164,86 @@
     }
 </style>
 
-<div class="container">
-    <h2>My Tickets</h2>
-
-    <!-- Tabs for Upcoming and Past Events -->
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="upcoming-tab">Upcoming Events</button>
-        <button class="tab-btn" data-tab="past-tab">Past Events</button>
+<div class="profile-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'profile_tickets' %}">My Tickets</a></li>
+            <li><a href="{% url 'profile_favorites' %}">Favorites</a></li>
+            <li><a href="{% url 'profile_chats' %}">Chats</a></li>
+        </ul>
     </div>
 
-    <!-- Upcoming Events -->
-    <div id="upcoming-tab" class="tab-content active">
-        {% if upcoming_events %}
-        <table class="tickets-table">
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Total Tickets</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in upcoming_events %}
-                <tr>
-                    <td>{{ event.event__name }}</td>
-                    <td>{{ event.total_tickets }}</td>
-                    <td>
-                        <button class="btn-show-qr" onclick="toggleQRCode({{ event.event__id }})">Show QR Code</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="3">
-                        <div class="qr-code-container" id="qr-code-container-{{ event.event__id }}">
-                            <img id="qr-code-{{ event.event__id }}" src="" alt="QR Code">
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No upcoming events.</p>
-        {% endif %}
-    </div>
+    <!-- Main Content -->
+    <div class="container">
+        <h2>My Tickets</h2>
 
-    <!-- Past Events -->
-    <div id="past-tab" class="tab-content">
-        {% if past_events %}
-        <table class="tickets-table">
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Total Tickets</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in past_events %}
-                <tr>
-                    <td>{{ event.event__name }}</td>
-                    <td>{{ event.total_tickets }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No past events.</p>
-        {% endif %}
+        <!-- Tabs for Upcoming and Past Events -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="upcoming-tab">Upcoming Events</button>
+            <button class="tab-btn" data-tab="past-tab">Past Events</button>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div id="upcoming-tab" class="tab-content active">
+            {% if upcoming_events %}
+            <table class="tickets-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Total Tickets</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in upcoming_events %}
+                    <tr>
+                        <td>{{ event.event__name }}</td>
+                        <td>{{ event.total_tickets }}</td>
+                        <td>
+                            <button class="btn-show-qr" onclick="toggleQRCode({{ event.event__id }})">Show QR Code</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <div class="qr-code-container" id="qr-code-container-{{ event.event__id }}">
+                                <img id="qr-code-{{ event.event__id }}" src="" alt="QR Code">
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No upcoming events.</p>
+            {% endif %}
+        </div>
+
+        <!-- Past Events -->
+        <div id="past-tab" class="tab-content">
+            {% if past_events %}
+            <table class="tickets-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Total Tickets</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in past_events %}
+                    <tr>
+                        <td>{{ event.event__name }}</td>
+                        <td>{{ event.total_tickets }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No past events.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 
