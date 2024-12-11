@@ -151,7 +151,7 @@
         <form method="post">
             {% csrf_token %}
             <button type="submit" class="btn-confirm">Yes, Delete</button>
-            <a href="{% url 'event_list' %}" class="btn-cancel">Cancel</a>
+            <a href="{% if user.is_staff %}{% url 'creator_dashboard' %}{% else %}{% url 'event_list' %}{% endif %}" class="btn-cancel">Cancel</a>
         </form>
     </div>
 
