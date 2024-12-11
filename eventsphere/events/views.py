@@ -50,6 +50,7 @@ from .utils import (
 )
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now  # Ensure this is imported
 
 profanity.load_censor_words()
 
@@ -364,10 +365,17 @@ def profile_tickets(request):
         .annotate(total_tickets=Sum("quantity"))
     )
 
+    # Separate upcoming and past events
+    upcoming_events = events_with_tickets.filter(event__date_time__gte=now())
+    past_events = events_with_tickets.filter(event__date_time__lt=now())
+
     return render(
         request,
         "events/profile_tickets.html",
-        {"events_with_tickets": events_with_tickets},
+        {
+            "upcoming_events": upcoming_events,
+            "past_events": past_events,
+        },
     )
 
 
