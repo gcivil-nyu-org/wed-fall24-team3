@@ -4,9 +4,56 @@
 
 {% block content %}
 <style>
-    .chats-container {
+    .profile-container {
+        display: flex;
         max-width: 1200px;
         margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #f0f2f5;
+    }
+
+    .chats-container {
+        width: 75%;
         padding: 20px;
         background-color: #ffffff;
         border-radius: 10px;
@@ -51,22 +98,36 @@
     }
 </style>
 
-<div class="chats-container">
-    <div class="chats-header">
-        <h2>Joined Chats</h2>
+<div class="profile-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'profile_tickets' %}">My Tickets</a></li>
+            <li><a href="{% url 'profile_favorites' %}">Favorites</a></li>
+            <li><a href="{% url 'profile_chats' %}">Chats</a></li>
+        </ul>
     </div>
 
-    {% if chat_rooms %}
-        <ul class="chat-list">
-            {% for room in chat_rooms %}
-                <li class="chat-list-item">
-                    <span>{{ room.event.name }}</span>
-                    <a href="{% url 'chat_room' room.id %}">Go to Chat</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have not joined any chat rooms yet.</p>
-    {% endif %}
+    <!-- Chats Content -->
+    <div class="chats-container">
+        <div class="chats-header">
+            <h2>Joined Chats</h2>
+        </div>
+
+        {% if chat_rooms %}
+            <ul class="chat-list">
+                {% for room in chat_rooms %}
+                    <li class="chat-list-item">
+                        <span>{{ room.event.name }}</span>
+                        <a href="{% url 'chat_room' room.id %}">Go to Chat</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have not joined any chat rooms yet.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
