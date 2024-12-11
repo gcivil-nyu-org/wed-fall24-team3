@@ -27,8 +27,8 @@
 
 
         .event-detail-container {
-            width: 90%;
-            max-width: 1000px;
+            width: 100%;
+            max-width: 2500px;
             margin: 50px auto;
             background-color: #ffffff;
             padding: 30px;
@@ -207,73 +207,72 @@
 {% endblock %}
 
 {% block content %}
-    <div class="event-detail-container">
-        <!-- Back to Events Button -->
-        <a href="{% url 'user_event_list' %}" class="back-to-events">← Back to Events</a>
+<div class="event-detail-container">
+    <!-- Back to Events Button -->
+    <a href="{% url 'user_event_list' %}" class="back-to-events">← Back to Events</a>
 
-        <!-- Event Image -->
-        {% if event.image_url %}
-            <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image">
-        {% else %}
-            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
-        {% endif %}
+    <!-- Event Image -->
+    {% if event.image_url %}
+        <img src="{{ event.image_url }}" alt="{{ event.name }}" class="event-image">
+    {% else %}
+        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ event.name }}" class="event-image">
+    {% endif %}
 
-        {% if messages %}
-        <div class="alert-container">
-            {% for message in messages %}
-                <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert {{ message.tags }}" id="message_container">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <!-- Buy Tickets Button -->        
-        {% if event.date_time > now %}
-            <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
-        {% else %}
-            <p class="text-muted">This event has already taken place. Ticket purchase is unavailable.</p>
-        {% endif %}
-
+    <!-- Buy Tickets Button -->
+    {% if event.date_time > now %}
+        <a href="{% url 'buy_tickets' event.id %}" class="buy-tickets">Buy Tickets</a>
         <a href="{% url 'join_chat' event.id %}" class="buy-tickets">Join Chat Room</a>
 
         <!-- Favorite Button -->
-<div class='fav-class'>
-    <button 
-        class="favorite-btn" 
-        data-event-id="{{ event.id }}" 
-        onclick="toggleFavorite(this)">
-        <span class="heart {% if is_favorited %}favorited{% endif %}">
-            &#x2764;
-        </span> 
-        {% if is_favorited %}
-            Remove from Favorites
-        {% else %}
-            Add to Favorites
-        {% endif %}
-    </button>
-</div>
-
-
-        <!-- Event Name -->
-        <h1>{{ event.name }}</h1>
-
-        <!-- Event Information -->
-        <div class="event-info">
-            <div class="event-info-left">
-                <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
-                <p><strong>Location:</strong> {{ event.location }}</p>
-                <p><strong>Category:</strong> {{ event.category }}</p> <!-- Display Category -->
-            </div>
+        <div class='fav-class'>
+            <button 
+                class="favorite-btn" 
+                data-event-id="{{ event.id }}" 
+                onclick="toggleFavorite(this)">
+                <span class="heart {% if is_favorited %}favorited{% endif %}">
+                    &#x2764;
+                </span> 
+                {% if is_favorited %}
+                    Remove from Favorites
+                {% else %}
+                    Add to Favorites
+                {% endif %}
+            </button>
         </div>
+    {% else %}
+        <p class="text-muted">This event has already taken place. Ticket purchase, chat room access, and adding to favorites are unavailable.</p>
+    {% endif %}
 
-        <!-- Leaflet Map -->
-        <div id="map"></div>
+    <!-- Event Name -->
+    <h1>{{ event.name }}</h1>
 
-        <!-- Event Description -->
-        <div class="event-description">
-            <p><strong>Event Description:</strong></p>
-            {{ event.schedule|linebreaks }}
+    <!-- Event Information -->
+    <div class="event-info">
+        <div class="event-info-left">
+            <p><strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y H:i" }}</p>
+            <p><strong>Location:</strong> {{ event.location }}</p>
+            <p><strong>Category:</strong> {{ event.category }}</p> <!-- Display Category -->
         </div>
     </div>
+
+    <!-- Leaflet Map -->
+    <div id="map"></div>
+
+    <!-- Event Description -->
+    <div class="event-description">
+        <p><strong>Event Description:</strong></p>
+        {{ event.schedule|linebreaks }}
+    </div>
+</div>
+
 
     <!-- Leaflet JS and OpenStreetMap Integration -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
