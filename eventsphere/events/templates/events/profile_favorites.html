@@ -4,9 +4,59 @@
 
 {% block content %}
 <style>
-    .favorites-container {
+    .profile-container {
+        display: flex;
         max-width: 1200px;
         margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        /* display: flex;
+        max-width: 1200px;
+        margin: 50px auto; */
+    }
+
+    .sidebar {
+        width: 25%;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #f0f2f5;
+    }
+
+    .favorites-container {
+        width: 75%;
         padding: 20px;
         background-color: #ffffff;
         border-radius: 10px;
@@ -77,27 +127,41 @@
     }
 </style>
 
-<div class="favorites-container">
-    <div class="favorites-header">
-        <h2>Favorited Events</h2>
+<div class="profile-container">
+    <!-- Include Sidebar -->
+    <div class="sidebar">
+        <h3>Account Settings</h3>
+        <ul>
+            <li><a href="{% url 'user_profile' %}">Account Info</a></li>
+            <li><a href="{% url 'profile_tickets' %}">My Tickets</a></li>
+            <li><a href="{% url 'profile_favorites' %}">Favorites</a></li>
+            <li><a href="{% url 'profile_chats' %}">Chats</a></li>
+        </ul>
     </div>
 
-    {% if favorited_events %}
-        <div class="card-grid">
-            {% for event in favorited_events %}
-                <div class="card">
-                    <a href="{% url 'event_detail' event.id %}">
-                        <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}" >
-                        <div class="card-content">
-                            <h3 class="card-title">{{ event.name }}</h3>
-                            <p class="card-description">{{ event.schedule|truncatewords:20 }}</p>
-                        </div>
-                    </a>
-                </div>
-            {% endfor %}
+    <!-- Favorites Content -->
+    <div class="favorites-container">
+        <div class="favorites-header">
+            <h2>Favorited Events</h2>
         </div>
-    {% else %}
-        <p class="no-favorites">You have not favorited any events yet.</p>
-    {% endif %}
+
+        {% if favorited_events %}
+            <div class="card-grid">
+                {% for event in favorited_events %}
+                    <div class="card">
+                        <a href="{% url 'event_detail' event.id %}">
+                            <img src="{% if event.image_url %}{{ event.image_url }}{% else %}https://media.istockphoto.com/id/974238866/photo/audience-listens-to-the-lecturer-at-the-conference.jpg?s=2048x2048&w=is&k=20&c=Pi-Ca0DtIojLjWVcy_-LLMk2ISsSf5kg5NJtAntxGOY={% endif %}" >
+                            <div class="card-content">
+                                <h3 class="card-title">{{ event.name }}</h3>
+                                <p class="card-description">{{ event.schedule|truncatewords:20 }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-favorites">You have not favorited any events yet.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
