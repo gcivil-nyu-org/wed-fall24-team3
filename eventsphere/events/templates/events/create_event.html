@@ -252,6 +252,17 @@
                         customDropdown.style.display = 'none';
                     });
             });
+
+            // Set minimum date and time to current date and time
+            const dateTimeInput = document.getElementById('id_date_time');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const formattedNow = `${year}-${month}-${day}T${hours}:${minutes}`;
+            dateTimeInput.setAttribute('min', formattedNow);
         });
     </script>
     <body>
