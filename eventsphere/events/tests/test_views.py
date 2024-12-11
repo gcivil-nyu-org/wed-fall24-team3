@@ -1639,8 +1639,7 @@ class CreateEventViewTest(TestCase):
         }
 
         # Send POST request
-        response = self.client.post(reverse("create_event"), data=form_data)
-
+        _ = self.client.post(reverse("create_event"), data=form_data)
 
         # Ensure S3 upload is not called
         mock_boto3_client.assert_not_called()

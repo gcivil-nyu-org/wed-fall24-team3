@@ -145,7 +145,9 @@ async def notify_group_members(room, sender, message, msg_type):
 
 
 @database_sync_to_async
-def save_notification(room, member, message, title, sub_title, url_path):  # pragma: no cover
+def save_notification(
+    room, member, message, title, sub_title, url_path
+):  # pragma: no cover
     notif = Notification.objects.create(
         user=member.user,
         message=message,
