@@ -5,7 +5,7 @@ from . import views
 from .views import user_profile, my_tickets, map_view, CustomPasswordResetView
 
 urlpatterns = [
-    path('contacts/', views.contacts, name='contacts'),
+    path("contacts/", views.contacts, name="contacts"),
     path(
         "generate_event_qr/<int:event_id>/",
         views.generate_event_qr_code,
